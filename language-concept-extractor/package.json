@@ -6,7 +6,7 @@
   "author": "Sebastian Wendorf",
   "license": "MIT",
   "private": true,
-  "devDependencies": {
+  "dependencies": {
     "@types/node": "^17.0.32",
     "@typescript-eslint/eslint-plugin": "^5.23.0",
     "@typescript-eslint/parser": "^5.23.0",
@@ -15,9 +15,11 @@
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-n": "^15.0.0",
     "eslint-plugin-promise": "^6.0.0",
+    "readdirp": "^3.6.0",
     "typescript": "^4.6.4"
   },
+  "devDependencies": {},
   "scripts": {
-    "start": "tsc && node build/ast-extractor.js"
+    "start": "tsc && node build/extractor.js"
   }
 }

@@ -6,9 +6,11 @@ const code = fs.readFileSync('/home/sebastian/dev/master-thesis/example-projects
 const { ast, services } = parseAndGenerateServices(code, {
   filePath: '/home/sebastian/dev/master-thesis/example-projects/1simple/example-program1.ts',
   loc: true,
+  range: true,
+  tokens: true,
   project: '/home/sebastian/dev/master-thesis/example-projects/1simple/tsconfig.json',
   tsconfigRootDir: module.path,
-  range: true,
+  
 });
 
 //let nativeNode = services.esTreeNodeToTSNodeMap.get(ast.body[0].body!.body![2]);
@@ -20,6 +22,8 @@ console.log(checker.typeToString(x));
 for(const prop of x.getProperties()) {
   console.log("\t"+checker.typeToString(checker.getTypeOfSymbolAtLocation(prop, n)))
 }
+
+
 
 // ===============================================================================
 
