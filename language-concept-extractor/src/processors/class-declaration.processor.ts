@@ -1,9 +1,13 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
-import { ClassDeclaration, ExportSpecifier } from '@typescript-eslint/types/dist/generated/ast-spec';
+import { ClassDeclaration, ClassPropertyNameNonComputed, ExportSpecifier } from '@typescript-eslint/types/dist/generated/ast-spec';
 import { Concept } from '../concepts';
-import ClassDeclarationIndex, { Class } from '../concepts/class-declaration.concept';
+import ClassDeclarationIndex, { LCEClassDeclaration } from '../concepts/class-declaration.concept';
+import { LCEDecorator } from '../concepts/decorator.concept';
+import { LCEMethodDeclaration } from '../concepts/method-declaration.concept';
+import { LCEPropertyDeclaration } from '../concepts/property-declaration.concept';
 import { BaseProcessor, SourceData } from '../processor';
 import Utils from '../utils';
+import { parseDecorators } from './decorator.utils';
 
 export default class ClassDeclarationProcessor implements BaseProcessor {
 
@@ -28,41 +32,74 @@ export default class ClassDeclarationProcessor implements BaseProcessor {
                 // Default class declaration inside a TS file
                 const [fqn, cl] = this.processClassDeclaration(statement, sourceData);
                 decls.set(fqn, cl);
-            } else if (statement.type === AST_NODE_TYPES.ExportNamedDeclaration) {
-                if(statement.declaration !== undefined && statement.declaration?.type === AST_NODE_TYPES.ClassDeclaration) {
-                    // class declaration that is directly exported
-                    const [fqn, cl] = this.processClassDeclaration(statement.declaration, sourceData);
-                    cl.exported_name = cl.className;
-                    decls.set(fqn, cl);
-                } else if (statement.specifiers.length > 0 && statement.source === null) {
-                    // class may ne exported separately via a named export (check after all declarations are scanned)
-                    exportSpecifiers = exportSpecifiers.concat(statement.specifiers);
-                }
+            } else if (statement.type === AST_NODE_TYPES.ExportNamedDeclaration && 
+                statement.declaration !== undefined && 
+                statement.declaration?.type === AST_NODE_TYPES.ClassDeclaration) {
+                // class declaration that is directly exported
+                const [fqn, cl] = this.processClassDeclaration(statement.declaration, sourceData);
+                decls.set(fqn, cl);
             }
-        }
-
-        // Add separate exports
-        for(let specifier of exportSpecifiers) {
-            let fqn = Utils.getFQN(sourceData, specifier.local);
-            if(decls.get(fqn))
-                decls.get(fqn)!.exported_name = specifier.exported.name;
         }
     }
 
     /** converts a given ESTree ClassDeclaration into a Class model object */
-    private processClassDeclaration(decl: ClassDeclaration, sourceData: SourceData): [string, Class] {
+    private processClassDeclaration(decl: ClassDeclaration, sourceData: SourceData): [string, LCEClassDeclaration] {
         const fqn = Utils.getFQN(sourceData, decl);
 
-        // TODO: Add field and method parsing
+        // Class Decorator Parsing
+        const decorators: LCEDecorator[] = parseDecorators(decl.decorators);
+        // Fields and Method Parsing
+        const methods: LCEMethodDeclaration[] = [];
+        const properties: LCEPropertyDeclaration[] = [];
+        for(let classElement of decl.body.body) {
+            if(classElement.type === AST_NODE_TYPES.PropertyDefinition && !classElement.computed) {
+                // Non-Computed Property Parsing (omit computed properties)
+                let [propertyName, jsPrivate] = this.processClassElementName(classElement.key);
+
+                properties.push({
+                    decorators: parseDecorators(classElement.decorators),
+                    propertyName: propertyName,
+                    optional: !!classElement.optional
+                });
+            } else if (classElement.type === AST_NODE_TYPES.MethodDefinition && !classElement.computed) {
+                // Non-Computed Method Parsing (omit computed methods)
+                let [methodName, jsPrivate] = this.processClassElementName(classElement.key);
+
+                methods.push({
+                    methodName: methodName,
+                    decorators: parseDecorators(classElement.decorators)
+                });
+            } else {
+                // TODO: handle other class level declarations
+            }
+        }
 
         return [fqn, {
             className: decl.id!.name,
-            fields: [],
-            methods: [],
-            sourceFilePath: sourceData.sourceFilePath,
-            exported_name: undefined
+            properties: properties,
+            methods: methods,
+            decorators: decorators,
+            sourceFilePath: sourceData.sourceFilePath
         }];
     }
-    
 
+    /** 
+     * Returns the field or method name for a given non-computed class element.
+     * Also returns if the element was declared private by using a #
+     * */
+    private processClassElementName(name: ClassPropertyNameNonComputed): [string, boolean] {
+        let result = "";
+        let jsPrivate = false;
+
+        if(name.type === AST_NODE_TYPES.Identifier) {
+            result = name.name;
+        } else if(name.type === AST_NODE_TYPES.Literal) {
+            result = name.value+"";
+        } else {
+            result = name.name;
+            jsPrivate = true;
+        }
+
+        return [result, jsPrivate];
+    }
 }
