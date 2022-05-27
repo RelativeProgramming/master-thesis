@@ -59,10 +59,10 @@ export function processProject(projectRoot: string) {
   let processors = [...PROCESSORS];
   while(processors.length > 0) {
     for(let Processor of processors) {
-      if(!Processor.prototype.requiredConcepts.every((v) => providedConcepts.includes(v)))
+      let p = new Processor();
+      if(!p.requiredConcepts.every((v) => providedConcepts.includes(v)))
         continue
       
-      let p = new Processor();
       for (let file of fileList) {
         processSourceFile(projectRoot, file, concepts, p);
       }

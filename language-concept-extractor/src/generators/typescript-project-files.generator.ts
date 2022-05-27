@@ -21,7 +21,7 @@ export default class TypeScriptProjectFilesGenerator implements BaseGenerator {
             `
             MATCH (configFile:File:Json {fileName: '/tsconfig.json'})
             SET configFile:TS:ProjectConfiguration
-            RETURN root
+            RETURN configFile
             `,{projectRoot: project.projectRoot}
         );
     }
