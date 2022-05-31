@@ -12,7 +12,7 @@ export default class Utils {
      * @param node TS node in AST
      * @returns the fully qualified name of the element described in node
      */
-    static getFQN(sourceData: SourceData, statement: ESNode): string {
+    static getRelativeFQNForESNode(sourceData: SourceData, statement: ESNode): string {
         const node: Node = sourceData.services.esTreeNodeToTSNodeMap.get(statement);
         const type = sourceData.typeChecker.getTypeAtLocation(node);
         const symbol = type.getSymbol();
@@ -20,6 +20,15 @@ export default class Utils {
             return "";
         }
         const fqn = sourceData.typeChecker.getFullyQualifiedName(symbol);
+        return this.getRelativeFQN(sourceData, fqn);
+    }
+
+    /**
+     * @param sourceData data for the source file that contains the given FQN
+     * @param fqn a fully qualified name obtained by the TS TypeChecker
+     * @returns a consistent fully qualified name using a path relative to the project root
+     */
+    static getRelativeFQN(sourceData: SourceData, fqn: string): string {
         let relativeFqn = fqn.replace(sourceData.projectRoot, ".");
 
         // local object: add source file path
@@ -29,6 +38,13 @@ export default class Utils {
         return relativeFqn;
     }
 
+    /**
+     * Returns the paths for all files with a given ending inside a directory. (scans recursively)
+     * @param path path to the directory that shall be scanned
+     * @param endings whitelist of endings of files that should
+     * @param ignoredDirs directories that should not be scanned
+     * @returns 
+     */
     static getFileList(path: string, endings: string[] = [], ignoredDirs: string[] = []): string[] {
         let allFiles = Utils.getAllFiles(path, [], ignoredDirs);
         return allFiles.filter(val => {

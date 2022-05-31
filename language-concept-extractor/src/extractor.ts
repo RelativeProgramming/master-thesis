@@ -73,7 +73,6 @@ export function processProject(projectRoot: string) {
   }
 
   generateGraphs(concepts);
-
 }
 
 async function generateGraphs(concepts: Map<Concept, any>) {

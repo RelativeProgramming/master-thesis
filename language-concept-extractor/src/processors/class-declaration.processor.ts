@@ -3,11 +3,13 @@ import { ClassDeclaration, ClassPropertyNameNonComputed, ExportSpecifier } from 
 import { Concept } from '../concepts';
 import ClassDeclarationIndex, { LCEClassDeclaration } from '../concepts/class-declaration.concept';
 import { LCEDecorator } from '../concepts/decorator.concept';
-import { LCEMethodDeclaration } from '../concepts/method-declaration.concept';
+import { LCEConstructorDeclaration, LCEGetterDeclaration, LCEMethodDeclaration, LCESetterDeclaration } from '../concepts/method-declaration.concept';
 import { LCEPropertyDeclaration } from '../concepts/property-declaration.concept';
+import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
 import { BaseProcessor, SourceData } from '../processor';
 import Utils from '../utils';
 import { parseDecorators } from './decorator.utils';
+import { parseClassMethodType, parseClassPropertyType, parseClassTypeParameters } from './type.utils';
 
 export default class ClassDeclarationProcessor implements BaseProcessor {
 
@@ -43,41 +45,97 @@ export default class ClassDeclarationProcessor implements BaseProcessor {
     }
 
     /** converts a given ESTree ClassDeclaration into a Class model object */
-    private processClassDeclaration(decl: ClassDeclaration, sourceData: SourceData): [string, LCEClassDeclaration] {
-        const fqn = Utils.getFQN(sourceData, decl);
+    private processClassDeclaration(classDecl: ClassDeclaration, sourceData: SourceData): [string, LCEClassDeclaration] {
+        const fqn = Utils.getRelativeFQNForESNode(sourceData, classDecl);
 
         // Class Decorator Parsing
-        const decorators: LCEDecorator[] = parseDecorators(decl.decorators);
+        const decorators: LCEDecorator[] = parseDecorators(classDecl.decorators);
+
+        // Class Type Parameter Parsing
+        const typeParameters: LCETypeParameterDeclaration[] = parseClassTypeParameters(sourceData, classDecl);
+
         // Fields and Method Parsing
         const methods: LCEMethodDeclaration[] = [];
         const properties: LCEPropertyDeclaration[] = [];
-        for(let classElement of decl.body.body) {
+        const getters: LCEGetterDeclaration[] = [];
+        const setters: LCESetterDeclaration[] = [];
+        let constr: LCEConstructorDeclaration | undefined;
+        for(let classElement of classDecl.body.body) {
             if(classElement.type === AST_NODE_TYPES.PropertyDefinition && !classElement.computed) {
                 // Non-Computed Property Parsing (omit computed properties)
+                // TODO: handle static properties
                 let [propertyName, jsPrivate] = this.processClassElementName(classElement.key);
-
                 properties.push({
-                    decorators: parseDecorators(classElement.decorators),
                     propertyName: propertyName,
-                    optional: !!classElement.optional
+                    optional: !!classElement.optional,
+                    type: parseClassPropertyType(sourceData, classElement.key),
+                    decorators: parseDecorators(classElement.decorators)
                 });
             } else if (classElement.type === AST_NODE_TYPES.MethodDefinition && !classElement.computed) {
                 // Non-Computed Method Parsing (omit computed methods)
-                let [methodName, jsPrivate] = this.processClassElementName(classElement.key);
+                // TODO: handle static methods
+                // TODO: handle overloads
 
-                methods.push({
-                    methodName: methodName,
-                    decorators: parseDecorators(classElement.decorators)
-                });
+                if(classElement.kind === "method") {
+                    // method
+                    let [methodName, jsPrivate] = this.processClassElementName(classElement.key)
+                    const functionType = parseClassMethodType(sourceData, classDecl, classElement, methodName, jsPrivate);
+
+                    if(functionType) {
+                        methods.push({
+                            methodName: methodName,
+                            returnType: functionType.returnType,
+                            parameters: functionType.parameters,
+                            typeParameters: functionType.typeParameters,
+                            decorators: parseDecorators(classElement.decorators)
+                        });
+                    }
+                    
+                } else if(classElement.kind === "constructor") {
+                    // constructor
+                    let [methodName, jsPrivate] = this.processClassElementName(classElement.key);
+                    const functionType = parseClassMethodType(sourceData, classDecl, classElement, methodName, jsPrivate);
+                    if(functionType) {
+                        constr = {
+                            parameters: functionType?.parameters
+                        };
+                    }
+                } else if(classElement.kind === "get") {
+                    // getter
+                    let [methodName, jsPrivate] = this.processClassElementName(classElement.key);
+                    const functionType = parseClassMethodType(sourceData, classDecl, classElement, methodName, jsPrivate);
+                    if(functionType) {
+                        getters.push({
+                            methodName: methodName,
+                            returnType: functionType.returnType,
+                            decorators: parseDecorators(classElement.decorators)
+                        });
+                    }
+                } else {
+                    // setter
+                    let [methodName, jsPrivate] = this.processClassElementName(classElement.key);
+                    const functionType = parseClassMethodType(sourceData, classDecl, classElement, methodName, jsPrivate);
+                    if(functionType) {
+                        setters.push({
+                            methodName: methodName,
+                            parameters: functionType.parameters,
+                            decorators: parseDecorators(classElement.decorators)
+                        });
+                    }
+                }
             } else {
-                // TODO: handle other class level declarations
+                // TODO: handle other class level declarations e.g. index signatures, callables
             }
         }
 
         return [fqn, {
-            className: decl.id!.name,
+            className: classDecl.id!.name,
+            typeParameters: typeParameters,
+            constr: constr,
             properties: properties,
             methods: methods,
+            getters: getters,
+            setters: setters,
             decorators: decorators,
             sourceFilePath: sourceData.sourceFilePath
         }];
