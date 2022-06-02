@@ -93,11 +93,28 @@ export class LCETypeFunction extends LCEType {
      */
     constructor(
         public returnType: LCEType,
-        public parameters: Map<[number, string], LCEType>,
+        public parameters: LCETypeFunctionParameter[],
         public typeParameters: LCETypeParameterDeclaration[]
     ) {
         super()
     }
+}
+
+/**
+ * Represents a parameter inside a function type (e.g. `x: string` in `(x: string) => number`)
+ */
+ export class LCETypeFunctionParameter {
+
+    /**
+     * @param index position of the parameter in the parameter list
+     * @param name name of the parameter
+     * @param type type of the parameter
+     */
+    constructor(
+        public index: number,
+        public name: string,
+        public type: LCEType
+    ) { }
 }
 
 /**

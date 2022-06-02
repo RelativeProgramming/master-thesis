@@ -1,13 +1,15 @@
 import { parseAndGenerateServices } from '@typescript-eslint/typescript-estree';
 import * as fs from 'fs';
 import * as ts from "typescript";
-import { driver as neo4jDriver, auth as neo4jAuth} from "neo4j-driver";
+import { driver as neo4jDriver, auth as neo4jAuth, Node} from "neo4j-driver";
 import { Concept } from './concepts';
 import { BaseProcessor, SourceData } from './processor';
 import ClassDeclarationProcessor from './processors/class-declaration.processor';
 import Utils from './utils';
 import ClassDeclarationGenerator from './generators/class-declaration.generator';
 import TypeScriptProjectFilesGenerator from './generators/typescript-project-files.generator';
+import { NodeIndex } from './node-indexes';
+import DeclaredTypesNodeIndex from './node-indexes/declared-types.node-index';
 
 
 const PROCESSORS = [
@@ -72,23 +74,30 @@ export function processProject(projectRoot: string) {
     }
   }
 
-  generateGraphs(concepts);
+  //generateGraphs(concepts);
 }
 
 async function generateGraphs(concepts: Map<Concept, any>) {
   console.log("Generating Graph...")
   const driver = neo4jDriver("bolt://localhost:7687", neo4jAuth.basic("", ""));
   const session = driver.session();
+  const nodeIndexes = initNodeIndexes();
 
   try {
     for(let Generator of GENERATORS) {
       const generator = new Generator();
-      await generator.run(session, concepts);
+      await generator.run(session, concepts, nodeIndexes);
     }
   } finally {
     await session.close();
   }
   await driver.close();
+}
+
+function initNodeIndexes(): Map<NodeIndex, any> {
+  const result: Map<NodeIndex, any> = new Map();
+  result.set(NodeIndex.DECLARED_TYPES, new DeclaredTypesNodeIndex());
+  return result;
 }
 
 processProject("/home/sebastian/dev/master-thesis/example-projects/2multiple");

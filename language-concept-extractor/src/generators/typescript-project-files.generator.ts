@@ -1,7 +1,7 @@
 import { Session } from 'neo4j-driver';
 import { Concept } from '../concepts';
 import { LCETypeScriptProject } from '../concepts/typescript-project.concept';
-import { BaseGenerator } from '../generator';
+import BaseGenerator from '../generator';
 
 export default class TypeScriptProjectFilesGenerator implements BaseGenerator {
 

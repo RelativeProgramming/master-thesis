@@ -5,14 +5,21 @@ import LCEType from './type.concept';
 
 export interface LCEMethodDeclaration {
     methodName: string;
-    parameters: Map<[number, string], LCEType>;
+    parameters: LCEParameterDeclaration[];
     returnType: LCEType;
     typeParameters: LCETypeParameterDeclaration[];
     decorators: LCEDecorator[];
 }
 
+export interface LCEParameterDeclaration {
+    index: number;
+    name: string;
+    type: LCEType;
+    decorators: LCEDecorator[];
+}
+
 export interface LCEConstructorDeclaration {
-    parameters: Map<[number, string], LCEType>;
+    parameters: LCEParameterDeclaration[];
 }
 
 export interface LCEGetterDeclaration {
@@ -23,6 +30,6 @@ export interface LCEGetterDeclaration {
 
 export interface LCESetterDeclaration {
     methodName: string;
-    parameters: Map<[number, string], LCEType>;
+    parameters: LCEParameterDeclaration[];
     decorators: LCEDecorator[];
 }

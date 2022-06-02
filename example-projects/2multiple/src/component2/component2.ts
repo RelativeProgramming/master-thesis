@@ -1,4 +1,4 @@
-import { component } from '../framework';
+import { component, required } from '../framework';
 import { Model2 } from './component2.model';
 
 export { Component2 as C2}
@@ -7,12 +7,13 @@ export { Component2 as C2}
 class Component2 {
 
     _a: string = "";
-    // myProp: Model2 = new Model2();
+    myProp: Model2 = new Model2();
     // myProp2: TestInterface = {x: 0, y: 1};
     // myProp3: TestType = 3;
-    //myProp4: {x: string} = {x: ""};
-    //myPropFunc: <T extends {a: number}>(x: T[]) => T = (x) => x[0];
+    // myProp4: {x: string} = {x: ""};
+    // myPropFunc: <T extends {a: number}>(x: T[]) => T = (x) => x[0];
     // myProp5: string[] | Array<number> | Map<number, string> | Function = [""];
+    myProp6: Date = new Date();
 
     constructor(private model: Model2) {
     } 
@@ -23,7 +24,7 @@ class Component2 {
         this.model.print("b");
     }
 
-    myFuncTest<T>(myParam1: number, myParam2: string[]): T[] {
+    myFuncTest<T>(@required myParam1: number, myParam2: string[]): T[] {
         return [];
     }
 

@@ -1,7 +1,7 @@
 import {ClassPropertyNameNonComputed, ClassDeclaration, MethodDefinitionNonComputedName, FunctionExpression, Identifier} from '@typescript-eslint/types/dist/generated/ast-spec'
 import { TypeReference, Type, Node, isTypeParameterDeclaration, Signature, Symbol, SignatureKind} from 'typescript';
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
-import LCEType, { LCETypeFunction, LCETypeIntersection, LCETypeNotIdentified, LCETypeObject, LCETypeParameter, LCETypeDeclared, LCETypeUnion, LCETypePrimitive } from '../concepts/type.concept';
+import LCEType, { LCETypeFunction, LCETypeIntersection, LCETypeNotIdentified, LCETypeObject, LCETypeParameter, LCETypeDeclared, LCETypeUnion, LCETypePrimitive, LCETypeFunctionParameter } from '../concepts/type.concept';
 import { SourceData } from '../processor';
 import Utils from '../utils';
 
@@ -57,12 +57,18 @@ export function parseClassMethodType(
     if(methodSignature === undefined) {
         if(esMethodDecl.kind === "constructor") {
             // constructor
-            const parameters: Map<[number, string], LCEType> = new Map();
+            const parameters: LCETypeFunctionParameter[] = [];
             for(let i = 0; i < esMethodDecl.value.params.length; i++) {
                 const esParam = esMethodDecl.value.params[i];
                 const paramNode = sourceData.services.esTreeNodeToTSNodeMap.get(esParam);
                 const paramType = tc.getTypeAtLocation(paramNode);
-                parameters.set([i, (esParam as Identifier).name], parseType(sourceData, paramType, paramNode));
+                parameters.push(
+                    new LCETypeFunctionParameter(
+                        i, 
+                        (esParam as Identifier).name, 
+                        parseType(sourceData, paramType, paramNode)
+                    )
+                );
             }
             return new LCETypeFunction(
                 new LCETypeNotIdentified("constructor"),
@@ -73,7 +79,7 @@ export function parseClassMethodType(
             // getter
             return new LCETypeFunction(
                 parseType(sourceData, methodType, methodNode),
-                new Map(),
+                [],
                 []
             );
         } else if(esMethodDecl.kind === "set") {
@@ -84,7 +90,7 @@ export function parseClassMethodType(
             const paramType = tc.getTypeAtLocation(paramNode);
             return new LCETypeFunction(
                 new LCETypeNotIdentified("setter"),
-                new Map().set([0, paramName], parseType(sourceData, paramType, methodNode)),
+                [new LCETypeFunctionParameter(0, paramName, parseType(sourceData, paramType, methodNode))],
                 []
             );
         }
@@ -93,12 +99,18 @@ export function parseClassMethodType(
     const returnType = parseType(sourceData, methodSignature.getReturnType(), methodNode);
     const typeParameters = parseFunctionTypeParameters(sourceData, methodSignature, methodNode);
     
-    const parameters: Map<[number, string], LCEType> = new Map();
+    const parameters: LCETypeFunctionParameter[] = [];
     const parameterSyms = methodSignature.getParameters();
     for(let i = 0; i < parameterSyms.length; i++) {
         const paraSym = parameterSyms[i];
         const parameterType = tc.getTypeOfSymbolAtLocation(paraSym, methodNode);
-        parameters.set([i, paraSym.name], parseType(sourceData, parameterType, methodNode));
+        parameters.push(
+            new LCETypeFunctionParameter(
+                i, 
+                paraSym.name, 
+                parseType(sourceData, parameterType, methodNode)
+            )
+        );
     }
 
     return new LCETypeFunction(
@@ -146,12 +158,18 @@ function parseType(sourceData: SourceData, type: Type, node: Node) : LCEType {
             // function type
             const signature = type.getCallSignatures()[0];
             const returnType = parseType(sourceData, tc.getReturnTypeOfSignature(signature), node);
-            const parameters: Map<[number, string], LCEType> = new Map();
+            const parameters: LCETypeFunctionParameter[] = [];
             const paramSyms = signature.getParameters();
             for(let i = 0; i < paramSyms.length; i++) {
                 let parameterSym = paramSyms[i];
                 const paramType = tc.getTypeOfSymbolAtLocation(parameterSym, node);
-                parameters.set([i, parameterSym.name], parseType(sourceData, paramType, node));
+                parameters.push(
+                    new LCETypeFunctionParameter(
+                        i, 
+                        parameterSym.name, 
+                        parseType(sourceData, paramType, node)
+                    )
+                );
             }
             const typeParameters = parseFunctionTypeParameters(sourceData, signature, node);
             return new LCETypeFunction(
@@ -161,6 +179,7 @@ function parseType(sourceData: SourceData, type: Type, node: Node) : LCEType {
             );
         } else if(symbol?.members) {
             // anonymous object type
+            // TODO: test for methods, callables, index signatures, etc.
             const members: Map<string, LCEType> = new Map();
             for(let prop of type.getProperties()) {
                 const propType = tc.getTypeOfSymbolAtLocation(prop, node);
@@ -168,6 +187,10 @@ function parseType(sourceData: SourceData, type: Type, node: Node) : LCEType {
             }
             return new LCETypeObject(members);
         }
+
+        // TODO: Detect Callable Types
+        // TODO: Detect Literal Types
+        // TODO: Detect Tuple Types
 
         // if nothing matches return placeholder
          return new LCETypeNotIdentified(tc.typeToString(type));

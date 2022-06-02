@@ -1,11 +1,12 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
-import { ClassDeclaration, ClassPropertyNameNonComputed, ExportSpecifier } from '@typescript-eslint/types/dist/generated/ast-spec';
+import { ClassDeclaration, ClassPropertyNameNonComputed, ExportSpecifier, MethodDefinitionNonComputedName } from '@typescript-eslint/types/dist/generated/ast-spec';
 import { Concept } from '../concepts';
 import ClassDeclarationIndex, { LCEClassDeclaration } from '../concepts/class-declaration.concept';
 import { LCEDecorator } from '../concepts/decorator.concept';
-import { LCEConstructorDeclaration, LCEGetterDeclaration, LCEMethodDeclaration, LCESetterDeclaration } from '../concepts/method-declaration.concept';
+import { LCEConstructorDeclaration, LCEGetterDeclaration, LCEMethodDeclaration, LCEParameterDeclaration, LCESetterDeclaration } from '../concepts/method-declaration.concept';
 import { LCEPropertyDeclaration } from '../concepts/property-declaration.concept';
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
+import { LCETypeFunction } from '../concepts/type.concept';
 import { BaseProcessor, SourceData } from '../processor';
 import Utils from '../utils';
 import { parseDecorators } from './decorator.utils';
@@ -80,12 +81,12 @@ export default class ClassDeclarationProcessor implements BaseProcessor {
                     // method
                     let [methodName, jsPrivate] = this.processClassElementName(classElement.key)
                     const functionType = parseClassMethodType(sourceData, classDecl, classElement, methodName, jsPrivate);
-
+                    
                     if(functionType) {
                         methods.push({
                             methodName: methodName,
                             returnType: functionType.returnType,
-                            parameters: functionType.parameters,
+                            parameters: this.composeMethodParameters(functionType, classElement),
                             typeParameters: functionType.typeParameters,
                             decorators: parseDecorators(classElement.decorators)
                         });
@@ -97,7 +98,7 @@ export default class ClassDeclarationProcessor implements BaseProcessor {
                     const functionType = parseClassMethodType(sourceData, classDecl, classElement, methodName, jsPrivate);
                     if(functionType) {
                         constr = {
-                            parameters: functionType?.parameters
+                            parameters: this.composeMethodParameters(functionType, classElement)
                         };
                     }
                 } else if(classElement.kind === "get") {
@@ -118,13 +119,13 @@ export default class ClassDeclarationProcessor implements BaseProcessor {
                     if(functionType) {
                         setters.push({
                             methodName: methodName,
-                            parameters: functionType.parameters,
+                            parameters: this.composeMethodParameters(functionType, classElement),
                             decorators: parseDecorators(classElement.decorators)
                         });
                     }
                 }
             } else {
-                // TODO: handle other class level declarations e.g. index signatures, callables
+                // TODO: handle other class level declarations e.g. index signatures
             }
         }
 
@@ -159,5 +160,26 @@ export default class ClassDeclarationProcessor implements BaseProcessor {
         }
 
         return [result, jsPrivate];
+    }
+
+    /**
+     * @param functionType parsed LCETypeFunction of the method
+     * @param esClassElement ESTree class method node
+     * @returns list of parameters for class method
+     */
+    private composeMethodParameters(functionType: LCETypeFunction, 
+        esClassElement: MethodDefinitionNonComputedName): LCEParameterDeclaration[] {
+        const parameters: LCEParameterDeclaration[] = [];
+        for(let i = 0; i < functionType.parameters.length; i++) {
+            const funcTypeParam = functionType.parameters[i];
+            const esParamElem = esClassElement.value.params[i];
+            parameters.push({
+                index: funcTypeParam.index,
+                name: funcTypeParam.name,
+                type: funcTypeParam.type,
+                decorators: parseDecorators(esParamElem.decorators)
+            });
+        }
+        return parameters;
     }
 }
