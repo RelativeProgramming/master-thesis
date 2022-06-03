@@ -8,8 +8,8 @@ import ClassDeclarationProcessor from './processors/class-declaration.processor'
 import Utils from './utils';
 import ClassDeclarationGenerator from './generators/class-declaration.generator';
 import TypeScriptProjectFilesGenerator from './generators/typescript-project-files.generator';
-import { NodeIndex } from './node-indexes';
-import DeclaredTypesNodeIndex from './node-indexes/declared-types.node-index';
+import ConnectionIndex from './connection-index';
+import ConnectionGenerator from './generators/connection.generator';
 
 
 const PROCESSORS = [
@@ -18,7 +18,8 @@ const PROCESSORS = [
 
 const GENERATORS = [
   TypeScriptProjectFilesGenerator,
-  ClassDeclarationGenerator
+  ClassDeclarationGenerator,
+  ConnectionGenerator
 ];
 
 function processSourceFile(projectRoot: string, sourceFilePath: string, concepts: Map<Concept, any> = new Map<Concept, any>(), processor: BaseProcessor) {
@@ -74,30 +75,26 @@ export function processProject(projectRoot: string) {
     }
   }
 
-  //generateGraphs(concepts);
+  generateGraphs(concepts);
 }
 
 async function generateGraphs(concepts: Map<Concept, any>) {
-  console.log("Generating Graph...")
+  console.log("Generating graph...")
   const driver = neo4jDriver("bolt://localhost:7687", neo4jAuth.basic("", ""));
   const session = driver.session();
-  const nodeIndexes = initNodeIndexes();
+  const connectionIndex = new ConnectionIndex();
 
   try {
     for(let Generator of GENERATORS) {
       const generator = new Generator();
-      await generator.run(session, concepts, nodeIndexes);
+      await generator.run(session, concepts, connectionIndex);
     }
   } finally {
     await session.close();
   }
   await driver.close();
+  console.log("Finished generating graph.")
 }
 
-function initNodeIndexes(): Map<NodeIndex, any> {
-  const result: Map<NodeIndex, any> = new Map();
-  result.set(NodeIndex.DECLARED_TYPES, new DeclaredTypesNodeIndex());
-  return result;
-}
 
 processProject("/home/sebastian/dev/master-thesis/example-projects/2multiple");

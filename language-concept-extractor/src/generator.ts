@@ -1,6 +1,6 @@
 import { Session } from 'neo4j-driver';
 import { Concept } from './concepts';
-import { NodeIndex } from './node-indexes';
+import ConnectionIndex from './connection-index';
 
 
 /** super class to all Graph Generators */
@@ -12,5 +12,5 @@ export default interface BaseGenerator {
      * 
      * Can use `nodeIndexes` to refer to specific, previously LCE-generated nodes.
      * */
-    run(neo4jSession: Session, concepts: Map<Concept, any>, nodeIndexes: Map<NodeIndex, any>): Promise<void>;
+    run(neo4jSession: Session, concepts: Map<Concept, any>, connectionIndex: ConnectionIndex): Promise<void>;
 }

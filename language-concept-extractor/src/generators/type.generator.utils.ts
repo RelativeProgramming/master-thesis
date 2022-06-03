@@ -1,7 +1,7 @@
 import { Session, Integer, Result } from 'neo4j-driver';
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
 import LCEType, { LCETypeDeclared, LCETypeFunction, LCETypeIntersection, LCETypeNotIdentified, LCETypeObject, LCETypeParameter, LCETypePrimitive, LCETypeUnion } from '../concepts/type.concept';
-import DeclaredTypesNodeIndex from '../node-indexes/declared-types.node-index';
+import ConnectionIndex, { ConnectionProperties } from '../connection-index';
 import Utils from '../utils';
 import { createParameterNode } from './method.generator.utils';
 
@@ -9,7 +9,7 @@ import { createParameterNode } from './method.generator.utils';
 /**
  * Recursively creates type nodes for given `LCEType` and registers connection information within the `DeclaredTypesNodeIndex`.
  * @param type `LCEType` for which nodes are created
- * @param declaredTypesNodeIndex index for registering connections to types (for later creation)
+ * @param connectionIndex index for registering connections to types (for later creation)
  * @param parentNode node which will be related to the type node#
  * @param connectionProps properties of connection that will be registered from parent to type node
  * @param parentTypeParamNodes type parameter of parent class, interface or type alias
@@ -19,13 +19,13 @@ import { createParameterNode } from './method.generator.utils';
 export async function createTypeNode(
     type: LCEType, 
     neo4jSession: Session,
-    declaredTypesNodeIndex: DeclaredTypesNodeIndex, 
+    connectionIndex: ConnectionIndex, 
     parentNode: Integer,
-    connectionProps: object = {},
+    connectionProps: ConnectionProperties,
     parentTypeParamNodes: Map<string, Integer> = new Map(),
     methodTypeParamNodes: Map<string, Integer> = new Map(),
 ): Promise<void> {
-    // NOTE: every newly created type node must be registered at the declaredTypesNodeIndex for a connection
+    // NOTE: every newly created type node must be registered at the connectionIndex for a connection
 
     if(type instanceof LCETypePrimitive) {
         const typeNodeProps = {
@@ -37,38 +37,38 @@ export async function createTypeNode(
             RETURN id(type)
             `, {typeNodeProps: typeNodeProps}
         ));
-        declaredTypesNodeIndex.connectionsToCreate.push([parentNode, typeNodeId, connectionProps]);
+        connectionIndex.connectionsToCreate.push([parentNode, typeNodeId, connectionProps]);
     } else if(type instanceof LCETypeDeclared) {
-        if(!type.inProject && !declaredTypesNodeIndex.provideTypes.has(type.fqn)) {
-            // external type which has no already existing node for it
-            const typeNodeProps = {
-                fqn: type.fqn
-            }
-            const typeNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
-                `
-                CREATE (type:TS:Type:Declared $typeNodeProps)
-                RETURN id(type)
-                `, {typeNodeProps: typeNodeProps}
-            ));
-            declaredTypesNodeIndex.provideTypes.set(type.fqn, typeNodeId);
+        
+        const typeNodeProps = {
+            fqn: type.fqn,
+            internal: type.inProject
+        }
+        const typeNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
+            `
+            CREATE (type:TS:Type:Declared $typeNodeProps)
+            RETURN id(type)
+            `, {typeNodeProps: typeNodeProps}
+        ));
+        connectionIndex.connectionsToCreate.push([parentNode, typeNodeId, connectionProps]);
 
-            // add potential type arguments
-            for(let i = 0; i < type.typeArguments.length; i++) {
-                const typeArg = type.typeArguments[i];
-                await createTypeNode(
-                    typeArg,
-                    neo4jSession,
-                    declaredTypesNodeIndex,
-                    typeNodeId,
-                    {index: i},
-                    parentTypeParamNodes,
-                    methodTypeParamNodes
-                );
-            }
+        // add potential type arguments
+        for(let i = 0; i < type.typeArguments.length; i++) {
+            const typeArg = type.typeArguments[i];
+            await createTypeNode(
+                typeArg,
+                neo4jSession,
+                connectionIndex,
+                typeNodeId,
+                {name: ":HAS_TYPE_ARGUMENT", props: {index: i}},
+                parentTypeParamNodes,
+                methodTypeParamNodes
+            );
         }
 
-        // register required connection for declared type
-        declaredTypesNodeIndex.requireTypes.set(parentNode, [type.fqn, connectionProps]);
+        // register references connection for declared type that is defined within project
+        if(type.inProject)
+            connectionIndex.requireTypes.set(typeNodeId, [type.fqn, {name: ":REFERENCES", props:{}}]);
     } else if(type instanceof LCETypeUnion || type instanceof LCETypeIntersection) {
         const typeNodeId = type instanceof LCETypeUnion ? Utils.getNodeIdFromQueryResult(await neo4jSession.run(
             `
@@ -81,16 +81,16 @@ export async function createTypeNode(
             RETURN id(type)
             `
         ));
-        declaredTypesNodeIndex.connectionsToCreate.push([parentNode, typeNodeId, connectionProps]);
+        connectionIndex.connectionsToCreate.push([parentNode, typeNodeId, connectionProps]);
         
         // create constituent types of union/intersection
         for(let subType of type.types) {
             await createTypeNode(
                 subType,
                 neo4jSession,
-                declaredTypesNodeIndex,
+                connectionIndex,
                 typeNodeId,
-                {},
+                {name: ":CONTAINS", props: {}},
                 parentTypeParamNodes,
                 methodTypeParamNodes
             );
@@ -103,16 +103,16 @@ export async function createTypeNode(
             RETURN id(type)
             `
         ));
-        declaredTypesNodeIndex.connectionsToCreate.push([parentNode, typeNodeId, connectionProps]);
+        connectionIndex.connectionsToCreate.push([parentNode, typeNodeId, connectionProps]);
         
         // create constituent types of union/intersection
         for(let [name, memberType] of type.members.entries()) {
             await createTypeNode(
                 memberType,
                 neo4jSession,
-                declaredTypesNodeIndex,
+                connectionIndex,
                 typeNodeId,
-                {name: name},
+                {name: ":HAS_MEMBER", props: {name: name}},
                 parentTypeParamNodes,
                 methodTypeParamNodes
             );
@@ -124,14 +124,14 @@ export async function createTypeNode(
             RETURN id(type)
             `
         ));
-        declaredTypesNodeIndex.connectionsToCreate.push([parentNode, typeNodeId, connectionProps]);
+        connectionIndex.connectionsToCreate.push([parentNode, typeNodeId, connectionProps]);
         
         // create function type parameter nodes and connections
         const newParentTypeParamNodes = new Map([...parentTypeParamNodes, ...methodTypeParamNodes]);
         const functionTypeParamNodes = await createTypeParameterNodes(
             type.typeParameters,
             neo4jSession,
-            declaredTypesNodeIndex,
+            connectionIndex,
             newParentTypeParamNodes
         );
         for(let typeParamNodeId of functionTypeParamNodes.values()) {
@@ -156,7 +156,7 @@ export async function createTypeNode(
                     decorators: []
                 },
                 neo4jSession,
-                declaredTypesNodeIndex,
+                connectionIndex,
                 newParentTypeParamNodes,
                 functionTypeParamNodes
             );
@@ -175,17 +175,17 @@ export async function createTypeNode(
         await createTypeNode(
             type.returnType,
             neo4jSession,
-            declaredTypesNodeIndex,
+            connectionIndex,
             typeNodeId,
-            {},
+            {name: ":RETURNS", props: {}},
             newParentTypeParamNodes,
             functionTypeParamNodes
         );
     } else if(type instanceof LCETypeParameter) {
         if(methodTypeParamNodes.has(type.name)) {
-            declaredTypesNodeIndex.connectionsToCreate.push([parentNode, methodTypeParamNodes.get(type.name)!, connectionProps]);
+            connectionIndex.connectionsToCreate.push([parentNode, methodTypeParamNodes.get(type.name)!, connectionProps]);
         } else if(parentTypeParamNodes.has(type.name)) {
-            declaredTypesNodeIndex.connectionsToCreate.push([parentNode, parentTypeParamNodes.get(type.name)!, connectionProps]);
+            connectionIndex.connectionsToCreate.push([parentNode, parentTypeParamNodes.get(type.name)!, connectionProps]);
         }
     } else if(type instanceof LCETypeNotIdentified) {
         const typeNodeProps = {
@@ -197,7 +197,7 @@ export async function createTypeNode(
             RETURN id(type)
             `, {typeNodeProps: typeNodeProps}
         ));
-        declaredTypesNodeIndex.connectionsToCreate.push([parentNode, typeNodeId, connectionProps]);
+        connectionIndex.connectionsToCreate.push([parentNode, typeNodeId, connectionProps]);
     }
 }
 
@@ -205,14 +205,14 @@ export async function createTypeNode(
 /**
  * Creates type nodes for the given type parameters.
  * @param typeParameters `LCETypeParameterDeclaration`s for which nodes are created
- * @param declaredTypesNodeIndex index for registering connections (for later creation)
+ * @param typeReferenceNodeIndex index for registering connections (for later creation)
  * @param parentTypeParamNodes type parameter of parent class, interface or type alias
  * @returns 
  */
 export async function createTypeParameterNodes(
     typeParameters: LCETypeParameterDeclaration[],
     neo4jSession: Session, 
-    declaredTypesNodeIndex: DeclaredTypesNodeIndex, 
+    typeReferenceNodeIndex: ConnectionIndex, 
     parentTypeParamNodes: Map<string, Integer> = new Map()
 ): Promise<Map<string, Integer>> {
     const result: Map<string, Integer> = new Map();
@@ -243,9 +243,9 @@ export async function createTypeParameterNodes(
         await createTypeNode(
             typeParam.constraint, 
             neo4jSession,
-            declaredTypesNodeIndex,
+            typeReferenceNodeIndex,
             typeParamId,
-            {},
+            {name: ":CONSTRAINED_BY", props: {}},
             parentTypeParamNodes,
             result
         );

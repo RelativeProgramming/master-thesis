@@ -1,6 +1,6 @@
 import { Integer, Session } from 'neo4j-driver';
 import { LCEPropertyDeclaration } from '../concepts/property-declaration.concept';
-import DeclaredTypesNodeIndex from '../node-indexes/declared-types.node-index';
+import ConnectionIndex from '../connection-index';
 import Utils from '../utils';
 import { createDecoratorNode } from './decorator.generator.utils';
 import { createTypeNode } from './type.generator.utils';
@@ -9,7 +9,7 @@ import { createTypeNode } from './type.generator.utils';
 export async function createPropertyNode(
     propertyDecl: LCEPropertyDeclaration, 
     neo4jSession: Session,
-    declaredTypesNodeIndex: DeclaredTypesNodeIndex,
+    connectionIndex: ConnectionIndex,
     parentTypeParamNodes: Map<string, Integer> = new Map(),
 ): Promise<Integer> {
 
@@ -43,9 +43,9 @@ export async function createPropertyNode(
     const typeNodeId = await createTypeNode(
         propertyDecl.type,
         neo4jSession,
-        declaredTypesNodeIndex,
+        connectionIndex,
         propNodeId,
-        {},
+        {name: ":OF_TYPE", props: {}},
         parentTypeParamNodes
     );
 

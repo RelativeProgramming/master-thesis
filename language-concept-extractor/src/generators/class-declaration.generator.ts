@@ -3,21 +3,26 @@ import { Concept } from '../concepts';
 import LCEClassDeclarationIndex from '../concepts/class-declaration.concept';
 import { LCETypeScriptProject } from '../concepts/typescript-project.concept';
 import BaseGenerator from '../generator';
-import { NodeIndex } from '../node-indexes';
-import DeclaredTypesNodeIndex from '../node-indexes/declared-types.node-index';
+import ConnectionIndex from '../connection-index';
 import Utils from '../utils';
 import { createDecoratorNode } from './decorator.generator.utils';
 import { createConstructorNode, createGetterNode, createMethodNode, createSetterNode } from './method.generator.utils';
 import { createPropertyNode } from './property.generator.utils';
 import { createTypeParameterNodes } from './type.generator.utils';
 
+/**
+ * Generates all graph structures related to a class declarations.
+ * This includes type parameters, properties, methods, along with their types.
+ * 
+ * NOTE: type-related connections are registered with the `ConnectionIndex` for later creation.
+ */
 export default class ClassDeclarationGenerator implements BaseGenerator {
 
-    async run(neo4jSession: Session, concepts: Map<Concept, any>, nodeIndexes: Map<NodeIndex, any>): Promise<void> {
+    async run(neo4jSession: Session, concepts: Map<Concept, any>, connectionIndex: ConnectionIndex): Promise<void> {
         const project: LCETypeScriptProject = concepts.get(Concept.TYPESCRIPT_PROJECT);
         const classDeclIndex: LCEClassDeclarationIndex = concepts.get(Concept.CLASS_DECLARATIONS);
-        const declaredTypeIndex: DeclaredTypesNodeIndex = nodeIndexes.get(NodeIndex.DECLARED_TYPES);
 
+        console.log("Generating graph structures for " + classDeclIndex.declarations.size + " class declaration...")
         // create class structures
         for(let [fqn, classDecl] of classDeclIndex.declarations.entries()) {
             // create class node
@@ -31,15 +36,15 @@ export default class ClassDeclarationGenerator implements BaseGenerator {
                 RETURN id(class)
                 `,{classProps: classNodeProps}
             ));
-            declaredTypeIndex.provideTypes.set(fqn, classNodeId);
+            connectionIndex.provideTypes.set(fqn, classNodeId);
 
             // create class decorator structures and connections
             for(let deco of classDecl.decorators) {
                 const decoratorNodeId = await createDecoratorNode(deco, neo4jSession);
                 await neo4jSession.run(
                     `
-                    MATCH (class:TS:Class)
-                    MATCH (deco:TS:Decorator)
+                    MATCH (class)
+                    MATCH (deco)
                     WHERE id(class) = $classNodeId AND id(deco) = $decoratorNodeId
                     CREATE (class)-[:DECORATED_BY]->(deco)
                     RETURN deco
@@ -51,13 +56,13 @@ export default class ClassDeclarationGenerator implements BaseGenerator {
             const classTypeParameters: Map<string, Integer> = await createTypeParameterNodes(
                 classDecl.typeParameters,
                 neo4jSession,
-                declaredTypeIndex
+                connectionIndex
             );
             for(let typeParamNodeId of classTypeParameters.values()) {
                 await neo4jSession.run(
                     `
-                    MATCH (class:TS:Class)
-                    MATCH (typeParam:TS:Type:Parameter)
+                    MATCH (class)
+                    MATCH (typeParam)
                     WHERE id(class) = $classNodeId AND id(typeParam) = $typeParamNodeId
                     CREATE (class)-[:DECLARES]->(typeParam)
                     RETURN typeParam
@@ -70,13 +75,13 @@ export default class ClassDeclarationGenerator implements BaseGenerator {
                 const propNodeId = await createPropertyNode(
                     propertyDecl,
                     neo4jSession,
-                    declaredTypeIndex,
+                    connectionIndex,
                     classTypeParameters
                 );
                 await neo4jSession.run(
                     `
-                    MATCH (class:TS:Class)
-                    MATCH (prop:TS:Property)
+                    MATCH (class)
+                    MATCH (prop)
                     WHERE id(class) = $classNodeId AND id(prop) = $propNodeId
                     CREATE (class)-[:DECLARES]->(prop)
                     RETURN prop
@@ -86,7 +91,7 @@ export default class ClassDeclarationGenerator implements BaseGenerator {
             
             // create method, constructor, getter and setter structures and connections
             const methodQuery = `
-                MATCH (class:TS:Class)
+                MATCH (class)
                 MATCH (method)
                 WHERE id(class) = $classNodeId AND id(method) = $methodNodeId
                 CREATE (class)-[:DECLARES]->(method)
@@ -96,7 +101,7 @@ export default class ClassDeclarationGenerator implements BaseGenerator {
                 const methodNodeId = await createMethodNode(
                     methodDecl,
                     neo4jSession,
-                    declaredTypeIndex,
+                    connectionIndex,
                     classTypeParameters
                 );
                 await neo4jSession.run(methodQuery, {classNodeId: classNodeId, methodNodeId: methodNodeId});
@@ -105,7 +110,7 @@ export default class ClassDeclarationGenerator implements BaseGenerator {
                 const constructorNodeId = await createConstructorNode(
                     classDecl.constr,
                     neo4jSession,
-                    declaredTypeIndex,
+                    connectionIndex,
                     classTypeParameters
                 );
                 await neo4jSession.run(methodQuery, {classNodeId: classNodeId, methodNodeId: constructorNodeId});
@@ -114,7 +119,7 @@ export default class ClassDeclarationGenerator implements BaseGenerator {
                 const getterNodeId = await createGetterNode(
                     getterDecl,
                     neo4jSession,
-                    declaredTypeIndex,
+                    connectionIndex,
                     classTypeParameters
                 );
                 await neo4jSession.run(methodQuery, {classNodeId: classNodeId, methodNodeId: getterNodeId});
@@ -123,7 +128,7 @@ export default class ClassDeclarationGenerator implements BaseGenerator {
                 const setterNodeId = await createSetterNode(
                     setterDecl,
                     neo4jSession,
-                    declaredTypeIndex,
+                    connectionIndex,
                     classTypeParameters
                 );
                 await neo4jSession.run(methodQuery, {classNodeId: classNodeId, methodNodeId: setterNodeId});
@@ -132,13 +137,15 @@ export default class ClassDeclarationGenerator implements BaseGenerator {
             // link to class declaration to source file
             await neo4jSession.run(
                 `
-                MATCH (class:TS:Class {fqn: $classProps.fqn})
+                MATCH (class)
                 MATCH (file:TS:SourceFile {fileName: $sourcePath})
+                WHERE id(class) = $classId
                 CREATE (file)-[:DECLARES]->(class)
                 RETURN class
                 `, {
                     classProps: classNodeProps, 
-                    sourcePath: classDecl.sourceFilePath.replace(project.projectRoot, "")
+                    sourcePath: classDecl.sourceFilePath.replace(project.projectRoot, ""),
+                    classId: classNodeId
                 }
             );
         }

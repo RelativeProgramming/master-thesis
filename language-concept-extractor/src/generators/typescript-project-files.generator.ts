@@ -1,11 +1,12 @@
 import { Session } from 'neo4j-driver';
 import { Concept } from '../concepts';
 import { LCETypeScriptProject } from '../concepts/typescript-project.concept';
+import ConnectionIndex from '../connection-index';
 import BaseGenerator from '../generator';
 
 export default class TypeScriptProjectFilesGenerator implements BaseGenerator {
 
-    async run(neo4jSession: Session, concepts: Map<Concept, any>): Promise<void> {
+    async run(neo4jSession: Session, concepts: Map<Concept, any>, connectionIndex: ConnectionIndex): Promise<void> {
         const project: LCETypeScriptProject = concepts.get(Concept.TYPESCRIPT_PROJECT);
         await neo4jSession.run(
             `

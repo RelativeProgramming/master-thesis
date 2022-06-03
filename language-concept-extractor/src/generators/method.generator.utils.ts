@@ -1,7 +1,7 @@
 import { Integer, Session } from 'neo4j-driver';
 import { LCEDecorator } from '../concepts/decorator.concept';
 import { LCEConstructorDeclaration, LCEGetterDeclaration, LCEMethodDeclaration, LCEParameterDeclaration, LCESetterDeclaration } from '../concepts/method-declaration.concept';
-import DeclaredTypesNodeIndex from '../node-indexes/declared-types.node-index';
+import ConnectionIndex from '../connection-index';
 import Utils from '../utils';
 import { createDecoratorNode } from './decorator.generator.utils';
 import { createTypeNode, createTypeParameterNodes } from './type.generator.utils';
@@ -10,7 +10,7 @@ import { createTypeNode, createTypeParameterNodes } from './type.generator.utils
 export async function createMethodNode(
     methodDecl: LCEMethodDeclaration, 
     neo4jSession: Session,
-    declaredTypesNodeIndex: DeclaredTypesNodeIndex,
+    connectionIndex: ConnectionIndex,
     parentTypeParamNodes: Map<string, Integer> = new Map(),
 ): Promise<Integer> {
 
@@ -32,7 +32,7 @@ export async function createMethodNode(
     const methodTypeParamNodes = await createTypeParameterNodes(
         methodDecl.typeParameters,
         neo4jSession,
-        declaredTypesNodeIndex,
+        connectionIndex,
         parentTypeParamNodes
     );
     for(let typeParamNodeId of methodTypeParamNodes.values()) {
@@ -52,7 +52,7 @@ export async function createMethodNode(
         methodNodeId,
         neo4jSession,
         methodDecl.parameters,
-        declaredTypesNodeIndex,
+        connectionIndex,
         parentTypeParamNodes,
         methodTypeParamNodes
     );
@@ -61,9 +61,9 @@ export async function createMethodNode(
     const typeNodeId = await createTypeNode(
         methodDecl.returnType,
         neo4jSession,
-        declaredTypesNodeIndex,
+        connectionIndex,
         methodNodeId,
-        {},
+        {name: ":RETURNS", props: {}},
         parentTypeParamNodes,
         methodTypeParamNodes
     );
@@ -76,7 +76,7 @@ export async function createMethodNode(
 export async function createConstructorNode(
     constructorDecl: LCEConstructorDeclaration, 
     neo4jSession: Session,
-    declaredTypesNodeIndex: DeclaredTypesNodeIndex,
+    declaredTypesNodeIndex: ConnectionIndex,
     parentTypeParamNodes: Map<string, Integer> = new Map(),
 ): Promise<Integer> {
     // create constructor node
@@ -102,7 +102,7 @@ export async function createConstructorNode(
 export async function createGetterNode(
     getterDecl: LCEGetterDeclaration, 
     neo4jSession: Session,
-    declaredTypesNodeIndex: DeclaredTypesNodeIndex,
+    typeReferenceNodeIndex: ConnectionIndex,
     parentTypeParamNodes: Map<string, Integer> = new Map(),
 ): Promise<Integer> {
     // create getter node
@@ -123,9 +123,9 @@ export async function createGetterNode(
     const typeNodeId = await createTypeNode(
         getterDecl.returnType,
         neo4jSession,
-        declaredTypesNodeIndex,
+        typeReferenceNodeIndex,
         getterNodeId,
-        {},
+        {name: ":RETURNS", props: {}},
         parentTypeParamNodes
     );
 
@@ -135,7 +135,7 @@ export async function createGetterNode(
 export async function createSetterNode(
     setterDecl: LCESetterDeclaration, 
     neo4jSession: Session,
-    declaredTypesNodeIndex: DeclaredTypesNodeIndex,
+    connectionIndex: ConnectionIndex,
     parentTypeParamNodes: Map<string, Integer> = new Map(),
 ): Promise<Integer> {
     // create setter node
@@ -157,7 +157,7 @@ export async function createSetterNode(
         setterNodeId,
         neo4jSession,
         setterDecl.parameters,
-        declaredTypesNodeIndex,
+        connectionIndex,
         parentTypeParamNodes
     );
 
@@ -187,7 +187,7 @@ async function createMethodParameters(
     methodNodeId: Integer, 
     neo4jSession: Session, 
     parameters: LCEParameterDeclaration[],
-    declaredTypesNodeIndex: DeclaredTypesNodeIndex,
+    connectionIndex: ConnectionIndex,
     parentTypeParamNodes: Map<string, Integer> = new Map(),
     methodTypeParamNodes: Map<string, Integer> = new Map()
 ): Promise<void> {
@@ -195,7 +195,7 @@ async function createMethodParameters(
         const paramNodeId = await createParameterNode(
             param,
             neo4jSession,
-            declaredTypesNodeIndex,
+            connectionIndex,
             parentTypeParamNodes,
             methodTypeParamNodes
         );
@@ -214,7 +214,7 @@ async function createMethodParameters(
 export async function createParameterNode(
     parameterDecl: LCEParameterDeclaration, 
     neo4jSession: Session,
-    declaredTypesNodeIndex: DeclaredTypesNodeIndex,
+    connectionIndex: ConnectionIndex,
     parentTypeParamNodes: Map<string, Integer> = new Map(),
     methodTypeParamNodes: Map<string, Integer> = new Map(),
 ): Promise<Integer> {
@@ -249,9 +249,9 @@ export async function createParameterNode(
     const typeNodeId = await createTypeNode(
         parameterDecl.type,
         neo4jSession,
-        declaredTypesNodeIndex,
+        connectionIndex,
         parameterNodeId,
-        {},
+        {name: ":OF_TYPE", props: {}},
         parentTypeParamNodes,
         methodTypeParamNodes
     );

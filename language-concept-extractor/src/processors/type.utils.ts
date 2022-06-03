@@ -59,7 +59,11 @@ export function parseClassMethodType(
             // constructor
             const parameters: LCETypeFunctionParameter[] = [];
             for(let i = 0; i < esMethodDecl.value.params.length; i++) {
-                const esParam = esMethodDecl.value.params[i];
+                let esParam = esMethodDecl.value.params[i];
+                // TODO: handle different constructor parameter variants (model expansion)
+                if(esParam.type == "TSParameterProperty") {
+                    esParam = esParam.parameter;
+                }
                 const paramNode = sourceData.services.esTreeNodeToTSNodeMap.get(esParam);
                 const paramType = tc.getTypeAtLocation(paramNode);
                 parameters.push(
