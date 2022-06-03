@@ -133,6 +133,36 @@ export class LCETypeParameter extends LCEType {
 }
 
 /**
+ * Represents a type literal (e.g. `"zero"` or `0` in `x: "zero" | 0`)
+ */
+export class LCETypeLiteral extends LCEType {
+
+    /**
+     * @param value content of the type literal
+     */
+     constructor(
+        public value: string | number
+    ) {
+        super()
+    }
+}
+
+/**
+ * Represents a tuple type (e.g. `x: [string, number]`)
+ */
+export class LCETypeTuple extends LCEType {
+
+    /**
+     * @param types types of the tuple
+     */
+     constructor(
+        public types: LCEType[]
+    ) {
+        super()
+    }
+}
+
+/**
  * Represents a type that could not be parsed correctly.
  */
 export class LCETypeNotIdentified extends LCEType {

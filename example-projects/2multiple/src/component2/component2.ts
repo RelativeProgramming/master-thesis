@@ -8,12 +8,14 @@ class Component2 {
 
     _a: string = "";
     myProp: Model2 = new Model2();
-    // myProp2: TestInterface = {x: 0, y: 1};
-    // myProp3: TestType = 3;
-    // myProp4: {x: string} = {x: ""};
-    // myPropFunc: <T extends {a: number}>(x: T[]) => T = (x) => x[0];
-    // myProp5: string[] | Array<number> | Map<number, string> | Function = [""];
+    myProp2: TestInterface = {x: 0, y: 1};
+    myProp3: TestType = 3;
+    myProp4: {x: string} = {x: ""};
+    myPropFunc: <T extends {a: number}>(x: T[]) => T = (x) => x[0];
+    myProp5: string[] | Array<number> | Map<number, string> | Function = [""];
     myProp6: Date = new Date();
+    myProp7: "abc" | 42 = "abc";
+    myProp8: [string, number] = ["a", 1];
 
     constructor(private model: Model2) {
     } 
@@ -40,7 +42,8 @@ class Component2 {
 }
 
 interface TestInterface {
-    x: string;
+    x: number;
+    y: number;
 }
 
 type TestType = TestInterface | number;

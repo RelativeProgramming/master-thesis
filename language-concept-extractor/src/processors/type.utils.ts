@@ -1,7 +1,7 @@
-import {ClassPropertyNameNonComputed, ClassDeclaration, MethodDefinitionNonComputedName, FunctionExpression, Identifier} from '@typescript-eslint/types/dist/generated/ast-spec'
-import { TypeReference, Type, Node, isTypeParameterDeclaration, Signature, Symbol, SignatureKind} from 'typescript';
+import {ClassPropertyNameNonComputed, ClassDeclaration, MethodDefinitionNonComputedName, Identifier} from '@typescript-eslint/types/dist/generated/ast-spec'
+import { TypeReference, Type, Node, isTypeParameterDeclaration, Signature, Symbol, SignatureKind, PseudoBigInt} from 'typescript';
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
-import LCEType, { LCETypeFunction, LCETypeIntersection, LCETypeNotIdentified, LCETypeObject, LCETypeParameter, LCETypeDeclared, LCETypeUnion, LCETypePrimitive, LCETypeFunctionParameter } from '../concepts/type.concept';
+import LCEType, { LCETypeFunction, LCETypeIntersection, LCETypeNotIdentified, LCETypeObject, LCETypeParameter, LCETypeDeclared, LCETypeUnion, LCETypePrimitive, LCETypeFunctionParameter, LCETypeLiteral, LCETypeTuple } from '../concepts/type.concept';
 import { SourceData } from '../processor';
 import Utils from '../utils';
 
@@ -147,7 +147,7 @@ function parseType(sourceData: SourceData, type: Type, node: Node) : LCEType {
             type.aliasSymbol :
             undefined
     const fqn = symbol ? tc.getFullyQualifiedName(symbol) : undefined;
-    
+
     if((!fqn || fqn === "__type") && !isPrimitiveType(tc.typeToString(type))) {
         // complex anonymous type
         if(type.isUnion()) {
@@ -190,11 +190,24 @@ function parseType(sourceData: SourceData, type: Type, node: Node) : LCEType {
                 members.set(prop.name, parseType(sourceData, propType, node));
             }
             return new LCETypeObject(members);
+        } else if(type.isLiteral()) {
+            // literal type
+            if(isLiterNumberOrString(type.value))
+                return new LCETypeLiteral(type.value);
+            else
+                return new LCETypeLiteral(type.value.toString());       
+        } else if(tc.typeToString(type).startsWith("[")) {
+            // tuple type
+            const typeArgs = tc.getTypeArguments(type as TypeReference);
+            const types: LCEType[] = [];
+            for(let typeArg of typeArgs) {
+                types.push(parseType(sourceData, typeArg, node));
+            }
+            return new LCETypeTuple(types);
         }
 
         // TODO: Detect Callable Types
-        // TODO: Detect Literal Types
-        // TODO: Detect Tuple Types
+        // TODO: Detect Index
 
         // if nothing matches return placeholder
          return new LCETypeNotIdentified(tc.typeToString(type));
@@ -238,6 +251,10 @@ function parseType(sourceData: SourceData, type: Type, node: Node) : LCEType {
 function isPrimitiveType(typeStr: string): boolean {
     return ["undefined", "null", "void", "any", "unknown", "number", "bigint", "boolean", "string", "symbol", "object"]
     .includes(typeStr);
+}
+
+function isLiterNumberOrString(literalValue: number | string | PseudoBigInt): literalValue is number | string {
+    return typeof literalValue === "string" || typeof literalValue === "number";
 }
 
 function parseClassLikeTypeParameters(sourceData: SourceData, type: Type, node: Node): LCETypeParameterDeclaration[] {

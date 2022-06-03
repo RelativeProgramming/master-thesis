@@ -1,6 +1,6 @@
 import { Session, Integer, Result } from 'neo4j-driver';
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
-import LCEType, { LCETypeDeclared, LCETypeFunction, LCETypeIntersection, LCETypeNotIdentified, LCETypeObject, LCETypeParameter, LCETypePrimitive, LCETypeUnion } from '../concepts/type.concept';
+import LCEType, { LCETypeDeclared, LCETypeFunction, LCETypeIntersection, LCETypeLiteral, LCETypeNotIdentified, LCETypeObject, LCETypeParameter, LCETypePrimitive, LCETypeTuple, LCETypeUnion } from '../concepts/type.concept';
 import ConnectionIndex, { ConnectionProperties } from '../connection-index';
 import Utils from '../utils';
 import { createParameterNode } from './method.generator.utils';
@@ -187,7 +187,40 @@ export async function createTypeNode(
         } else if(parentTypeParamNodes.has(type.name)) {
             connectionIndex.connectionsToCreate.push([parentNode, parentTypeParamNodes.get(type.name)!, connectionProps]);
         }
-    } else if(type instanceof LCETypeNotIdentified) {
+    } else if(type instanceof LCETypeLiteral) {
+        const typeNodeProps = {
+            value: type.value
+        }
+        const typeNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
+            `
+            CREATE (type:TS:Type:Literal $typeNodeProps)
+            RETURN id(type)
+            `, {typeNodeProps: typeNodeProps}
+        ));
+        connectionIndex.connectionsToCreate.push([parentNode, typeNodeId, connectionProps]);
+    } else if(type instanceof LCETypeTuple) {
+        const typeNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
+            `
+            CREATE (type:TS:Type:Tuple)
+            RETURN id(type)
+            `
+        ));
+        connectionIndex.connectionsToCreate.push([parentNode, typeNodeId, connectionProps]);
+        
+        // create constituent types of tuple
+        for(let i = 0; i < type.types.length; i++) {
+            let subType = type.types[i];
+            await createTypeNode(
+                subType,
+                neo4jSession,
+                connectionIndex,
+                typeNodeId,
+                {name: ":CONTAINS", props: {index: i}},
+                parentTypeParamNodes,
+                methodTypeParamNodes
+            );
+        }
+    }else if(type instanceof LCETypeNotIdentified) {
         const typeNodeProps = {
             identifier: type.identifier
         }

@@ -7,6 +7,7 @@ import BaseGenerator from '../generator';
 export default class TypeScriptProjectFilesGenerator implements BaseGenerator {
 
     async run(neo4jSession: Session, concepts: Map<Concept, any>, connectionIndex: ConnectionIndex): Promise<void> {
+        // TODO: add exception of directories like `node_modules`
         const project: LCETypeScriptProject = concepts.get(Concept.TYPESCRIPT_PROJECT);
         await neo4jSession.run(
             `
