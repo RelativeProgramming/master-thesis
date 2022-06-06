@@ -8,3 +8,7 @@ The main artifact available in this repository is the Languange Concept Extracto
 2. Execute LCE using `ts-node "./language-concept-extractor/src/extractor.ts"`
 
 To reset the graph simply stop the jQA server and perform the steps above again.
+
+## Graph Structure
+
+see [Graph Structure Documentation](docs/graph_structure.md)
