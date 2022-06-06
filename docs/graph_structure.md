@@ -78,18 +78,18 @@ Relations:
 
 Sub-Types:
 - Constructor
-    - [x]  Label: `:TS:Method:Constructor`
     → has no `name` attribute and has only `HAS` and `DEPENDS_ON` relations
     → can not be `js_private`
+    - [x]  Label: `:TS:Method:Constructor`
     
 - Getter
-    - [x]  Label: `:TS:Method:Getter`
     → has no `HAS` relation
+    - [x]  Label: `:TS:Method:Getter`
     
 - Setter
-    - [x]  Label: `:TS:Method:Setter`
     → has no `RETURNS` relation
-        
+    - [x]  Label: `:TS:Method:Setter`
+
 ## Parameter Declaration
 → all parameters declared by function or methods
 - [x]  Label: `:TS:Parameter`
