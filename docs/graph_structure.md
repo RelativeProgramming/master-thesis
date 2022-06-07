@@ -47,6 +47,23 @@ Relations:
 - [ ]  `EXTENDS`: super class
 - [ ]  `IMPLEMENTS`: all interfaces that are implemented by class
 
+## Interface Declaration
+→ all `interface` declarations inside TS files
+- [ ]  Label: `:TS:Interface`
+
+Properties:
+- [ ]  `fqn`: fully qualified name (e.g. `"./src/main.ts".MyInterface`)
+- [ ]  `name`: local name of the interface
+- [ ]  `sourceFilePath`: path to source file
+
+Relations:
+- [ ]  `DECLARES`: all declared methods, properties and type parameters
+- [ ]  `EXTENDS`: base interfaces
+
+## Type Alias Declaration (TODO)
+
+## Function/Variable Declaration (TODO)
+
 ## Property Declaration
 → all property declarations inside classes, interfaces or type aliases
 - [x]  Label: `:TS:Property`
@@ -104,20 +121,14 @@ Relations:
 - [x]  `DECORATED_BY`: all decorators decorating the parameter
 - [x]  `DECLARES`: parameter property references (only for constructors)
 
-## Interface Declaration (TODO)
-
-## Type Alias Declaration (TODO)
-
-## Function/Variable Declaration (TODO)
-
-## Instructional Code (TODO)
-
 ## Decorator
 → all decorators decorating either classes, methods or properties
 - [x]  Label: `:TS:Decorator`
 
 Properties:
 - [x]  `name`: name of the decorator
+
+## Instructional Code (TODO)
 
 ## Type
 → represents a type (e.g. return type, property type, etc.)

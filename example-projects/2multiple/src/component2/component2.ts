@@ -47,4 +47,10 @@ interface TestInterface {
     y: number;
 }
 
+interface TestInterface2<T extends {a: number, b: string}> {
+    interfaceProp1: T[];
+    interFunc(x: number): string;
+    set a(value: string);
+}
+
 type TestType = TestInterface | number;

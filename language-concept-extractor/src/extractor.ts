@@ -10,10 +10,12 @@ import ClassDeclarationGenerator from './generators/class-declaration.generator'
 import TypeScriptProjectFilesGenerator from './generators/typescript-project-files.generator';
 import ConnectionIndex from './connection-index';
 import ConnectionGenerator from './generators/connection.generator';
+import InterfaceDeclarationProcessor from './processors/interface-declaration.processor';
 
 
 const PROCESSORS = [
-  ClassDeclarationProcessor
+  ClassDeclarationProcessor,
+  InterfaceDeclarationProcessor
 ];
 
 const GENERATORS = [

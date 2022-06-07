@@ -1,16 +1,14 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
-import { ClassDeclaration, ClassPropertyNameNonComputed, ExportSpecifier, MethodDefinitionNonComputedName } from '@typescript-eslint/types/dist/generated/ast-spec';
+import { ClassDeclaration } from '@typescript-eslint/types/dist/generated/ast-spec';
 import { Concept } from '../concepts';
-import ClassDeclarationIndex, { LCEClassDeclaration } from '../concepts/class-declaration.concept';
+import LCEClassDeclarationIndex, { LCEClassDeclaration } from '../concepts/class-declaration.concept';
 import { LCEDecorator } from '../concepts/decorator.concept';
-import { LCEConstructorDeclaration, LCEGetterDeclaration, LCEMethodDeclaration, LCEParameterDeclaration, LCESetterDeclaration } from '../concepts/method-declaration.concept';
-import { LCEPropertyDeclaration } from '../concepts/property-declaration.concept';
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
-import { LCETypeFunction } from '../concepts/type.concept';
 import { BaseProcessor, SourceData } from '../processor';
 import Utils from '../utils';
+import { parseMembers } from './class-like-declaration.utils';
 import { parseDecorators } from './decorator.utils';
-import { parseClassMethodType, parseClassPropertyType, parseClassTypeParameters } from './type.utils';
+import { parseClassTypeParameters } from './type.utils';
 
 export default class ClassDeclarationProcessor implements BaseProcessor {
 
@@ -20,19 +18,14 @@ export default class ClassDeclarationProcessor implements BaseProcessor {
 
     run(sourceData: SourceData, concepts: Map<Concept, any>): void {
         if(!concepts.has(Concept.CLASS_DECLARATIONS)) {
-            concepts.set(Concept.CLASS_DECLARATIONS, new ClassDeclarationIndex())
+            concepts.set(Concept.CLASS_DECLARATIONS, new LCEClassDeclarationIndex())
         }
-        const index: ClassDeclarationIndex = concepts.get(Concept.CLASS_DECLARATIONS);
+        const index: LCEClassDeclarationIndex = concepts.get(Concept.CLASS_DECLARATIONS);
         const decls = index.declarations;
-        
-        const astBody = sourceData.ast.body;
 
-        // all named export specifiers are added during first run and checked later
-        let exportSpecifiers: ExportSpecifier[] = [];
-
-        for(let statement of astBody) {
+        for(let statement of sourceData.ast.body) {
             if(statement.type === AST_NODE_TYPES.ClassDeclaration) {
-                // Default class declaration inside a TS file
+                // plain class declaration inside a TS file
                 const [fqn, cl] = this.processClassDeclaration(statement, sourceData);
                 decls.set(fqn, cl);
             } else if (statement.type === AST_NODE_TYPES.ExportNamedDeclaration && 
@@ -45,7 +38,7 @@ export default class ClassDeclarationProcessor implements BaseProcessor {
         }
     }
 
-    /** converts a given ESTree ClassDeclaration into a Class model object */
+    /** converts a given ESTree ClassDeclaration into a Class model object along with its FQN */
     private processClassDeclaration(classDecl: ClassDeclaration, sourceData: SourceData): [string, LCEClassDeclaration] {
         const fqn = Utils.getRelativeFQNForESNode(sourceData, classDecl);
 
@@ -56,83 +49,7 @@ export default class ClassDeclarationProcessor implements BaseProcessor {
         const typeParameters: LCETypeParameterDeclaration[] = parseClassTypeParameters(sourceData, classDecl);
 
         // Fields and Method Parsing
-        const methods: LCEMethodDeclaration[] = [];
-        const properties: LCEPropertyDeclaration[] = [];
-        const getters: LCEGetterDeclaration[] = [];
-        const setters: LCESetterDeclaration[] = [];
-        let constr: LCEConstructorDeclaration | undefined;
-        for(let classElement of classDecl.body.body) {
-            if(classElement.type === AST_NODE_TYPES.PropertyDefinition && !classElement.computed) {
-                // Non-Computed Property Parsing (omit computed properties)
-                // TODO: handle static properties
-                let [propertyName, jsPrivate] = this.processClassElementName(classElement.key);
-                properties.push({
-                    propertyName: propertyName,
-                    optional: !!classElement.optional,
-                    type: parseClassPropertyType(sourceData, classElement.key),
-                    decorators: parseDecorators(classElement.decorators),
-                    visibility: jsPrivate ? "js_private" : classElement.accessibility ?? "public",
-                    readonly: !!classElement.readonly
-                });
-            } else if (classElement.type === AST_NODE_TYPES.MethodDefinition && !classElement.computed) {
-                // Non-Computed Method Parsing (omit computed methods)
-                // TODO: handle static methods
-                // TODO: handle overloads
-                const [methodName, jsPrivate] = this.processClassElementName(classElement.key)
-                const visibility = jsPrivate ? "js_private" : classElement.accessibility ?? "public";
-
-                if(classElement.kind === "method") {
-                    // method
-                    const functionType = parseClassMethodType(sourceData, classDecl, classElement, methodName, jsPrivate);
-                    
-                    if(functionType) {
-                        methods.push({
-                            methodName: methodName,
-                            returnType: functionType.returnType,
-                            parameters: this.composeMethodParameters(functionType, classElement),
-                            typeParameters: functionType.typeParameters,
-                            decorators: parseDecorators(classElement.decorators),
-                            visibility: visibility
-                        });
-                    }
-                    
-                } else if(classElement.kind === "constructor") {
-                    // constructor
-                    const functionType = parseClassMethodType(sourceData, classDecl, classElement, methodName, jsPrivate);
-                    if(functionType) {
-                        const parameterProperties = this.extractParameterProperties(functionType, classElement);
-                        constr = {
-                            parameters: this.composeMethodParameters(functionType, classElement),
-                            parameterProperties: parameterProperties
-                        };
-                    }
-                } else if(classElement.kind === "get") {
-                    // getter
-                    const functionType = parseClassMethodType(sourceData, classDecl, classElement, methodName, jsPrivate);
-                    if(functionType) {
-                        getters.push({
-                            methodName: methodName,
-                            returnType: functionType.returnType,
-                            decorators: parseDecorators(classElement.decorators),
-                            visibility: visibility
-                        });
-                    }
-                } else {
-                    // setter
-                    const functionType = parseClassMethodType(sourceData, classDecl, classElement, methodName, jsPrivate);
-                    if(functionType) {
-                        setters.push({
-                            methodName: methodName,
-                            parameters: this.composeMethodParameters(functionType, classElement),
-                            decorators: parseDecorators(classElement.decorators),
-                            visibility: visibility
-                        });
-                    }
-                }
-            } else {
-                // TODO: handle other class level declarations e.g. index signatures
-            }
-        }
+        const [methods, properties, getters, setters, constr] = parseMembers(classDecl, sourceData);
 
         return [fqn, {
             className: classDecl.id!.name,
@@ -145,77 +62,5 @@ export default class ClassDeclarationProcessor implements BaseProcessor {
             decorators: decorators,
             sourceFilePath: sourceData.sourceFilePath
         }];
-    }
-
-    /** 
-     * Returns the field or method name for a given non-computed class element.
-     * Also returns if the element was declared private by using a #
-     * */
-    private processClassElementName(name: ClassPropertyNameNonComputed): [string, boolean] {
-        let result = "";
-        let jsPrivate = false;
-
-        if(name.type === AST_NODE_TYPES.Identifier) {
-            result = name.name;
-        } else if(name.type === AST_NODE_TYPES.Literal) {
-            result = name.value+"";
-        } else {
-            result = name.name;
-            jsPrivate = true;
-        }
-
-        return [result, jsPrivate];
-    }
-
-    /**
-     * @param functionType parsed LCETypeFunction of the method
-     * @param esClassElement ESTree class method node
-     * @returns list of parameters for class method
-     */
-    private composeMethodParameters(functionType: LCETypeFunction, 
-        esClassElement: MethodDefinitionNonComputedName): LCEParameterDeclaration[] {
-        const parameters: LCEParameterDeclaration[] = [];
-        for(let i = 0; i < functionType.parameters.length; i++) {
-            const funcTypeParam = functionType.parameters[i];
-            const esParamElem = esClassElement.value.params[i];
-            parameters.push({
-                index: funcTypeParam.index,
-                name: funcTypeParam.name,
-                type: funcTypeParam.type,
-                optional: "optional" in esParamElem && !!esParamElem.optional,
-                decorators: parseDecorators(esParamElem.decorators)
-            });
-        }
-        return parameters;
-    }
-
-    /**
-     * For use with constructors.
-     * @param functionType parsed LCETypeFunction of the method
-     * @param esClassElement ESTree class method node 
-     * @returns a mapping from parameter indexes to declared parameter properties
-     */
-    private extractParameterProperties(functionType: LCETypeFunction, 
-        esClassElement: MethodDefinitionNonComputedName): Map<number, LCEPropertyDeclaration> {
-        const result: Map<number, LCEPropertyDeclaration> = new Map();
-    
-        if(esClassElement.type === AST_NODE_TYPES.MethodDefinition && !esClassElement.computed && esClassElement.kind === "constructor") {
-            for(let i = 0; i < functionType.parameters.length; i++) {
-                const funcTypeParam = functionType.parameters[i];
-                const esParamElem = esClassElement.value.params[funcTypeParam.index];
-                if(esParamElem.type === AST_NODE_TYPES.TSParameterProperty) {
-                    result.set(funcTypeParam.index, {
-                        propertyName: funcTypeParam.name,
-                        optional: "optional" in esParamElem.parameter && !!esParamElem.parameter.optional,
-                        readonly: !!esParamElem.readonly,
-                        type: funcTypeParam.type,
-                        decorators: parseDecorators(esParamElem.decorators),
-                        visibility: esParamElem.accessibility ?? "public"
-                    });
-                }
-            }
-        }
-
-        return result;
     }
 }

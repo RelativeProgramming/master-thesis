@@ -4,25 +4,23 @@ import { LCEPropertyDeclaration } from './property-declaration.concept';
 import { LCETypeParameterDeclaration } from './type-parameter.concept';
 
 
-export default class LCEClassDeclarationIndex {
+export default class LCEInterfaceDeclarationIndex {
 
-    /** maps FQN of a class to the corresponding model object */
-    declarations: Map<string, LCEClassDeclaration>;
+    /** maps FQN of an interface to the corresponding model object */
+    declarations: Map<string, LCEInterfaceDeclaration>;
 
     constructor() {
         this.declarations = new Map();
     }
 }
 
-export interface LCEClassDeclaration {
-    className: string;
+export interface LCEInterfaceDeclaration {
+    interfaceName: string;
     typeParameters: LCETypeParameterDeclaration[];
-    constr: LCEConstructorDeclaration | undefined;
     properties: LCEPropertyDeclaration[];
     methods: LCEMethodDeclaration[];
     getters: LCEGetterDeclaration[];
     setters: LCESetterDeclaration[];
-    decorators: LCEDecorator[];
     sourceFilePath: string;
 }
   

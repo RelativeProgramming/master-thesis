@@ -1,4 +1,4 @@
-import {ClassPropertyNameNonComputed, ClassDeclaration, MethodDefinitionNonComputedName, Identifier} from '@typescript-eslint/types/dist/generated/ast-spec'
+import {ClassPropertyNameNonComputed, ClassDeclaration, TSInterfaceDeclaration, MethodDefinitionNonComputedName, TSMethodSignatureNonComputedName, Identifier} from '@typescript-eslint/types/dist/generated/ast-spec'
 import { TypeReference, Type, Node, isTypeParameterDeclaration, Signature, Symbol, SignatureKind, PseudoBigInt} from 'typescript';
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
 import LCEType, { LCETypeFunction, LCETypeIntersection, LCETypeNotIdentified, LCETypeObject, LCETypeParameter, LCETypeDeclared, LCETypeUnion, LCETypePrimitive, LCETypeFunctionParameter, LCETypeLiteral, LCETypeTuple } from '../concepts/type.concept';
@@ -21,15 +21,15 @@ export function parseClassPropertyType(sourceData: SourceData, esProperty: Class
 }
 
 /**
- * Returns the type for a given class method (with a non-computed name).
+ * Returns the type for a given method (with a non-computed name).
  * This includes constructors, getters and setters.
  * @param esProperty method name node provided in ESTree
  * @returns LCEType with encoded type information
  */
-export function parseClassMethodType(
+export function parseMethodType(
      sourceData: SourceData, 
-     esClassDecl: ClassDeclaration, 
-     esMethodDecl: MethodDefinitionNonComputedName, 
+     esClassDecl: ClassDeclaration | TSInterfaceDeclaration, 
+     esMethodDecl: MethodDefinitionNonComputedName | TSMethodSignatureNonComputedName, 
      methodName: string, 
      jsPrivate: boolean): LCETypeFunction | undefined {
     const tc = sourceData.typeChecker;
@@ -86,8 +86,9 @@ export function parseClassMethodType(
             );
         } else if(esMethodDecl.kind === "set") {
             // setter
-            const paramName = (esMethodDecl.value.params[0] as Identifier).name;
-            const esParam = esMethodDecl.value.params[0];
+            const param = "value" in esMethodDecl ? esMethodDecl.value.params[0] : esMethodDecl.params[0];
+            const paramName = (param as Identifier).name;
+            const esParam = param;
             const paramNode = sourceData.services.esTreeNodeToTSNodeMap.get(esParam);
             const paramType = tc.getTypeAtLocation(paramNode);
             return new LCETypeFunction(
@@ -109,7 +110,7 @@ export function parseClassMethodType(
         // const esParam = esMethodDecl.value.params[i];
         // TODO: process parameter destructuring (arrays and objects)
         // TODO: process rest parameter arguments
-        // TODO: process this parameter (necessary?)
+        // TODO: process `this` parameter (necessary?)
         // TODO: process default parameters
         parameters.push(
             new LCETypeFunctionParameter(
@@ -134,6 +135,20 @@ export function parseClassMethodType(
  */
 export function parseClassTypeParameters(sourceData: SourceData, esClass: ClassDeclaration): LCETypeParameterDeclaration[] {
     const node = sourceData.services.esTreeNodeToTSNodeMap.get(esClass);
+    return parseClassLikeTypeParameters(
+        sourceData,
+        sourceData.typeChecker.getTypeAtLocation(node),
+        node
+    );
+}
+
+/**
+ * Returns the type parameters declared for a given interface
+ * @param esInterface interface declaration node provided in ESTree
+ * @returns Array of LCEGenericsTypeVariable with encoded type parameter information
+ */
+ export function parseInterfaceTypeParameters(sourceData: SourceData, esInterface: TSInterfaceDeclaration): LCETypeParameterDeclaration[] {
+    const node = sourceData.services.esTreeNodeToTSNodeMap.get(esInterface);
     return parseClassLikeTypeParameters(
         sourceData,
         sourceData.typeChecker.getTypeAtLocation(node),
@@ -264,7 +279,7 @@ function parseClassLikeTypeParameters(sourceData: SourceData, type: Type, node: 
     const tc = sourceData.typeChecker;
     const result: LCETypeParameterDeclaration[] = [];
     for(let typeParam of tc.getTypeArguments(type as TypeReference)) {
-        const name = type.symbol.name;
+        const name = typeParam.symbol.name;
         let constraintType: LCEType;
 
         const typeParamDecl = typeParam.symbol.declarations![0];
