@@ -1,0 +1,75 @@
+import { Integer, Session } from 'neo4j-driver';
+import { LCEClassDeclaration } from '../concepts/class-declaration.concept';
+import { LCEInterfaceDeclaration } from '../concepts/interface-declaration.concept';
+import ConnectionIndex from '../connection-index';
+import { createConstructorNode, createGetterNode, createMethodNode, createSetterNode } from './method.generator.utils';
+import { createPropertyNode } from './property.generator.utils';
+import { createTypeParameterNodes } from './type.generator.utils';
+
+
+export async function createMemberNodes(
+    decl: LCEClassDeclaration | LCEInterfaceDeclaration,
+    declNodeId: Integer,
+    neo4jSession: Session,
+    connectionIndex: ConnectionIndex
+) {
+    // create type parameter structures and connections
+    const classTypeParameters: Map<string, Integer> = await createTypeParameterNodes(
+        decl.typeParameters,
+        neo4jSession,
+        connectionIndex
+    );
+    for(let typeParamNodeId of classTypeParameters.values()) {
+        connectionIndex.connectionsToCreate.push([declNodeId, typeParamNodeId, {name: ":DECLARES", props: {}}]);
+    }
+
+    // create property structures and connections
+    for(let propertyDecl of decl.properties) {
+        const propNodeId = await createPropertyNode(
+            propertyDecl,
+            neo4jSession,
+            connectionIndex,
+            classTypeParameters
+        );
+        connectionIndex.connectionsToCreate.push([declNodeId, propNodeId, {name: ":DECLARES", props: {}}]);
+    }
+    
+    // create method, constructor, getter and setter structures and connections
+    for(let methodDecl of decl.methods) {
+        const methodNodeId = await createMethodNode(
+            methodDecl,
+            neo4jSession,
+            connectionIndex,
+            classTypeParameters
+        );
+        connectionIndex.connectionsToCreate.push([declNodeId, methodNodeId, {name: ":DECLARES", props: {}}]);
+    }
+    if("constr" in decl && decl.constr) {
+        const constructorNodeId = await createConstructorNode(
+            decl.constr,
+            neo4jSession,
+            connectionIndex,
+            classTypeParameters,
+            declNodeId
+        );
+        connectionIndex.connectionsToCreate.push([declNodeId, constructorNodeId, {name: ":DECLARES", props: {}}]);
+    }
+    for(let getterDecl of decl.getters) {
+        const getterNodeId = await createGetterNode(
+            getterDecl,
+            neo4jSession,
+            connectionIndex,
+            classTypeParameters
+        );
+        connectionIndex.connectionsToCreate.push([declNodeId, getterNodeId, {name: ":DECLARES", props: {}}]);
+    }
+    for(let setterDecl of decl.setters) {
+        const setterNodeId = await createSetterNode(
+            setterDecl,
+            neo4jSession,
+            connectionIndex,
+            classTypeParameters
+        );
+        connectionIndex.connectionsToCreate.push([declNodeId, setterNodeId, {name: ":DECLARES", props: {}}]);
+    }
+}

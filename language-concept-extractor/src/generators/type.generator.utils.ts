@@ -261,7 +261,7 @@ export async function createTypeParameterNodes(
         }
         const id = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
             `
-            CREATE (typeParam:TS:Type:Parameter $typeParamNodeProps)
+            CREATE (typeParam:TS:TypeParameter $typeParamNodeProps)
             RETURN id(typeParam)
             `, {typeParamNodeProps: typeParamNodeProps}
         ));

@@ -49,15 +49,15 @@ Relations:
 
 ## Interface Declaration
 → all `interface` declarations inside TS files
-- [ ]  Label: `:TS:Interface`
+- [x]  Label: `:TS:Interface`
 
 Properties:
-- [ ]  `fqn`: fully qualified name (e.g. `"./src/main.ts".MyInterface`)
-- [ ]  `name`: local name of the interface
-- [ ]  `sourceFilePath`: path to source file
+- [x]  `fqn`: fully qualified name (e.g. `"./src/main.ts".MyInterface`)
+- [x]  `name`: local name of the interface
+- [x]  `sourceFilePath`: path to source file
 
 Relations:
-- [ ]  `DECLARES`: all declared methods, properties and type parameters
+- [x]  `DECLARES`: all declared methods, properties and type parameters
 - [ ]  `EXTENDS`: base interfaces
 
 ## Type Alias Declaration (TODO)
@@ -195,7 +195,7 @@ Relations:
 
 ### Type Parameters (Generics)
 → all type parameters declared by a class, interface or function
-- [x]  Label: `:TS:Type:Parameter`
+- [x]  Label: `:TS:TypeParameter`
 
 Properties:
 - [x]  `index`: index of the type parameter in the type parameter list
