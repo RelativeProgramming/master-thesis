@@ -29,8 +29,8 @@ Relations:
     - [ ]  attribute `exportedName` for potential aliases
 
 ## tsconfig.json
-    → configuration file of project
-    - [x]  Label: `:TS:ProjectConfiguration`
+→ configuration file of project
+- [x]  Label: `:TS:ProjectConfiguration`
 
 ## Class Declaration
 → all `class` declarations inside TS files
