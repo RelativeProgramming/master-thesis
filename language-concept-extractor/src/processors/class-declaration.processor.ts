@@ -70,16 +70,19 @@ export default class ClassDeclarationProcessor implements BaseProcessor {
                     propertyName: propertyName,
                     optional: !!classElement.optional,
                     type: parseClassPropertyType(sourceData, classElement.key),
-                    decorators: parseDecorators(classElement.decorators)
+                    decorators: parseDecorators(classElement.decorators),
+                    visibility: jsPrivate ? "js_private" : classElement.accessibility ?? "public",
+                    readonly: !!classElement.readonly
                 });
             } else if (classElement.type === AST_NODE_TYPES.MethodDefinition && !classElement.computed) {
                 // Non-Computed Method Parsing (omit computed methods)
                 // TODO: handle static methods
                 // TODO: handle overloads
+                const [methodName, jsPrivate] = this.processClassElementName(classElement.key)
+                const visibility = jsPrivate ? "js_private" : classElement.accessibility ?? "public";
 
                 if(classElement.kind === "method") {
                     // method
-                    let [methodName, jsPrivate] = this.processClassElementName(classElement.key)
                     const functionType = parseClassMethodType(sourceData, classDecl, classElement, methodName, jsPrivate);
                     
                     if(functionType) {
@@ -88,39 +91,41 @@ export default class ClassDeclarationProcessor implements BaseProcessor {
                             returnType: functionType.returnType,
                             parameters: this.composeMethodParameters(functionType, classElement),
                             typeParameters: functionType.typeParameters,
-                            decorators: parseDecorators(classElement.decorators)
+                            decorators: parseDecorators(classElement.decorators),
+                            visibility: visibility
                         });
                     }
                     
                 } else if(classElement.kind === "constructor") {
                     // constructor
-                    let [methodName, jsPrivate] = this.processClassElementName(classElement.key);
                     const functionType = parseClassMethodType(sourceData, classDecl, classElement, methodName, jsPrivate);
                     if(functionType) {
+                        const parameterProperties = this.extractParameterProperties(functionType, classElement);
                         constr = {
-                            parameters: this.composeMethodParameters(functionType, classElement)
+                            parameters: this.composeMethodParameters(functionType, classElement),
+                            parameterProperties: parameterProperties
                         };
                     }
                 } else if(classElement.kind === "get") {
                     // getter
-                    let [methodName, jsPrivate] = this.processClassElementName(classElement.key);
                     const functionType = parseClassMethodType(sourceData, classDecl, classElement, methodName, jsPrivate);
                     if(functionType) {
                         getters.push({
                             methodName: methodName,
                             returnType: functionType.returnType,
-                            decorators: parseDecorators(classElement.decorators)
+                            decorators: parseDecorators(classElement.decorators),
+                            visibility: visibility
                         });
                     }
                 } else {
                     // setter
-                    let [methodName, jsPrivate] = this.processClassElementName(classElement.key);
                     const functionType = parseClassMethodType(sourceData, classDecl, classElement, methodName, jsPrivate);
                     if(functionType) {
                         setters.push({
                             methodName: methodName,
                             parameters: this.composeMethodParameters(functionType, classElement),
-                            decorators: parseDecorators(classElement.decorators)
+                            decorators: parseDecorators(classElement.decorators),
+                            visibility: visibility
                         });
                     }
                 }
@@ -177,9 +182,40 @@ export default class ClassDeclarationProcessor implements BaseProcessor {
                 index: funcTypeParam.index,
                 name: funcTypeParam.name,
                 type: funcTypeParam.type,
+                optional: "optional" in esParamElem && !!esParamElem.optional,
                 decorators: parseDecorators(esParamElem.decorators)
             });
         }
         return parameters;
+    }
+
+    /**
+     * For use with constructors.
+     * @param functionType parsed LCETypeFunction of the method
+     * @param esClassElement ESTree class method node 
+     * @returns a mapping from parameter indexes to declared parameter properties
+     */
+    private extractParameterProperties(functionType: LCETypeFunction, 
+        esClassElement: MethodDefinitionNonComputedName): Map<number, LCEPropertyDeclaration> {
+        const result: Map<number, LCEPropertyDeclaration> = new Map();
+    
+        if(esClassElement.type === AST_NODE_TYPES.MethodDefinition && !esClassElement.computed && esClassElement.kind === "constructor") {
+            for(let i = 0; i < functionType.parameters.length; i++) {
+                const funcTypeParam = functionType.parameters[i];
+                const esParamElem = esClassElement.value.params[funcTypeParam.index];
+                if(esParamElem.type === AST_NODE_TYPES.TSParameterProperty) {
+                    result.set(funcTypeParam.index, {
+                        propertyName: funcTypeParam.name,
+                        optional: "optional" in esParamElem.parameter && !!esParamElem.parameter.optional,
+                        readonly: !!esParamElem.readonly,
+                        type: funcTypeParam.type,
+                        decorators: parseDecorators(esParamElem.decorators),
+                        visibility: esParamElem.accessibility ?? "public"
+                    });
+                }
+            }
+        }
+
+        return result;
     }
 }

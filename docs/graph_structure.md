@@ -54,8 +54,8 @@ Relations:
 Properties:
 - [x]  `name`: name of the property
 - [x]  `optional`: is property optional (`?`)
-- [ ]  `readonly`: is property read-only (`readonly`)
-- [ ]  `visibility`: specified visibility (`public`, `protected` or `private` or `js_private` for `#`) (optional)
+- [x]  `readonly`: is property read-only (`readonly`)
+- [x]  `visibility`: specified visibility (`public`, `protected` or `private` or `js_private` for `#`)
 
 Relations:
 - [x]  `OF_TYPE`: type of the property
@@ -67,7 +67,7 @@ Relations:
 
 Properties:
 - [x]  `name`: name of the method
-- [ ]  `visibility`: specified visibility (`public`, `protected` or `private` or `js_private` for `#`) (optional)
+- [x]  `visibility`: specified visibility (`public`, `protected` or `private` or `js_private` for `#`)
 
 Relations:
 - [x]  `RETURNS`: return type of the method
@@ -78,17 +78,18 @@ Relations:
 
 Sub-Types:
 - Constructor
-    - has no `name` attribute and has only `HAS` and `DEPENDS_ON` relations
-    - can not be `js_private`
-    - [x]  Label: `:TS:Method:Constructor`
+  - [x]  Label: `:TS:Method:Constructor`
+  - has no `name` attribute and has only `HAS` and `DEPENDS_ON` relations
+  - can not be `js_private`
+  - can declare parameter properties
     
 - Getter
-    - has no `HAS` relation
-    - [x]  Label: `:TS:Method:Getter`
+  - [x]  Label: `:TS:Method:Getter`
+  - has no `HAS` relation
     
 - Setter
-    - has no `RETURNS` relation
-    - [x]  Label: `:TS:Method:Setter`
+  - [x]  Label: `:TS:Method:Setter`
+  - has no `RETURNS` relation
 
 ## Parameter Declaration
 → all parameters declared by function or methods
@@ -101,6 +102,7 @@ Properties:
 Relations:
 - [x]  `OF_TYPE`: reference to type of the parameter
 - [x]  `DECORATED_BY`: all decorators decorating the parameter
+- [x]  `DECLARES`: parameter property references (only for constructors)
 
 ## Interface Declaration (TODO)
 

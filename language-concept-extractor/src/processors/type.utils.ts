@@ -53,14 +53,12 @@ export function parseClassMethodType(
     const methodNode = propertySym.valueDeclaration!;
     const methodType = tc.getTypeOfSymbolAtLocation(propertySym, methodNode);
     let methodSignature = tc.getSignaturesOfType(methodType, SignatureKind.Call)[0];
-    
     if(methodSignature === undefined) {
         if(esMethodDecl.kind === "constructor") {
             // constructor
             const parameters: LCETypeFunctionParameter[] = [];
             for(let i = 0; i < esMethodDecl.value.params.length; i++) {
                 let esParam = esMethodDecl.value.params[i];
-                // TODO: handle different constructor parameter variants (model expansion)
                 if(esParam.type == "TSParameterProperty") {
                     esParam = esParam.parameter;
                 }
@@ -108,6 +106,11 @@ export function parseClassMethodType(
     for(let i = 0; i < parameterSyms.length; i++) {
         const paraSym = parameterSyms[i];
         const parameterType = tc.getTypeOfSymbolAtLocation(paraSym, methodNode);
+        // const esParam = esMethodDecl.value.params[i];
+        // TODO: process parameter destructuring (arrays and objects)
+        // TODO: process rest parameter arguments
+        // TODO: process this parameter (necessary?)
+        // TODO: process default parameters
         parameters.push(
             new LCETypeFunctionParameter(
                 i, 
@@ -249,7 +252,7 @@ function parseType(sourceData: SourceData, type: Type, node: Node) : LCEType {
 }
 
 function isPrimitiveType(typeStr: string): boolean {
-    return ["undefined", "null", "void", "any", "unknown", "number", "bigint", "boolean", "string", "symbol", "object"]
+    return ["undefined", "null", "void", "any", "unknown", "never", "number", "bigint", "boolean", "string", "symbol", "object"]
     .includes(typeStr);
 }
 

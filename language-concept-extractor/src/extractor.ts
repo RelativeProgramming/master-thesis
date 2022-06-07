@@ -49,7 +49,7 @@ export function processProject(projectRoot: string) {
   // TODO: take tsconfig.json into consideration (assumes projectRoot = path that contains tsconfig.json)
   // see https://www.typescriptlang.org/docs/handbook/project-references.html#what-is-a-project-reference
   
-  const fileList = Utils.getFileList(projectRoot, [".ts"], [".git", "node_modules"]);
+  const fileList = Utils.getFileList(projectRoot, [".ts", ".tsx"], [".git", "node_modules"]);
 
   const concepts: Map<Concept, any> = new Map<Concept, any>();
   concepts.set(Concept.TYPESCRIPT_PROJECT, {
@@ -98,3 +98,4 @@ async function generateGraphs(concepts: Map<Concept, any>) {
 
 
 processProject("/home/sebastian/dev/master-thesis/example-projects/2multiple");
+//processProject("/home/sebastian/dev/master-thesis/example-projects/devhub");

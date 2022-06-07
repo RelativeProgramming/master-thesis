@@ -4,6 +4,7 @@ import { LCEConstructorDeclaration, LCEGetterDeclaration, LCEMethodDeclaration, 
 import ConnectionIndex from '../connection-index';
 import Utils from '../utils';
 import { createDecoratorNode } from './decorator.generator.utils';
+import { createPropertyNode } from './property.generator.utils';
 import { createTypeNode, createTypeParameterNodes } from './type.generator.utils';
 
 
@@ -16,7 +17,8 @@ export async function createMethodNode(
 
     // create method node
     const methodNodeProps = {
-        name: methodDecl.methodName
+        name: methodDecl.methodName,
+        visibility: methodDecl.visibility
     }
     const methodNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
         `
@@ -76,25 +78,39 @@ export async function createMethodNode(
 export async function createConstructorNode(
     constructorDecl: LCEConstructorDeclaration, 
     neo4jSession: Session,
-    declaredTypesNodeIndex: ConnectionIndex,
+    connectionIndex: ConnectionIndex,
     parentTypeParamNodes: Map<string, Integer> = new Map(),
+    parentNodeId: Integer
 ): Promise<Integer> {
     // create constructor node
     const constructorNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
         `
-        CREATE (constructor:TS:Method:Constructor)
+        CREATE (constructor:TS:Method:Constructor {name: "constructor"})
         RETURN id(constructor)
         `
     ));
 
     // create constructor parameter nodes and connections
-    await createMethodParameters(
+    const paramNodeIds = await createMethodParameters(
         constructorNodeId,
         neo4jSession,
         constructorDecl.parameters,
-        declaredTypesNodeIndex,
+        connectionIndex,
         parentTypeParamNodes
     );
+
+    // create parameter property nodes and connections
+    for(let [i, paramProp] of constructorDecl.parameterProperties.entries()) {
+        const paramNodeId = paramNodeIds.get(i)!;
+        const propNodeId = await createPropertyNode(
+            paramProp,
+            neo4jSession,
+            connectionIndex,
+            parentTypeParamNodes
+        );
+        connectionIndex.connectionsToCreate.push([paramNodeId, propNodeId, {name: ":DECLARES", props: {}}]);
+        connectionIndex.connectionsToCreate.push([parentNodeId, propNodeId, {name: ":DECLARES", props: {}}]);
+    }
 
     return constructorNodeId;
 }
@@ -107,7 +123,8 @@ export async function createGetterNode(
 ): Promise<Integer> {
     // create getter node
     const getterNodeProps = {
-        name: getterDecl.methodName
+        name: getterDecl.methodName,
+        visibility: getterDecl.visibility
     }
     const getterNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
         `
@@ -140,7 +157,8 @@ export async function createSetterNode(
 ): Promise<Integer> {
     // create setter node
     const setterNodeProps = {
-        name: setterDecl.methodName
+        name: setterDecl.methodName,
+        visibility: setterDecl.visibility
     }
     const setterNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
         `
@@ -190,8 +208,10 @@ async function createMethodParameters(
     connectionIndex: ConnectionIndex,
     parentTypeParamNodes: Map<string, Integer> = new Map(),
     methodTypeParamNodes: Map<string, Integer> = new Map()
-): Promise<void> {
-    for(let param of parameters) {
+): Promise<Map<number, Integer>> {
+    const result: Map<number, Integer> = new Map();
+    for(let i = 0; i < parameters.length; i++) {
+        const param = parameters[i];
         const paramNodeId = await createParameterNode(
             param,
             neo4jSession,
@@ -199,16 +219,18 @@ async function createMethodParameters(
             parentTypeParamNodes,
             methodTypeParamNodes
         );
-        await neo4jSession.run(
+        result.set(param.index, Utils.getNodeIdFromQueryResult(await neo4jSession.run(
             `
             MATCH (method)
             MATCH (param:TS:Parameter)
             WHERE id(method) = $methodNodeId AND id(param) = $paramNodeId
             CREATE (method)-[:HAS]->(param)
-            RETURN param
+            RETURN id(param)
             `, {methodNodeId: methodNodeId, paramNodeId: paramNodeId}
-        )
+        )));
     }
+
+    return result;
 }
 
 export async function createParameterNode(

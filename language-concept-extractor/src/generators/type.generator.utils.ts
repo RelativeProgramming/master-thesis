@@ -7,7 +7,7 @@ import { createParameterNode } from './method.generator.utils';
 
 
 /**
- * Recursively creates type nodes for given `LCEType` and registers connection information within the `DeclaredTypesNodeIndex`.
+ * Recursively creates type nodes for given `LCEType` and registers connection information within the `ConnectionIndex`.
  * @param type `LCEType` for which nodes are created
  * @param connectionIndex index for registering connections to types (for later creation)
  * @param parentNode node which will be related to the type node#
@@ -153,6 +153,7 @@ export async function createTypeNode(
                     index: param.index,
                     name: param.name,
                     type: param.type,
+                    optional: false, // TODO: determine optional for function type parameter
                     decorators: []
                 },
                 neo4jSession,

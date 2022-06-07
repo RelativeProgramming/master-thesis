@@ -5,7 +5,7 @@ import { MyService } from './my-service';
 function run() {
     let service = new MyService();
     let component1 = new Component1(service.getModel1());
-    let component2 = new C2(service.getModel2());
+    let component2 = new C2(5, service.getModel2());
     component1.render();
     component2.render();
 }

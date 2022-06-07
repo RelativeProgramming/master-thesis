@@ -111,7 +111,8 @@ export default class ClassDeclarationGenerator implements BaseGenerator {
                     classDecl.constr,
                     neo4jSession,
                     connectionIndex,
-                    classTypeParameters
+                    classTypeParameters,
+                    classNodeId
                 );
                 await neo4jSession.run(methodQuery, {classNodeId: classNodeId, methodNodeId: constructorNodeId});
             }
