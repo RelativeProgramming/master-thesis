@@ -51,6 +51,7 @@ interface TestInterface2<T extends {a: number, b: string}> {
     interfaceProp1: T[];
     interFunc(x: number): string;
     set a(value: string);
+    boolNum: true | false | number;
 }
 
 type TestType = TestInterface | number;

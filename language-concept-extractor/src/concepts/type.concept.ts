@@ -141,7 +141,7 @@ export class LCETypeLiteral extends LCEType {
      * @param value content of the type literal
      */
      constructor(
-        public value: string | number
+        public value: string | number | boolean
     ) {
         super()
     }

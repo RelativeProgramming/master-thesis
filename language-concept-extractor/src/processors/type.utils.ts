@@ -210,10 +210,17 @@ function parseType(sourceData: SourceData, type: Type, node: Node) : LCEType {
             return new LCETypeObject(members);
         } else if(type.isLiteral()) {
             // literal type
+            // TODO: support true/false literals!!
             if(isLiterNumberOrString(type.value))
                 return new LCETypeLiteral(type.value);
             else
                 return new LCETypeLiteral(type.value.toString());       
+        } else if(tc.typeToString(type) === "true") {
+            // boolean true literal
+            return new LCETypeLiteral(true);
+        } else if(tc.typeToString(type) === "false") {
+            // boolean false literal
+            return new LCETypeLiteral(false);
         } else if(tc.typeToString(type).startsWith("[")) {
             // tuple type
             const typeArgs = tc.getTypeArguments(type as TypeReference);
