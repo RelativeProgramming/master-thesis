@@ -9,4 +9,5 @@ export interface LCEPropertyDeclaration {
     decorators: LCEDecorator[];
     visibility: Visibility;
     readonly: boolean;
+    override?: boolean;
 }

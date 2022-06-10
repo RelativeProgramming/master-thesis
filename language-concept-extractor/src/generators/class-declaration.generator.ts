@@ -1,12 +1,13 @@
 import { Session } from 'neo4j-driver';
 import { Concept } from '../concepts';
-import LCEClassDeclarationIndex from '../concepts/class-declaration.concept';
 import { LCETypeScriptProject } from '../concepts/typescript-project.concept';
 import BaseGenerator from '../generator';
 import ConnectionIndex from '../connection-index';
 import Utils from '../utils';
 import { createDecoratorNode } from './decorator.generator.utils';
-import { createMemberNodes } from './class-like-declaration.generator.utils';
+import { createClassLikeTypeParameterNodes, createMemberNodes } from './class-like-declaration.generator.utils';
+import LCEClassDeclarationIndex from '../concept-indexes/class-declaration.index';
+import { createTypeNode } from './type.generator.utils';
 
 /**
  * Generates all graph structures related to class declarations.
@@ -20,7 +21,7 @@ export default class ClassDeclarationGenerator implements BaseGenerator {
         const project: LCETypeScriptProject = concepts.get(Concept.TYPESCRIPT_PROJECT);
         const classDeclIndex: LCEClassDeclarationIndex = concepts.get(Concept.CLASS_DECLARATIONS);
 
-        console.log("Generating graph structures for " + classDeclIndex.declarations.size + " class declaration...")
+        console.log("Generating graph structures for " + classDeclIndex.declarations.size + " class declarations...")
         // create class structures
         for(let [fqn, classDecl] of classDeclIndex.declarations.entries()) {
             // create class node
@@ -42,10 +43,43 @@ export default class ClassDeclarationGenerator implements BaseGenerator {
                 connectionIndex.connectionsToCreate.push([classNodeId, decoratorNodeId, {name: ":DECORATED_BY", props: {}}]);
             }
 
+            // create type parameter nodes and connections
+            const classTypeParameters = await createClassLikeTypeParameterNodes(
+                classDecl, 
+                classNodeId,
+                neo4jSession,
+                connectionIndex
+            );
+
+            // create type node for super class, if class has one
+            if(classDecl.extendsClass) {
+                await createTypeNode(
+                    classDecl.extendsClass,
+                    neo4jSession,
+                    connectionIndex,
+                    classNodeId,
+                    {name: ":EXTENDS", props: {}},
+                    classTypeParameters
+                );
+            }
+
+            // create type nodes for interfaces that are implemented
+            for(let implType of classDecl.implementsInterfaces) {
+                await createTypeNode(
+                    implType,
+                    neo4jSession,
+                    connectionIndex,
+                    classNodeId,
+                    {name: ":IMPLEMENTS", props: {}},
+                    classTypeParameters
+                );
+            }
+
             // create property and method nodes and connections
             await createMemberNodes(
                 classDecl, 
                 classNodeId,
+                classTypeParameters,
                 neo4jSession,
                 connectionIndex
             );

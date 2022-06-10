@@ -5,7 +5,7 @@ import { LCEPropertyDeclaration } from '../concepts/property-declaration.concept
 import { LCETypeFunction } from '../concepts/type.concept';
 import { SourceData } from '../processor';
 import { parseDecorators } from './decorator.utils';
-import { parseClassPropertyType, parseMethodType } from './type.utils';
+import { parseClassPropertyType as parsePropertyType, parseMethodType } from './type.utils';
 
 /**
  * Extracts member information from class or interface declaration
@@ -28,10 +28,11 @@ export function parseMembers(decl: ClassDeclaration | TSInterfaceDeclaration, so
             properties.push({
                 propertyName: propertyName,
                 optional: !!element.optional,
-                type: parseClassPropertyType(sourceData, element.key),
+                type: parsePropertyType(sourceData, element.key),
                 decorators: "decorators" in element ? parseDecorators(element.decorators) : [],
                 visibility: jsPrivate ? "js_private" : element.accessibility ?? "public",
-                readonly: !!element.readonly
+                readonly: !!element.readonly,
+                override: "override" in element ? element.override : undefined
             });
         } else if ((element.type === AST_NODE_TYPES.MethodDefinition || element.type === AST_NODE_TYPES.TSMethodSignature) && !element.computed) {
             // Non-Computed Method Parsing (omit computed methods)
@@ -39,7 +40,8 @@ export function parseMembers(decl: ClassDeclaration | TSInterfaceDeclaration, so
             // TODO: handle overloads
             const [methodName, jsPrivate] = processMemberName(element.key)
             const visibility = jsPrivate ? "js_private" : element.accessibility ?? "public";
-
+            if(methodName == "comp2Func") 
+                methodName
             if(element.kind === "method") {
                 // method
                 const functionType = parseMethodType(sourceData, decl, element, methodName, jsPrivate);
@@ -51,7 +53,8 @@ export function parseMembers(decl: ClassDeclaration | TSInterfaceDeclaration, so
                         parameters: composeMethodParameters(functionType, element),
                         typeParameters: functionType.typeParameters,
                         decorators: "decorators" in element ? parseDecorators(element.decorators) : [],
-                        visibility: visibility
+                        visibility: visibility,
+                        override: "override" in element ? element.override : undefined
                     });
                 }
                 
@@ -73,7 +76,8 @@ export function parseMembers(decl: ClassDeclaration | TSInterfaceDeclaration, so
                         methodName: methodName,
                         returnType: functionType.returnType,
                         decorators: "decorators" in element ? parseDecorators(element.decorators) : [],
-                        visibility: visibility
+                        visibility: visibility,
+                        override: "override" in element ? element.override : undefined
                     });
                 }
             } else {
@@ -84,7 +88,8 @@ export function parseMembers(decl: ClassDeclaration | TSInterfaceDeclaration, so
                         methodName: methodName,
                         parameters: composeMethodParameters(functionType, element),
                         decorators: "decorators" in element ? parseDecorators(element.decorators) : [],
-                        visibility: visibility
+                        visibility: visibility,
+                        override: "override" in element ? element.override : undefined
                     });
                 }
             }
@@ -159,7 +164,8 @@ function extractParameterProperties(functionType: LCETypeFunction,
                     readonly: !!esParamElem.readonly,
                     type: funcTypeParam.type,
                     decorators: parseDecorators(esParamElem.decorators),
-                    visibility: esParamElem.accessibility ?? "public"
+                    visibility: esParamElem.accessibility ?? "public",
+                    override: esParamElem.override
                 });
             }
         }

@@ -27,6 +27,10 @@ class Component2 {
         this.model!.print("b");
     }
 
+    comp2Func(): void {
+
+    }
+
     myFuncTest<T>(@required myParam1: number, myParam2: string[]): T[] {
         return [];
     }
@@ -42,9 +46,57 @@ class Component2 {
     #myJSPrivateFunc() : void {}
 }
 
+class Component2Extended extends Component2 implements ImplementMe {
+
+    newExtensionProp: TestInterfaceExtended = {x: 1, y: 2, z: 3, genericProp: "generic"};
+    implProp: number = 42;
+
+    constructor(public override myProp: Model2) {
+        super(0);
+    }
+
+    override comp2Func(): void {
+        super.comp2Func();
+        console.log("Extended func");
+    }
+
+    override set a(value: string) {
+        this._a = "impl:"+value;
+    }
+
+    otherFunc(x: number): number{
+        return x + 1;
+    }
+
+    implMethod(a: number): void {
+        console.log("doSth");
+    }
+}
+
+class Class1<T> {
+
+}
+
+class Class2 extends Class1<string> {
+
+}
+
+interface GenericInterface<T> {
+    genericProp: T;
+}
+
 interface TestInterface {
     x: number;
     y: number;
+}
+
+interface TestInterfaceExtended extends TestInterface, GenericInterface<string> {
+    z: number;
+}
+
+interface ImplementMe {
+    implProp: number;
+    implMethod(a: number): void;
 }
 
 interface TestInterface2<T extends {a: number, b: string}> {

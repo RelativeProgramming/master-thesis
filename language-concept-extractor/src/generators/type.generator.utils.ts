@@ -239,14 +239,14 @@ export async function createTypeNode(
 /**
  * Creates type nodes for the given type parameters.
  * @param typeParameters `LCETypeParameterDeclaration`s for which nodes are created
- * @param typeReferenceNodeIndex index for registering connections (for later creation)
+ * @param connectionIndex index for registering connections (for later creation)
  * @param parentTypeParamNodes type parameter of parent class, interface or type alias
  * @returns 
  */
 export async function createTypeParameterNodes(
     typeParameters: LCETypeParameterDeclaration[],
     neo4jSession: Session, 
-    typeReferenceNodeIndex: ConnectionIndex, 
+    connectionIndex: ConnectionIndex, 
     parentTypeParamNodes: Map<string, Integer> = new Map()
 ): Promise<Map<string, Integer>> {
     const result: Map<string, Integer> = new Map();
@@ -277,7 +277,7 @@ export async function createTypeParameterNodes(
         await createTypeNode(
             typeParam.constraint, 
             neo4jSession,
-            typeReferenceNodeIndex,
+            connectionIndex,
             typeParamId,
             {name: ":CONSTRAINED_BY", props: {}},
             parentTypeParamNodes,

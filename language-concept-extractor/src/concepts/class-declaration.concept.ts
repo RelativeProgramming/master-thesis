@@ -2,21 +2,13 @@ import { LCEDecorator } from './decorator.concept';
 import { LCEConstructorDeclaration, LCEGetterDeclaration, LCEMethodDeclaration, LCESetterDeclaration } from './method-declaration.concept';
 import { LCEPropertyDeclaration } from './property-declaration.concept';
 import { LCETypeParameterDeclaration } from './type-parameter.concept';
-
-
-export default class LCEClassDeclarationIndex {
-
-    /** maps FQN of a class to the corresponding model object */
-    declarations: Map<string, LCEClassDeclaration>;
-
-    constructor() {
-        this.declarations = new Map();
-    }
-}
+import { LCETypeDeclared } from './type.concept';
 
 export interface LCEClassDeclaration {
     className: string;
     typeParameters: LCETypeParameterDeclaration[];
+    extendsClass: LCETypeDeclared | undefined;
+    implementsInterfaces: LCETypeDeclared[];
     constr: LCEConstructorDeclaration | undefined;
     properties: LCEPropertyDeclaration[];
     methods: LCEMethodDeclaration[];

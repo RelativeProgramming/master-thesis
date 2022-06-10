@@ -7,29 +7,38 @@ import { createPropertyNode } from './property.generator.utils';
 import { createTypeParameterNodes } from './type.generator.utils';
 
 
-export async function createMemberNodes(
+export async function createClassLikeTypeParameterNodes(
     decl: LCEClassDeclaration | LCEInterfaceDeclaration,
     declNodeId: Integer,
     neo4jSession: Session,
     connectionIndex: ConnectionIndex
-) {
+): Promise<Map<string, Integer>> {
     // create type parameter structures and connections
-    const classTypeParameters: Map<string, Integer> = await createTypeParameterNodes(
+    const classLikeTypeParameters: Map<string, Integer> = await createTypeParameterNodes(
         decl.typeParameters,
         neo4jSession,
         connectionIndex
     );
-    for(let typeParamNodeId of classTypeParameters.values()) {
+    for(let typeParamNodeId of classLikeTypeParameters.values()) {
         connectionIndex.connectionsToCreate.push([declNodeId, typeParamNodeId, {name: ":DECLARES", props: {}}]);
     }
+    return classLikeTypeParameters;
+}
 
+export async function createMemberNodes(
+    decl: LCEClassDeclaration | LCEInterfaceDeclaration,
+    declNodeId: Integer,
+    classLikeTypeParameters: Map<string, Integer>,
+    neo4jSession: Session,
+    connectionIndex: ConnectionIndex
+) {
     // create property structures and connections
     for(let propertyDecl of decl.properties) {
         const propNodeId = await createPropertyNode(
             propertyDecl,
             neo4jSession,
             connectionIndex,
-            classTypeParameters
+            classLikeTypeParameters
         );
         connectionIndex.connectionsToCreate.push([declNodeId, propNodeId, {name: ":DECLARES", props: {}}]);
     }
@@ -40,7 +49,7 @@ export async function createMemberNodes(
             methodDecl,
             neo4jSession,
             connectionIndex,
-            classTypeParameters
+            classLikeTypeParameters
         );
         connectionIndex.connectionsToCreate.push([declNodeId, methodNodeId, {name: ":DECLARES", props: {}}]);
     }
@@ -49,7 +58,7 @@ export async function createMemberNodes(
             decl.constr,
             neo4jSession,
             connectionIndex,
-            classTypeParameters,
+            classLikeTypeParameters,
             declNodeId
         );
         connectionIndex.connectionsToCreate.push([declNodeId, constructorNodeId, {name: ":DECLARES", props: {}}]);
@@ -59,7 +68,7 @@ export async function createMemberNodes(
             getterDecl,
             neo4jSession,
             connectionIndex,
-            classTypeParameters
+            classLikeTypeParameters
         );
         connectionIndex.connectionsToCreate.push([declNodeId, getterNodeId, {name: ":DECLARES", props: {}}]);
     }
@@ -68,7 +77,7 @@ export async function createMemberNodes(
             setterDecl,
             neo4jSession,
             connectionIndex,
-            classTypeParameters
+            classLikeTypeParameters
         );
         connectionIndex.connectionsToCreate.push([declNodeId, setterNodeId, {name: ":DECLARES", props: {}}]);
     }

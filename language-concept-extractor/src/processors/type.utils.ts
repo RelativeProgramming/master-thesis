@@ -1,4 +1,4 @@
-import {ClassPropertyNameNonComputed, ClassDeclaration, TSInterfaceDeclaration, MethodDefinitionNonComputedName, TSMethodSignatureNonComputedName, Identifier} from '@typescript-eslint/types/dist/generated/ast-spec'
+import {ClassPropertyNameNonComputed, ClassDeclaration, TSInterfaceDeclaration, MethodDefinitionNonComputedName, TSInterfaceHeritage, TSClassImplements, TypeNode, TSMethodSignatureNonComputedName, Identifier} from '@typescript-eslint/types/dist/generated/ast-spec'
 import { TypeReference, Type, Node, isTypeParameterDeclaration, Signature, Symbol, SignatureKind, PseudoBigInt} from 'typescript';
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
 import LCEType, { LCETypeFunction, LCETypeIntersection, LCETypeNotIdentified, LCETypeObject, LCETypeParameter, LCETypeDeclared, LCETypeUnion, LCETypePrimitive, LCETypeFunctionParameter, LCETypeLiteral, LCETypeTuple } from '../concepts/type.concept';
@@ -129,31 +129,62 @@ export function parseMethodType(
 }
 
 /**
- * Returns the type parameters declared for a given class
- * @param esClass class declaration node provided in ESTree
+ * Returns the type parameters declared for a given class or interface
+ * @param esElement declaration node provided in ESTree
  * @returns Array of LCEGenericsTypeVariable with encoded type parameter information
  */
-export function parseClassTypeParameters(sourceData: SourceData, esClass: ClassDeclaration): LCETypeParameterDeclaration[] {
-    const node = sourceData.services.esTreeNodeToTSNodeMap.get(esClass);
-    return parseClassLikeTypeParameters(
-        sourceData,
-        sourceData.typeChecker.getTypeAtLocation(node),
-        node
-    );
+ export function parseClassLikeTypeParameters(sourceData: SourceData, esElement: ClassDeclaration | TSInterfaceDeclaration): LCETypeParameterDeclaration[] {
+    const node = sourceData.services.esTreeNodeToTSNodeMap.get(esElement);
+    const type = sourceData.typeChecker.getTypeAtLocation(node);
+    const tc = sourceData.typeChecker;
+    const result: LCETypeParameterDeclaration[] = [];
+    for(let typeParam of tc.getTypeArguments(type as TypeReference)) {
+        const name = typeParam.symbol.name;
+        let constraintType: LCEType;
+
+        const typeParamDecl = typeParam.symbol.declarations![0];
+        if(isTypeParameterDeclaration(typeParamDecl) && typeParamDecl.constraint) {
+            constraintType = parseType(
+                sourceData, 
+                tc.getTypeAtLocation(typeParamDecl.constraint), 
+                typeParamDecl
+            );
+        } else {
+            // if no constraint is found, return empty object type (unconstrained)
+            constraintType = new LCETypeObject(new Map());
+        }
+
+        result.push(new LCETypeParameterDeclaration(name, constraintType));
+    }
+
+    return result;
 }
 
 /**
- * Returns the type parameters declared for a given interface
- * @param esInterface interface declaration node provided in ESTree
- * @returns Array of LCEGenericsTypeVariable with encoded type parameter information
+ * Returns declared type for a given super type specified after `extends` or `implements`
+ * @param esTypeIdentifier ESTree identifier of the super type
+ * @param esTypeArguments type arguments of the super type
+ * @returns 
  */
- export function parseInterfaceTypeParameters(sourceData: SourceData, esInterface: TSInterfaceDeclaration): LCETypeParameterDeclaration[] {
-    const node = sourceData.services.esTreeNodeToTSNodeMap.get(esInterface);
-    return parseClassLikeTypeParameters(
-        sourceData,
-        sourceData.typeChecker.getTypeAtLocation(node),
-        node
-    );
+export function parseClassLikeBaseType(sourceData: SourceData, esTypeIdentifier: Identifier | TSClassImplements | TSInterfaceHeritage, esTypeArguments?: TypeNode[]
+): LCETypeDeclared | undefined {
+    const tc = sourceData.typeChecker;
+    const node = sourceData.services.esTreeNodeToTSNodeMap.get(esTypeIdentifier);
+    const type = tc.getTypeAtLocation(node);
+    const result = parseType(sourceData, type, node);
+
+    if(result instanceof LCETypeDeclared) {
+        const typeArgs: LCEType[] = [];
+        for(let esTypeArgument of esTypeArguments?? []) {
+            const node = sourceData.services.esTreeNodeToTSNodeMap.get(esTypeArgument);
+            const type = tc.getTypeAtLocation(node);
+            typeArgs.push(parseType(sourceData, type, node));
+        }
+        result.typeArguments = typeArgs;
+        return result;
+    } else {
+        return undefined;
+    }
 }
 
 function parseType(sourceData: SourceData, type: Type, node: Node) : LCEType {
@@ -210,7 +241,6 @@ function parseType(sourceData: SourceData, type: Type, node: Node) : LCEType {
             return new LCETypeObject(members);
         } else if(type.isLiteral()) {
             // literal type
-            // TODO: support true/false literals!!
             if(isLiterNumberOrString(type.value))
                 return new LCETypeLiteral(type.value);
             else
@@ -262,7 +292,9 @@ function parseType(sourceData: SourceData, type: Type, node: Node) : LCEType {
         const inProject = !isStandardLibrary && !isExternal;
         const name = inProject ? Utils.getRelativeFQN(sourceData, fqn) : fqn;
         const typeArguments: LCEType[] = tc.getTypeArguments(type as TypeReference).map((t) => parseType(sourceData, t, node));
-    
+        
+        // TODO: handle locally defined (non-)anonymous types (e.g. with class expressios)
+
         return new LCETypeDeclared(
             name,
             inProject,
@@ -280,31 +312,6 @@ function isPrimitiveType(typeStr: string): boolean {
 
 function isLiterNumberOrString(literalValue: number | string | PseudoBigInt): literalValue is number | string {
     return typeof literalValue === "string" || typeof literalValue === "number";
-}
-
-function parseClassLikeTypeParameters(sourceData: SourceData, type: Type, node: Node): LCETypeParameterDeclaration[] {
-    const tc = sourceData.typeChecker;
-    const result: LCETypeParameterDeclaration[] = [];
-    for(let typeParam of tc.getTypeArguments(type as TypeReference)) {
-        const name = typeParam.symbol.name;
-        let constraintType: LCEType;
-
-        const typeParamDecl = typeParam.symbol.declarations![0];
-        if(isTypeParameterDeclaration(typeParamDecl) && typeParamDecl.constraint) {
-            constraintType = parseType(
-                sourceData, 
-                tc.getTypeAtLocation(typeParamDecl.constraint), 
-                typeParamDecl
-            );
-        } else {
-            // if no constraint is found, return empty object type (unconstrained)
-            constraintType = new LCETypeObject(new Map());
-        }
-
-        result.push(new LCETypeParameterDeclaration(name, constraintType));
-    }
-
-    return result;
 }
 
 function parseFunctionTypeParameters(sourceData: SourceData, signature: Signature, node: Node): LCETypeParameterDeclaration[] {

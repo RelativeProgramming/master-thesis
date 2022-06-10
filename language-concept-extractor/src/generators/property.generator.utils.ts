@@ -18,7 +18,8 @@ export async function createPropertyNode(
         name: propertyDecl.propertyName,
         optional: propertyDecl.optional,
         visibility: propertyDecl.visibility,
-        readonly: propertyDecl.readonly
+        readonly: propertyDecl.readonly,
+        override: propertyDecl.override
     }
     const propNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
         `

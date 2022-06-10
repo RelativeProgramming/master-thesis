@@ -18,7 +18,8 @@ export async function createMethodNode(
     // create method node
     const methodNodeProps = {
         name: methodDecl.methodName,
-        visibility: methodDecl.visibility
+        visibility: methodDecl.visibility,
+        override: methodDecl.override
     }
     const methodNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
         `
@@ -31,6 +32,9 @@ export async function createMethodNode(
     await createMethodDecorators(methodNodeId, neo4jSession, methodDecl.decorators);
 
     // create method type parameter nodes and connections
+    if(methodDecl.methodName === "myFuncTest") {
+        methodDecl
+    }
     const methodTypeParamNodes = await createTypeParameterNodes(
         methodDecl.typeParameters,
         neo4jSession,
@@ -38,15 +42,7 @@ export async function createMethodNode(
         parentTypeParamNodes
     );
     for(let typeParamNodeId of methodTypeParamNodes.values()) {
-        await neo4jSession.run(
-            `
-            MATCH (method:TS:Method)
-            MATCH (typeParam:TS:Type:Parameter)
-            WHERE id(method) = $methodNodeId AND id(typeParam) = $typeParamNodeId
-            CREATE (method)-[:DECLARES]->(typeParam)
-            RETURN typeParam
-            `, {methodNodeId: methodNodeId, typeParamNodeId: typeParamNodeId}
-        );
+        connectionIndex.connectionsToCreate.push([methodNodeId, typeParamNodeId, {name: ":DECLARES", props: {}}]);
     }
 
     // create method parameter nodes and connections
@@ -118,13 +114,14 @@ export async function createConstructorNode(
 export async function createGetterNode(
     getterDecl: LCEGetterDeclaration, 
     neo4jSession: Session,
-    typeReferenceNodeIndex: ConnectionIndex,
+    connectionIndex: ConnectionIndex,
     parentTypeParamNodes: Map<string, Integer> = new Map(),
 ): Promise<Integer> {
     // create getter node
     const getterNodeProps = {
         name: getterDecl.methodName,
-        visibility: getterDecl.visibility
+        visibility: getterDecl.visibility,
+        override: getterDecl.override
     }
     const getterNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
         `
@@ -140,7 +137,7 @@ export async function createGetterNode(
     const typeNodeId = await createTypeNode(
         getterDecl.returnType,
         neo4jSession,
-        typeReferenceNodeIndex,
+        connectionIndex,
         getterNodeId,
         {name: ":RETURNS", props: {}},
         parentTypeParamNodes
@@ -158,7 +155,8 @@ export async function createSetterNode(
     // create setter node
     const setterNodeProps = {
         name: setterDecl.methodName,
-        visibility: setterDecl.visibility
+        visibility: setterDecl.visibility,
+        override: setterDecl.override
     }
     const setterNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
         `

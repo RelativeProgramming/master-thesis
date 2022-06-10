@@ -61,6 +61,7 @@ export function processProject(projectRoot: string) {
   });
 
   console.log("Analyzing " + fileList.length + " project files...");
+  const startTime = process.hrtime();
 
   let providedConcepts: Concept[] = [Concept.TYPESCRIPT_PROJECT];
   let processors = [...PROCESSORS];
@@ -79,11 +80,15 @@ export function processProject(projectRoot: string) {
     }
   }
 
+  const endTime = process.hrtime();
+  console.log("Finished analyzing project files. Runtime: " + (endTime[0] - startTime[0]) + "s");
+
   generateGraphs(concepts);
 }
 
 async function generateGraphs(concepts: Map<Concept, any>) {
   console.log("Generating graph...")
+  const startTime = process.hrtime();
   const driver = neo4jDriver("bolt://localhost:7687", neo4jAuth.basic("", ""));
   const session = driver.session();
   const connectionIndex = new ConnectionIndex();
@@ -97,9 +102,10 @@ async function generateGraphs(concepts: Map<Concept, any>) {
     await session.close();
   }
   await driver.close();
-  console.log("Finished generating graph.")
+  const endTime = process.hrtime();
+  console.log("Finished generating graph. Runtime: " + (endTime[0] - startTime[0]) + "s");
 }
-
 
 processProject("/home/sebastian/dev/master-thesis/example-projects/2multiple");
 //processProject("/home/sebastian/dev/master-thesis/example-projects/devhub");
+//processProject("/home/sebastian/dev/master-thesis/language-concept-extractor");

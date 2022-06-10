@@ -12,6 +12,7 @@ export interface LCEMethodDeclaration {
     typeParameters: LCETypeParameterDeclaration[];
     decorators: LCEDecorator[];
     visibility: Visibility;
+    override?: boolean;
 }
 
 export interface LCEParameterDeclaration {
@@ -34,6 +35,7 @@ export interface LCEGetterDeclaration {
     returnType: LCEType;
     decorators: LCEDecorator[];
     visibility: Visibility;
+    override?: boolean;
 }
 
 export interface LCESetterDeclaration {
@@ -41,4 +43,5 @@ export interface LCESetterDeclaration {
     parameters: LCEParameterDeclaration[];
     decorators: LCEDecorator[];
     visibility: Visibility;
+    override?: boolean;
 }

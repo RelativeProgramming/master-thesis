@@ -44,8 +44,8 @@ Properties:
 Relations:
 - [x]  `DECLARES`: all declared methods, properties and type parameters
 - [x]  `DECORATED_BY`: all decorators on class level
-- [ ]  `EXTENDS`: super class
-- [ ]  `IMPLEMENTS`: all interfaces that are implemented by class
+- [x]  `EXTENDS`: super class
+- [x]  `IMPLEMENTS`: all interfaces that are implemented by class
 
 ## Interface Declaration
 → all `interface` declarations inside TS files
@@ -58,7 +58,7 @@ Properties:
 
 Relations:
 - [x]  `DECLARES`: all declared methods, properties and type parameters
-- [ ]  `EXTENDS`: base interfaces
+- [x]  `EXTENDS`: base interfaces
 
 ## Type Alias Declaration (TODO)
 
@@ -73,6 +73,7 @@ Properties:
 - [x]  `optional`: is property optional (`?`)
 - [x]  `readonly`: is property read-only (`readonly`)
 - [x]  `visibility`: specified visibility (`public`, `protected` or `private` or `js_private` for `#`)
+- [x]  `override`: is property overridden from super class (using `override` keyword)
 
 Relations:
 - [x]  `OF_TYPE`: type of the property
@@ -85,6 +86,7 @@ Relations:
 Properties:
 - [x]  `name`: name of the method
 - [x]  `visibility`: specified visibility (`public`, `protected` or `private` or `js_private` for `#`)
+- [x]  `override`: is method overridden from super class (using `override` keyword)
 
 Relations:
 - [x]  `RETURNS`: return type of the method
@@ -96,7 +98,7 @@ Relations:
 Sub-Types:
 - Constructor
   - [x]  Label: `:TS:Method:Constructor`
-  - has no `name` attribute and has only `HAS` and `DEPENDS_ON` relations
+  - has no `name` and `override` attribute and has only `HAS` and `DEPENDS_ON` relations
   - can not be `js_private`
   - can declare parameter properties
     

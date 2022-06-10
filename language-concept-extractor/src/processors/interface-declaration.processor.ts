@@ -1,12 +1,14 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 import { TSInterfaceDeclaration } from '@typescript-eslint/types/dist/generated/ast-spec';
+import LCEInterfaceDeclarationIndex from '../concept-indexes/interface-declaration.index';
 import { Concept } from '../concepts';
-import LCEInterfaceDeclarationIndex, { LCEInterfaceDeclaration } from '../concepts/interface-declaration.concept';
+import { LCEInterfaceDeclaration } from '../concepts/interface-declaration.concept';
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
+import { LCETypeDeclared } from '../concepts/type.concept';
 import { BaseProcessor, SourceData } from '../processor';
 import Utils from '../utils';
 import { parseMembers } from './class-like-declaration.utils';
-import { parseInterfaceTypeParameters } from './type.utils';
+import { parseClassLikeBaseType, parseClassLikeTypeParameters } from './type.utils';
 
 
 export default class InterfaceDeclarationProcessor implements BaseProcessor {
@@ -43,18 +45,39 @@ export default class InterfaceDeclarationProcessor implements BaseProcessor {
         const fqn = Utils.getRelativeFQNForESNode(sourceData, interfaceDecl);
 
         // Class Type Parameter Parsing
-        const typeParameters: LCETypeParameterDeclaration[] = parseInterfaceTypeParameters(sourceData, interfaceDecl);
+        const typeParameters: LCETypeParameterDeclaration[] = parseClassLikeTypeParameters(sourceData, interfaceDecl);
 
+        // Parent Interfaces Parsing
+        const extendsInterfaces = this.parseInterfaceInheritance(sourceData, interfaceDecl);
+
+        // Properties and Method Parsing
         const [methods, properties, getters, setters] = parseMembers(interfaceDecl, sourceData);
         
         return [fqn, {
             interfaceName: interfaceDecl.id!.name,
             typeParameters: typeParameters,
+            extendsInterfaces: extendsInterfaces,
             properties: properties,
             methods: methods,
             getters: getters,
             setters: setters,
             sourceFilePath: sourceData.sourceFilePath
         }];
+    }
+
+    /** returns a list of FQNs of all parent interfaces */
+    private parseInterfaceInheritance(sourceData: SourceData, interfaceDecl: TSInterfaceDeclaration): LCETypeDeclared[] {
+        const extendsInterfaces: LCETypeDeclared[] = [];
+
+        const extendsElems = interfaceDecl.extends;
+        if(extendsElems) {
+            for(let extendsElem of extendsElems) {
+                const extendsType = parseClassLikeBaseType(sourceData, extendsElem, extendsElem.typeParameters?.params);
+                if(extendsType)
+                    extendsInterfaces.push(extendsType);
+            }
+        }
+
+        return extendsInterfaces;
     }
 }
