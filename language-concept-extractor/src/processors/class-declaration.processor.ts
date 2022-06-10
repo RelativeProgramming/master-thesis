@@ -41,7 +41,7 @@ export default class ClassDeclarationProcessor implements BaseProcessor {
         }
     }
 
-    /** converts a given ESTree ClassDeclaration into a Class model object along with its FQN */
+    /** converts a given ESTree class declaration into a class model object along with its FQN */
     private processClassDeclaration(classDecl: ClassDeclaration, sourceData: SourceData): [string, LCEClassDeclaration] {
         const fqn = Utils.getRelativeFQNForESNode(sourceData, classDecl);
 

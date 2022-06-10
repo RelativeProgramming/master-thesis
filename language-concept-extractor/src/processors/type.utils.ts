@@ -1,5 +1,6 @@
-import {ClassPropertyNameNonComputed, ClassDeclaration, TSInterfaceDeclaration, MethodDefinitionNonComputedName, TSInterfaceHeritage, TSClassImplements, TypeNode, TSMethodSignatureNonComputedName, Identifier} from '@typescript-eslint/types/dist/generated/ast-spec'
+import {ClassPropertyNameNonComputed, ClassDeclaration, FunctionDeclaration, TSInterfaceDeclaration, MethodDefinitionNonComputedName, TSInterfaceHeritage, TSClassImplements, TypeNode, TSMethodSignatureNonComputedName, Identifier} from '@typescript-eslint/types/dist/generated/ast-spec'
 import { TypeReference, Type, Node, isTypeParameterDeclaration, Signature, Symbol, SignatureKind, PseudoBigInt} from 'typescript';
+import { LCEParameterDeclaration } from '../concepts/method-declaration.concept';
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
 import LCEType, { LCETypeFunction, LCETypeIntersection, LCETypeNotIdentified, LCETypeObject, LCETypeParameter, LCETypeDeclared, LCETypeUnion, LCETypePrimitive, LCETypeFunctionParameter, LCETypeLiteral, LCETypeTuple } from '../concepts/type.concept';
 import { SourceData } from '../processor';
@@ -28,12 +29,12 @@ export function parseClassPropertyType(sourceData: SourceData, esProperty: Class
  */
 export function parseMethodType(
      sourceData: SourceData, 
-     esClassDecl: ClassDeclaration | TSInterfaceDeclaration, 
+     esClassLikeDecl: ClassDeclaration | TSInterfaceDeclaration, 
      esMethodDecl: MethodDefinitionNonComputedName | TSMethodSignatureNonComputedName, 
      methodName: string, 
      jsPrivate: boolean): LCETypeFunction | undefined {
     const tc = sourceData.typeChecker;
-    const classNode = sourceData.services.esTreeNodeToTSNodeMap.get(esClassDecl);
+    const classNode = sourceData.services.esTreeNodeToTSNodeMap.get(esClassLikeDecl);
     const classType = tc.getTypeAtLocation(classNode);
     let propertySym : Symbol | undefined;
     if(jsPrivate) {
@@ -99,27 +100,36 @@ export function parseMethodType(
         }
     }
 
+    // parse return type
     const returnType = parseType(sourceData, methodSignature.getReturnType(), methodNode);
+
+    // parse type parameters
     const typeParameters = parseFunctionTypeParameters(sourceData, methodSignature, methodNode);
     
-    const parameters: LCETypeFunctionParameter[] = [];
-    const parameterSyms = methodSignature.getParameters();
-    for(let i = 0; i < parameterSyms.length; i++) {
-        const paraSym = parameterSyms[i];
-        const parameterType = tc.getTypeOfSymbolAtLocation(paraSym, methodNode);
-        // const esParam = esMethodDecl.value.params[i];
-        // TODO: process parameter destructuring (arrays and objects)
-        // TODO: process rest parameter arguments
-        // TODO: process `this` parameter (necessary?)
-        // TODO: process default parameters
-        parameters.push(
-            new LCETypeFunctionParameter(
-                i, 
-                paraSym.name, 
-                parseType(sourceData, parameterType, methodNode)
-            )
-        );
-    }
+    // parse parameters
+    const parameters = parseFunctionParameters(sourceData, methodSignature, methodNode);
+
+    return new LCETypeFunction(
+        returnType,
+        parameters,
+        typeParameters
+    );
+}
+
+export function parseFunctionType(sourceData: SourceData, esFunctionDecl: FunctionDeclaration): LCETypeFunction {
+    const tc = sourceData.typeChecker;
+    const methodNode = sourceData.services.esTreeNodeToTSNodeMap.get(esFunctionDecl);
+    const methodType = tc.getTypeAtLocation(methodNode)
+    let methodSignature = tc.getSignaturesOfType(methodType, SignatureKind.Call)[0];
+    
+    // parse return type
+    const returnType = parseType(sourceData, methodSignature.getReturnType(), methodNode);
+
+    // parse type parameters
+    const typeParameters = parseFunctionTypeParameters(sourceData, methodSignature, methodNode);
+    
+    // parse parameters
+    const parameters = parseFunctionParameters(sourceData, methodSignature, methodNode);
 
     return new LCETypeFunction(
         returnType,
@@ -339,4 +349,27 @@ function parseFunctionTypeParameters(sourceData: SourceData, signature: Signatur
     }
 
     return result;
+}
+
+function parseFunctionParameters(sourceData: SourceData, signature: Signature, node: Node): LCETypeFunctionParameter[] {
+    const tc = sourceData.typeChecker;
+    const parameters: LCETypeFunctionParameter[] = [];
+    const parameterSyms = signature.getParameters();
+    for(let i = 0; i < parameterSyms.length; i++) {
+        const paraSym = parameterSyms[i];
+        const parameterType = tc.getTypeOfSymbolAtLocation(paraSym, node);
+        // const esParam = esMethodDecl.value.params[i];
+        // TODO: process parameter destructuring (arrays and objects)
+        // TODO: process rest parameter arguments
+        // TODO: process `this` parameter (necessary?)
+        // TODO: process default parameters
+        parameters.push(
+            new LCETypeFunctionParameter(
+                i, 
+                paraSym.name, 
+                parseType(sourceData, parameterType, node)
+            )
+        );
+    }
+    return parameters;
 }

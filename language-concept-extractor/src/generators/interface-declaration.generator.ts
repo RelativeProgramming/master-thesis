@@ -11,8 +11,6 @@ import { createTypeNode } from './type.generator.utils';
 /**
  * Generates all graph structures related to interface declarations.
  * This includes type parameters, properties, methods, along with their types.
- * 
- * NOTE: connections are registered with the `ConnectionIndex` for later creation.
  */
 export default class InterfaceDeclarationGenerator implements BaseGenerator {
 

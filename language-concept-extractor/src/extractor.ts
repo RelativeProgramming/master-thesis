@@ -12,17 +12,21 @@ import ConnectionIndex from './connection-index';
 import ConnectionGenerator from './generators/connection.generator';
 import InterfaceDeclarationProcessor from './processors/interface-declaration.processor';
 import InterfaceDeclarationGenerator from './generators/interface-declaration.generator';
+import FunctionDeclarationProcessor from './processors/function-declaration.processor';
+import FunctionDeclarationGenerator from './generators/function-declaration.generator';
 
 
 const PROCESSORS = [
   ClassDeclarationProcessor,
-  InterfaceDeclarationProcessor
+  InterfaceDeclarationProcessor,
+  FunctionDeclarationProcessor
 ];
 
 const GENERATORS = [
   TypeScriptProjectFilesGenerator,
   ClassDeclarationGenerator,
   InterfaceDeclarationGenerator,
+  FunctionDeclarationGenerator,
   ConnectionGenerator
 ];
 

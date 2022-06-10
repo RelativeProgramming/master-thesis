@@ -81,6 +81,10 @@ class Class2 extends Class1<string> {
 
 }
 
+function myGlobalFunc<T>(x: number, y: T[]): string[] {
+    return [];
+}
+
 interface GenericInterface<T> {
     genericProp: T;
 }

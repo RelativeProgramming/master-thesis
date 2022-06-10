@@ -40,11 +40,11 @@ export default class InterfaceDeclarationProcessor implements BaseProcessor {
         }
     }
 
-    /** converts a given ESTree ClassDeclaration into a Class model object along with its FQN */
+    /** converts a given ESTree interface declaration into a interface model object along with its FQN */
     private processInterfaceDeclaration(interfaceDecl: TSInterfaceDeclaration, sourceData: SourceData): [string, LCEInterfaceDeclaration] {
         const fqn = Utils.getRelativeFQNForESNode(sourceData, interfaceDecl);
 
-        // Class Type Parameter Parsing
+        // Interface Type Parameter Parsing
         const typeParameters: LCETypeParameterDeclaration[] = parseClassLikeTypeParameters(sourceData, interfaceDecl);
 
         // Parent Interfaces Parsing

@@ -39,13 +39,14 @@ Relations:
 Properties:
 - [x]  `fqn`: fully qualified name (e.g. `"./src/main.ts".MyComponent`)
 - [x]  `name`: local name of the class
-- [x]  `sourceFilePath`: path to source file
+- [ ]  `abstract` is class abstact (`abstract`)
 
 Relations:
 - [x]  `DECLARES`: all declared methods, properties and type parameters
 - [x]  `DECORATED_BY`: all decorators on class level
 - [x]  `EXTENDS`: super class
 - [x]  `IMPLEMENTS`: all interfaces that are implemented by class
+- [ ]  `DEPENDS_ON`: all internal and external declarations that are used within the class
 
 ## Interface Declaration
 → all `interface` declarations inside TS files
@@ -54,7 +55,6 @@ Relations:
 Properties:
 - [x]  `fqn`: fully qualified name (e.g. `"./src/main.ts".MyInterface`)
 - [x]  `name`: local name of the interface
-- [x]  `sourceFilePath`: path to source file
 
 Relations:
 - [x]  `DECLARES`: all declared methods, properties and type parameters
@@ -62,7 +62,21 @@ Relations:
 
 ## Type Alias Declaration (TODO)
 
-## Function/Variable Declaration (TODO)
+## Function Declaration
+→ all function declarations made on file level
+- [x]  Label: `:TS:Function`
+
+Properties:
+- [x]  `fqn`: fully qualified name (e.g. `"./src/main.ts".doSth`)
+- [x]  `name`: local name of the function
+
+Relations:
+- [x]  `RETURNS`: return type of the method
+- [x]  `HAS`: references to parameters
+- [x]  `DECLARES`: all declared type parameters
+- [ ]  `DEPENDS_ON`: all internal and external declarations that are used within the function
+
+## Variable Declaration (TODO)
 
 ## Property Declaration
 → all property declarations inside classes, interfaces or type aliases
@@ -73,6 +87,8 @@ Properties:
 - [x]  `optional`: is property optional (`?`)
 - [x]  `readonly`: is property read-only (`readonly`)
 - [x]  `visibility`: specified visibility (`public`, `protected` or `private` or `js_private` for `#`)
+- [ ]  `static` is property static (`static`)
+- [ ]  `abstract` is property abstact (`abstract`)
 - [x]  `override`: is property overridden from super class (using `override` keyword)
 
 Relations:
@@ -86,6 +102,8 @@ Relations:
 Properties:
 - [x]  `name`: name of the method
 - [x]  `visibility`: specified visibility (`public`, `protected` or `private` or `js_private` for `#`)
+- [ ]  `static` is method static (`static`)
+- [ ]  `abstract` is method abstact (`abstract`)
 - [x]  `override`: is method overridden from super class (using `override` keyword)
 
 Relations:

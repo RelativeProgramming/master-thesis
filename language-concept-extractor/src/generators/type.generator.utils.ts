@@ -3,7 +3,7 @@ import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept'
 import LCEType, { LCETypeDeclared, LCETypeFunction, LCETypeIntersection, LCETypeLiteral, LCETypeNotIdentified, LCETypeObject, LCETypeParameter, LCETypePrimitive, LCETypeTuple, LCETypeUnion } from '../concepts/type.concept';
 import ConnectionIndex, { ConnectionProperties } from '../connection-index';
 import Utils from '../utils';
-import { createParameterNode } from './method.generator.utils';
+import { createFunctionParameterNode } from './function.generator.utils';
 
 
 /**
@@ -148,7 +148,7 @@ export async function createTypeNode(
 
         // create function parameter nodes and connections
         for(let param of type.parameters) {
-            const paramNodeId = await createParameterNode(
+            const paramNodeId = await createFunctionParameterNode(
                 {
                     index: param.index,
                     name: param.name,
