@@ -2,7 +2,7 @@ import { AST_NODE_TYPES } from '@typescript-eslint/types';
 import { ClassDeclaration } from '@typescript-eslint/types/dist/generated/ast-spec';
 import { Identifier, TypeReference } from 'typescript';
 import LCEClassDeclarationIndex from '../concept-indexes/class-declaration.index';
-import { Concept } from '../concepts';
+import { ConceptIndex } from '../concept-indexes';
 import { LCEClassDeclaration } from '../concepts/class-declaration.concept';
 import { LCEDecorator } from '../concepts/decorator.concept';
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
@@ -15,15 +15,15 @@ import { parseClassLikeBaseType, parseClassLikeTypeParameters } from './type.uti
 
 export default class ClassDeclarationProcessor implements BaseProcessor {
 
-    requiredConcepts: Concept[] = [];
+    requiredConcepts: ConceptIndex[] = [];
 
-    providedConcepts: Concept[] = [Concept.CLASS_DECLARATIONS];
+    providedConcepts: ConceptIndex[] = [ConceptIndex.CLASS_DECLARATIONS];
 
-    run(sourceData: SourceData, concepts: Map<Concept, any>): void {
-        if(!concepts.has(Concept.CLASS_DECLARATIONS)) {
-            concepts.set(Concept.CLASS_DECLARATIONS, new LCEClassDeclarationIndex())
+    run(sourceData: SourceData, concepts: Map<ConceptIndex, any>): void {
+        if(!concepts.has(ConceptIndex.CLASS_DECLARATIONS)) {
+            concepts.set(ConceptIndex.CLASS_DECLARATIONS, new LCEClassDeclarationIndex())
         }
-        const index: LCEClassDeclarationIndex = concepts.get(Concept.CLASS_DECLARATIONS);
+        const index: LCEClassDeclarationIndex = concepts.get(ConceptIndex.CLASS_DECLARATIONS);
         const decls = index.declarations;
 
         for(let statement of sourceData.ast.body) {
@@ -43,7 +43,7 @@ export default class ClassDeclarationProcessor implements BaseProcessor {
 
     /** converts a given ESTree class declaration into a class model object along with its FQN */
     private processClassDeclaration(classDecl: ClassDeclaration, sourceData: SourceData): [string, LCEClassDeclaration] {
-        const fqn = Utils.getRelativeFQNForESNode(sourceData, classDecl);
+        const fqn = Utils.getRelativeFQNForDeclaredTypeESNode(sourceData, classDecl);
 
         // Class Decorator Parsing
         const decorators: LCEDecorator[] = parseDecorators(classDecl.decorators);

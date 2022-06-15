@@ -13,3 +13,5 @@ export class Component1 {
         this.model.print("y");
     }
 }
+
+export const myConst = 1;

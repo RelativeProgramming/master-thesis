@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as fs from 'fs';
-import { Node } from 'typescript';
+import { Node, Symbol } from 'typescript';
 import { SourceData } from './processor';
 import { Node as ESNode } from '@typescript-eslint/types/dist/generated/ast-spec';
 import { Integer, QueryResult } from 'neo4j-driver';
@@ -13,16 +13,44 @@ export default class Utils {
      * @param node TS node in AST
      * @returns the fully qualified name of the element described in node
      */
-    static getRelativeFQNForESNode(sourceData: SourceData, statement: ESNode): string {
+    static getRelativeFQNForDeclaredTypeESNode(sourceData: SourceData, statement: ESNode): string {
+        const tc = sourceData.typeChecker;
         const node: Node = sourceData.services.esTreeNodeToTSNodeMap.get(statement);
-        const type = sourceData.typeChecker.getTypeAtLocation(node);
+        const type = tc.getTypeAtLocation(node);
         const symbol = type.getSymbol();
-        if(symbol == undefined) {
+        if(symbol === undefined) {
             return "";
         }
-        const fqn = sourceData.typeChecker.getFullyQualifiedName(symbol);
-        return this.getRelativeFQN(sourceData, fqn);
+        
+        const fqn = tc.getFullyQualifiedName(symbol);
+        if(this.isSymbolInProject(sourceData, symbol)) {
+            return this.getRelativeFQN(sourceData, fqn);
+        } else {
+            return fqn;
+        }
     }
+
+    /**
+     * @param sourceData basic data strcutures of current source file
+     * @param node TS node in AST
+     * @returns the fully qualified name of the element described in node
+     */
+    static getRelativeFQNForIdentifierESNode(sourceData: SourceData, statement: ESNode): string {
+        const tc = sourceData.typeChecker;
+        const node: Node = sourceData.services.esTreeNodeToTSNodeMap.get(statement);
+        const symbol = tc.getSymbolAtLocation(node);
+        if(symbol === undefined) {
+            return "";
+        }
+        
+        const fqn = tc.getFullyQualifiedName(symbol);
+        if(this.isSymbolInProject(sourceData, symbol)) {
+            return this.getRelativeFQN(sourceData, fqn);
+        } else {
+            return fqn;
+        }
+    }
+
 
     /**
      * @param sourceData data for the source file that contains the given FQN
@@ -37,6 +65,19 @@ export default class Utils {
           relativeFqn = '"' + sourceData.sourceFilePath.replace(sourceData.projectRoot, ".").replace(".ts", "") + '".' + relativeFqn;
         }
         return relativeFqn;
+    }
+
+    /**
+     * @param sourceData data for the source file that contains the given symbol
+     * @param symbol symbol data of a source code node (may be undefined)
+     * @returns whether if the given symbol is declared inside the local project
+     */
+    static isSymbolInProject(sourceData: SourceData, symbol?: Symbol): boolean {
+        const sourceFile = symbol?.valueDeclaration?.getSourceFile();
+        const hasSource = !!sourceFile;
+        const isStandardLibrary = hasSource && sourceData.services.program.isSourceFileDefaultLibrary(sourceFile!)
+        const isExternal = hasSource && sourceData.services.program.isSourceFileFromExternalLibrary(sourceFile!);
+        return hasSource && !isStandardLibrary && !isExternal;
     }
 
     /**

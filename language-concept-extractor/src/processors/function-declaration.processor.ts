@@ -1,42 +1,38 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
-import { TSInterfaceDeclaration, FunctionDeclaration } from '@typescript-eslint/types/dist/generated/ast-spec';
+import { FunctionDeclaration } from '@typescript-eslint/types/dist/generated/ast-spec';
 import LCEFunctionDeclarationIndex from '../concept-indexes/function-declaration.index';
-import LCEInterfaceDeclarationIndex from '../concept-indexes/interface-declaration.index';
-import { Concept } from '../concepts';
+import { ConceptIndex } from '../concept-indexes';
 import { LCEFunctionDeclaration } from '../concepts/function-declaration.concept';
-import { LCEInterfaceDeclaration } from '../concepts/interface-declaration.concept';
 import { LCEParameterDeclaration } from '../concepts/method-declaration.concept';
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
-import { LCETypeDeclared, LCETypeNotIdentified } from '../concepts/type.concept';
 import { BaseProcessor, SourceData } from '../processor';
 import Utils from '../utils';
-import { parseMembers } from './class-like-declaration.utils';
-import { parseClassLikeBaseType, parseClassLikeTypeParameters, parseFunctionType } from './type.utils';
+import { parseFunctionType } from './type.utils';
 
 
 export default class FunctionDeclarationProcessor implements BaseProcessor {
 
-    requiredConcepts: Concept[] = [];
+    requiredConcepts: ConceptIndex[] = [];
 
-    providedConcepts: Concept[] = [Concept.FUNCTION_DECLARATIONS];
+    providedConcepts: ConceptIndex[] = [ConceptIndex.FUNCTION_DECLARATIONS];
 
-    run(sourceData: SourceData, concepts: Map<Concept, any>): void {
-        if(!concepts.has(Concept.FUNCTION_DECLARATIONS)) {
-            concepts.set(Concept.FUNCTION_DECLARATIONS, new LCEFunctionDeclarationIndex())
+    run(sourceData: SourceData, concepts: Map<ConceptIndex, any>): void {
+        if(!concepts.has(ConceptIndex.FUNCTION_DECLARATIONS)) {
+            concepts.set(ConceptIndex.FUNCTION_DECLARATIONS, new LCEFunctionDeclarationIndex())
         }
 
-        const index: LCEFunctionDeclarationIndex = concepts.get(Concept.FUNCTION_DECLARATIONS);
+        const index: LCEFunctionDeclarationIndex = concepts.get(ConceptIndex.FUNCTION_DECLARATIONS);
         const decls = index.declarations;
 
         for(let statement of sourceData.ast.body) {
             if(statement.type === AST_NODE_TYPES.FunctionDeclaration) {
-                // plain interface declaration inside a TS file
+                // plain function declaration inside a TS file
                 const [fqn, func] = this.processFunctionDeclaration(statement, sourceData);
                 decls.set(fqn, func);
             } else if (statement.type === AST_NODE_TYPES.ExportNamedDeclaration && 
                 statement.declaration !== undefined && 
                 statement.declaration?.type === AST_NODE_TYPES.FunctionDeclaration) {
-                // interface declaration that is directly exported
+                // function declaration that is directly exported
                 const [fqn, func] = this.processFunctionDeclaration(statement.declaration, sourceData);
                 decls.set(fqn, func);
             }
@@ -45,7 +41,7 @@ export default class FunctionDeclarationProcessor implements BaseProcessor {
 
     /** converts a given ESTree function declaration into a function model object along with its FQN */
     private processFunctionDeclaration(functionDecl: FunctionDeclaration, sourceData: SourceData): [string, LCEFunctionDeclaration] {
-        const fqn = Utils.getRelativeFQNForESNode(sourceData, functionDecl);
+        const fqn = Utils.getRelativeFQNForDeclaredTypeESNode(sourceData, functionDecl);
 
         const functionType = parseFunctionType(sourceData, functionDecl);
 

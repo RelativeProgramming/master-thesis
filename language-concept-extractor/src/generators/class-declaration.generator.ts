@@ -1,5 +1,5 @@
 import { Session } from 'neo4j-driver';
-import { Concept } from '../concepts';
+import { ConceptIndex } from '../concept-indexes';
 import { LCETypeScriptProject } from '../concepts/typescript-project.concept';
 import BaseGenerator from '../generator';
 import ConnectionIndex from '../connection-index';
@@ -15,9 +15,9 @@ import { createTypeNode } from './type.generator.utils';
  */
 export default class ClassDeclarationGenerator implements BaseGenerator {
 
-    async run(neo4jSession: Session, concepts: Map<Concept, any>, connectionIndex: ConnectionIndex): Promise<void> {
-        const project: LCETypeScriptProject = concepts.get(Concept.TYPESCRIPT_PROJECT);
-        const classDeclIndex: LCEClassDeclarationIndex = concepts.get(Concept.CLASS_DECLARATIONS);
+    async run(neo4jSession: Session, concepts: Map<ConceptIndex, any>, connectionIndex: ConnectionIndex): Promise<void> {
+        const project: LCETypeScriptProject = concepts.get(ConceptIndex.TYPESCRIPT_PROJECT);
+        const classDeclIndex: LCEClassDeclarationIndex = concepts.get(ConceptIndex.CLASS_DECLARATIONS);
 
         console.log("Generating graph structures for " + classDeclIndex.declarations.size + " class declarations...")
         // create class structures

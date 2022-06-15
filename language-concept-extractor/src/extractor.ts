@@ -2,7 +2,7 @@ import { parseAndGenerateServices } from '@typescript-eslint/typescript-estree';
 import * as fs from 'fs';
 import * as ts from "typescript";
 import { driver as neo4jDriver, auth as neo4jAuth, Node} from "neo4j-driver";
-import { Concept } from './concepts';
+import { ConceptIndex } from './concept-indexes';
 import { BaseProcessor, SourceData } from './processor';
 import ClassDeclarationProcessor from './processors/class-declaration.processor';
 import Utils from './utils';
@@ -14,12 +14,14 @@ import InterfaceDeclarationProcessor from './processors/interface-declaration.pr
 import InterfaceDeclarationGenerator from './generators/interface-declaration.generator';
 import FunctionDeclarationProcessor from './processors/function-declaration.processor';
 import FunctionDeclarationGenerator from './generators/function-declaration.generator';
+import VariableDeclarationProcessor from './processors/variable-declaration.processor';
 
 
 const PROCESSORS = [
   ClassDeclarationProcessor,
   InterfaceDeclarationProcessor,
-  FunctionDeclarationProcessor
+  FunctionDeclarationProcessor,
+  VariableDeclarationProcessor
 ];
 
 const GENERATORS = [
@@ -30,7 +32,7 @@ const GENERATORS = [
   ConnectionGenerator
 ];
 
-function processSourceFile(projectRoot: string, sourceFilePath: string, concepts: Map<Concept, any> = new Map<Concept, any>(), processor: BaseProcessor) {
+function processSourceFile(projectRoot: string, sourceFilePath: string, concepts: Map<ConceptIndex, any> = new Map<ConceptIndex, any>(), processor: BaseProcessor) {
   const code = fs.readFileSync(sourceFilePath, 'utf8');
   const { ast, services } = parseAndGenerateServices(code, {
     loc: true,
@@ -59,15 +61,15 @@ export function processProject(projectRoot: string) {
   
   const fileList = Utils.getFileList(projectRoot, [".ts", ".tsx"], [".git", "node_modules"]);
 
-  const concepts: Map<Concept, any> = new Map<Concept, any>();
-  concepts.set(Concept.TYPESCRIPT_PROJECT, {
+  const concepts: Map<ConceptIndex, any> = new Map<ConceptIndex, any>();
+  concepts.set(ConceptIndex.TYPESCRIPT_PROJECT, {
     projectRoot: projectRoot
   });
 
   console.log("Analyzing " + fileList.length + " project files...");
   const startTime = process.hrtime();
 
-  let providedConcepts: Concept[] = [Concept.TYPESCRIPT_PROJECT];
+  let providedConcepts: ConceptIndex[] = [ConceptIndex.TYPESCRIPT_PROJECT];
   let processors = [...PROCESSORS];
   while(processors.length > 0) {
     for(let Processor of processors) {
@@ -87,10 +89,10 @@ export function processProject(projectRoot: string) {
   const endTime = process.hrtime();
   console.log("Finished analyzing project files. Runtime: " + (endTime[0] - startTime[0]) + "s");
 
-  generateGraphs(concepts);
+  // generateGraphs(concepts);
 }
 
-async function generateGraphs(concepts: Map<Concept, any>) {
+async function generateGraphs(concepts: Map<ConceptIndex, any>) {
   console.log("Generating graph...")
   const startTime = process.hrtime();
   const driver = neo4jDriver("bolt://localhost:7687", neo4jAuth.basic("", ""));

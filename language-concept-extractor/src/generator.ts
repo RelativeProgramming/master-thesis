@@ -1,5 +1,5 @@
 import { Session } from 'neo4j-driver';
-import { Concept } from './concepts';
+import { ConceptIndex } from './concept-indexes';
 import ConnectionIndex from './connection-index';
 
 
@@ -12,5 +12,5 @@ export default interface BaseGenerator {
      * 
      * Can use `nodeIndexes` to refer to specific, previously LCE-generated nodes.
      * */
-    run(neo4jSession: Session, concepts: Map<Concept, any>, connectionIndex: ConnectionIndex): Promise<void>;
+    run(neo4jSession: Session, concepts: Map<ConceptIndex, any>, connectionIndex: ConnectionIndex): Promise<void>;
 }

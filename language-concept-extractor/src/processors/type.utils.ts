@@ -1,6 +1,5 @@
-import {ClassPropertyNameNonComputed, ClassDeclaration, FunctionDeclaration, TSInterfaceDeclaration, MethodDefinitionNonComputedName, TSInterfaceHeritage, TSClassImplements, TypeNode, TSMethodSignatureNonComputedName, Identifier} from '@typescript-eslint/types/dist/generated/ast-spec'
+import {ClassPropertyNameNonComputed, ClassDeclaration, VariableDeclarator, Expression, FunctionDeclaration, TSInterfaceDeclaration, MethodDefinitionNonComputedName, TSInterfaceHeritage, TSClassImplements, TypeNode, TSMethodSignatureNonComputedName, Identifier} from '@typescript-eslint/types/dist/generated/ast-spec'
 import { TypeReference, Type, Node, isTypeParameterDeclaration, Signature, Symbol, SignatureKind, PseudoBigInt} from 'typescript';
-import { LCEParameterDeclaration } from '../concepts/method-declaration.concept';
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
 import LCEType, { LCETypeFunction, LCETypeIntersection, LCETypeNotIdentified, LCETypeObject, LCETypeParameter, LCETypeDeclared, LCETypeUnion, LCETypePrimitive, LCETypeFunctionParameter, LCETypeLiteral, LCETypeTuple } from '../concepts/type.concept';
 import { SourceData } from '../processor';
@@ -197,7 +196,31 @@ export function parseClassLikeBaseType(sourceData: SourceData, esTypeIdentifier:
     }
 }
 
-function parseType(sourceData: SourceData, type: Type, node: Node) : LCEType {
+export function parseVariableType(sourceData: SourceData, esVariableDeclarator: VariableDeclarator, varName: string): LCEType {
+    const tc = sourceData.typeChecker;
+    const node = sourceData.services.esTreeNodeToTSNodeMap.get(esVariableDeclarator.id);
+    const type = tc.getTypeAtLocation(node);
+    const result = parseType(sourceData, type, node, varName);
+    return result;
+}
+
+export function parseExpressionType(sourceData: SourceData, esExpression: Expression, varName?: string): LCEType {
+    const tc = sourceData.typeChecker;
+    const node = sourceData.services.esTreeNodeToTSNodeMap.get(esExpression);
+    const type = tc.getTypeAtLocation(node);
+    const result = parseType(sourceData, type, node, varName);
+    return result;
+}
+
+export function parseTypeNode(sourceData: SourceData, esTypeNode: TypeNode): LCEType {
+    const tc = sourceData.typeChecker;
+    const node = sourceData.services.esTreeNodeToTSNodeMap.get(esTypeNode);
+    const type = tc.getTypeAtLocation(node);
+    const result = parseType(sourceData, type, node);
+    return result;
+}
+
+function parseType(sourceData: SourceData, type: Type, node: Node, excludedFQN?: string) : LCEType {
     const tc = sourceData.typeChecker;
 
     const symbol = type.symbol ? 
@@ -207,7 +230,7 @@ function parseType(sourceData: SourceData, type: Type, node: Node) : LCEType {
             undefined
     const fqn = symbol ? tc.getFullyQualifiedName(symbol) : undefined;
 
-    if((!fqn || fqn === "__type") && !isPrimitiveType(tc.typeToString(type))) {
+    if((!fqn || fqn === "__type" || fqn === excludedFQN) && !isPrimitiveType(tc.typeToString(type))) {
         // complex anonymous type
         if(type.isUnion()) {
             // union type
@@ -294,12 +317,7 @@ function parseType(sourceData: SourceData, type: Type, node: Node) : LCEType {
         // declared type
 
         // determine if type is part of the project and should receive a relative FQN
-        const sourceFile = symbol?.valueDeclaration?.getSourceFile();
-        const hasSource = !!sourceFile;
-        const isStandardLibrary = hasSource && sourceData.services.program.isSourceFileDefaultLibrary(sourceFile!)
-        const isExternal = hasSource && sourceData.services.program.isSourceFileFromExternalLibrary(sourceFile!);
-
-        const inProject = !isStandardLibrary && !isExternal;
+        const inProject = Utils.isSymbolInProject(sourceData, symbol);
         const name = inProject ? Utils.getRelativeFQN(sourceData, fqn) : fqn;
         const typeArguments: LCEType[] = tc.getTypeArguments(type as TypeReference).map((t) => parseType(sourceData, t, node));
         

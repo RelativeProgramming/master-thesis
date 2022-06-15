@@ -1,7 +1,7 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 import { TSInterfaceDeclaration } from '@typescript-eslint/types/dist/generated/ast-spec';
 import LCEInterfaceDeclarationIndex from '../concept-indexes/interface-declaration.index';
-import { Concept } from '../concepts';
+import { ConceptIndex } from '../concept-indexes';
 import { LCEInterfaceDeclaration } from '../concepts/interface-declaration.concept';
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
 import { LCETypeDeclared } from '../concepts/type.concept';
@@ -13,16 +13,16 @@ import { parseClassLikeBaseType, parseClassLikeTypeParameters } from './type.uti
 
 export default class InterfaceDeclarationProcessor implements BaseProcessor {
 
-    requiredConcepts: Concept[] = [];
+    requiredConcepts: ConceptIndex[] = [];
 
-    providedConcepts: Concept[] = [Concept.INTERFACE_DECLARATIONS];
+    providedConcepts: ConceptIndex[] = [ConceptIndex.INTERFACE_DECLARATIONS];
 
-    run(sourceData: SourceData, concepts: Map<Concept, any>): void {
-        if(!concepts.has(Concept.INTERFACE_DECLARATIONS)) {
-            concepts.set(Concept.INTERFACE_DECLARATIONS, new LCEInterfaceDeclarationIndex())
+    run(sourceData: SourceData, concepts: Map<ConceptIndex, any>): void {
+        if(!concepts.has(ConceptIndex.INTERFACE_DECLARATIONS)) {
+            concepts.set(ConceptIndex.INTERFACE_DECLARATIONS, new LCEInterfaceDeclarationIndex())
         }
 
-        const index: LCEInterfaceDeclarationIndex = concepts.get(Concept.INTERFACE_DECLARATIONS);
+        const index: LCEInterfaceDeclarationIndex = concepts.get(ConceptIndex.INTERFACE_DECLARATIONS);
         const decls = index.declarations;
 
         for(let statement of sourceData.ast.body) {
@@ -42,7 +42,7 @@ export default class InterfaceDeclarationProcessor implements BaseProcessor {
 
     /** converts a given ESTree interface declaration into a interface model object along with its FQN */
     private processInterfaceDeclaration(interfaceDecl: TSInterfaceDeclaration, sourceData: SourceData): [string, LCEInterfaceDeclaration] {
-        const fqn = Utils.getRelativeFQNForESNode(sourceData, interfaceDecl);
+        const fqn = Utils.getRelativeFQNForDeclaredTypeESNode(sourceData, interfaceDecl);
 
         // Interface Type Parameter Parsing
         const typeParameters: LCETypeParameterDeclaration[] = parseClassLikeTypeParameters(sourceData, interfaceDecl);

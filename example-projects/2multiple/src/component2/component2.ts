@@ -1,3 +1,4 @@
+import { myConst as myC} from '../component1/component1';
 import { component, required } from '../framework';
 import { Model2 } from './component2.model';
 
@@ -109,5 +110,35 @@ interface TestInterface2<T extends {a: number, b: string}> {
     set a(value: string);
     boolNum: true | false | number;
 }
+
+let aGeneric = myGlobalFunc<number | string>(4, [2,3]);
+let a0;
+let a1_0 = 0, a1_1 = "str", a1_2 = true, a1_3 = /.*/, a1_4 = 100n, a1_5 = null;
+let aRef = a1_0;
+let aRef2 = myC;
+let a2 = {
+  a: "abc",
+  b: 32,
+  c: a1_0,
+  d: true
+}
+let aI: TestInterface = {
+    x: 5,
+    y: 6,
+}
+let aI_2 = aI.x;
+let a3 = function(a: string): string {
+ return a; 
+}
+let a4 = console.log(4);
+let a4_2 = [1].concat([2]).concat([3]);
+let a5: string | undefined = undefined;
+let a6 = (1 + 2) * 3;
+let a7 = true ? 4 : 5;
+let a8 = typeof a7;
+let a9 = !a8;
+let a10 = class A {};
+let a11 = new Date(), a12 = 12;
+let a13 = [1, 2, 3, ...[4, 5, 6]]
 
 type TestType = TestInterface | number;
