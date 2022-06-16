@@ -1,7 +1,7 @@
 import { Integer, Session } from 'neo4j-driver';
 import { LCEPropertyDeclaration } from '../concepts/property-declaration.concept';
-import ConnectionIndex from '../connection-index';
-import Utils from '../utils';
+import { ConnectionIndex } from '../connection-index';
+import { Utils } from '../utils';
 import { createDecoratorNode } from './decorator.generator.utils';
 import { createTypeNode } from './type.generator.utils';
 

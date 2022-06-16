@@ -1,20 +1,20 @@
 import { Session } from 'neo4j-driver';
-import { ConceptIndex } from '../concept-indexes';
+import { ConceptIndex } from '../features';
 import { LCETypeScriptProject } from '../concepts/typescript-project.concept';
-import BaseGenerator from '../generator';
-import ConnectionIndex from '../connection-index';
-import Utils from '../utils';
+import { BaseGenerator } from '../generator';
+import { ConnectionIndex } from '../connection-index';
+import { Utils } from '../utils';
 import { createClassLikeTypeParameterNodes, createMemberNodes } from './class-like-declaration.generator.utils';
-import LCEInterfaceDeclarationIndex from '../concept-indexes/interface-declaration.index';
+import { LCEInterfaceDeclarationIndex } from '../concept-indexes/interface-declaration.index';
 import { createTypeNode, createTypeParameterNodes } from './type.generator.utils';
-import LCEFunctionDeclarationIndex from '../concept-indexes/function-declaration.index';
+import { LCEFunctionDeclarationIndex } from '../concept-indexes/function-declaration.index';
 import { createFunctionParameterNodes } from './function.generator.utils';
 
 /**
  * Generates all graph structures related to function declarations on file level.
  * This includes type parameters, return type and parameters.
  */
-export default class FunctionDeclarationGenerator implements BaseGenerator {
+export class FunctionDeclarationGenerator implements BaseGenerator {
 
     async run(neo4jSession: Session, concepts: Map<ConceptIndex, any>, connectionIndex: ConnectionIndex): Promise<void> {
         const project: LCETypeScriptProject = concepts.get(ConceptIndex.TYPESCRIPT_PROJECT);

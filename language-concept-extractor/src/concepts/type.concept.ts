@@ -1,7 +1,8 @@
+import { LCEConcept } from '../concept'
 import { LCETypeParameterDeclaration } from './type-parameter.concept'
 
 /** Base class for all types. */
-export default abstract class LCEType {};
+export abstract class LCEType extends LCEConcept {};
 
 /**
  * Represents a primitive type (e.g. `string`)
@@ -14,7 +15,7 @@ export class LCETypePrimitive extends LCEType {
     constructor(
         public name: string
     ) {
-        super()
+        super();
     }
 }
 
@@ -33,7 +34,7 @@ export class LCETypeDeclared extends LCEType {
         public inProject: boolean,
         public typeArguments: LCEType[]
     ) {
-        super()
+        super();
     }
 }
 
@@ -48,7 +49,7 @@ export class LCETypeUnion extends LCEType {
     constructor(
         public types: LCEType[]
     ) {
-        super()
+        super();
     }
 }
 
@@ -63,7 +64,7 @@ export class LCETypeIntersection extends LCEType {
     constructor(
         public types: LCEType[]
     ) {
-        super()
+        super();
     }
 }
 
@@ -78,7 +79,7 @@ export class LCETypeObject extends LCEType {
     constructor(
         public members: Map<string, LCEType>
     ) {
-        super()
+        super();
     }
 }
 
@@ -96,14 +97,14 @@ export class LCETypeFunction extends LCEType {
         public parameters: LCETypeFunctionParameter[],
         public typeParameters: LCETypeParameterDeclaration[]
     ) {
-        super()
+        super();
     }
 }
 
 /**
  * Represents a parameter inside a function type (e.g. `x: string` in `(x: string) => number`)
  */
- export class LCETypeFunctionParameter {
+ export class LCETypeFunctionParameter extends LCEConcept{
 
     /**
      * @param index position of the parameter in the parameter list
@@ -114,7 +115,9 @@ export class LCETypeFunction extends LCEType {
         public index: number,
         public name: string,
         public type: LCEType
-    ) { }
+    ) {
+        super();
+     }
 }
 
 /**
@@ -128,7 +131,7 @@ export class LCETypeParameter extends LCEType {
      constructor(
         public name: string
     ) {
-        super()
+        super();
     }
 }
 
@@ -143,7 +146,7 @@ export class LCETypeLiteral extends LCEType {
      constructor(
         public value: string | number | boolean
     ) {
-        super()
+        super();
     }
 }
 
@@ -158,7 +161,7 @@ export class LCETypeTuple extends LCEType {
      constructor(
         public types: LCEType[]
     ) {
-        super()
+        super();
     }
 }
 
@@ -173,6 +176,6 @@ export class LCETypeNotIdentified extends LCEType {
      constructor(
         public identifier: string
     ) {
-        super()
+        super();
     }
 }

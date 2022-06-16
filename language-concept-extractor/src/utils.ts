@@ -1,19 +1,19 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import { Node, Symbol } from 'typescript';
-import { SourceData } from './processor';
 import { Node as ESNode } from '@typescript-eslint/types/dist/generated/ast-spec';
 import { Integer, QueryResult } from 'neo4j-driver';
+import { GlobalContext } from './context';
 
 
-export default class Utils {
+export class Utils {
     
     /**
      * @param sourceData basic data strcutures of current source file
      * @param node TS node in AST
      * @returns the fully qualified name of the element described in node
      */
-    static getRelativeFQNForDeclaredTypeESNode(sourceData: SourceData, statement: ESNode): string {
+    static getRelativeFQNForDeclaredTypeESNode(sourceData: GlobalContext, statement: ESNode): string {
         const tc = sourceData.typeChecker;
         const node: Node = sourceData.services.esTreeNodeToTSNodeMap.get(statement);
         const type = tc.getTypeAtLocation(node);
@@ -35,7 +35,7 @@ export default class Utils {
      * @param node TS node in AST
      * @returns the fully qualified name of the element described in node
      */
-    static getRelativeFQNForIdentifierESNode(sourceData: SourceData, statement: ESNode): string {
+    static getRelativeFQNForIdentifierESNode(sourceData: GlobalContext, statement: ESNode): string {
         const tc = sourceData.typeChecker;
         const node: Node = sourceData.services.esTreeNodeToTSNodeMap.get(statement);
         const symbol = tc.getSymbolAtLocation(node);
@@ -57,7 +57,7 @@ export default class Utils {
      * @param fqn a fully qualified name obtained by the TS TypeChecker
      * @returns a consistent fully qualified name using a path relative to the project root
      */
-    static getRelativeFQN(sourceData: SourceData, fqn: string): string {
+    static getRelativeFQN(sourceData: GlobalContext, fqn: string): string {
         let relativeFqn = fqn.replace(sourceData.projectRoot, ".");
 
         // local object: add source file path
@@ -72,7 +72,7 @@ export default class Utils {
      * @param symbol symbol data of a source code node (may be undefined)
      * @returns whether if the given symbol is declared inside the local project
      */
-    static isSymbolInProject(sourceData: SourceData, symbol?: Symbol): boolean {
+    static isSymbolInProject(sourceData: GlobalContext, symbol?: Symbol): boolean {
         const sourceFile = symbol?.valueDeclaration?.getSourceFile();
         const hasSource = !!sourceFile;
         const isStandardLibrary = hasSource && sourceData.services.program.isSourceFileDefaultLibrary(sourceFile!)
@@ -140,6 +140,24 @@ export default class Utils {
      */
     static getNodeIdsFromQueryResult(res: QueryResult): Integer[] {
         return res.records.map(rec => rec.get(0));
+    }
+
+    /**
+     * Merges the given Maps. Array values of the same key are concatenated.
+     */
+    static mergeArrayMaps<K, V>(...maps: Map<K, V[]>[]): Map<K, V[]> {
+        const result: Map<K, V[]> = new Map();
+        for(let map of maps) {
+            for(let [k, vArr] of map.entries()) {
+                const res = result.get(k);
+                if(res) {
+                    result.set(k, res.concat(vArr));
+                } else {
+                    result.set(k, vArr);
+                }
+            }
+        }
+        return result;
     }
     
 }

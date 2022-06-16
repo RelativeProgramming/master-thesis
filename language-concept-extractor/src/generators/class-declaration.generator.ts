@@ -1,19 +1,19 @@
 import { Session } from 'neo4j-driver';
-import { ConceptIndex } from '../concept-indexes';
+import { ConceptIndex } from '../features';
 import { LCETypeScriptProject } from '../concepts/typescript-project.concept';
-import BaseGenerator from '../generator';
-import ConnectionIndex from '../connection-index';
-import Utils from '../utils';
+import { BaseGenerator } from '../generator';
+import { ConnectionIndex } from '../connection-index';
+import { Utils } from '../utils';
 import { createDecoratorNode } from './decorator.generator.utils';
 import { createClassLikeTypeParameterNodes, createMemberNodes } from './class-like-declaration.generator.utils';
-import LCEClassDeclarationIndex from '../concept-indexes/class-declaration.index';
+import { LCEClassDeclarationIndex } from '../concept-indexes/class-declaration.index';
 import { createTypeNode } from './type.generator.utils';
 
 /**
  * Generates all graph structures related to class declarations.
  * This includes type parameters, properties, methods, along with their types.
  */
-export default class ClassDeclarationGenerator implements BaseGenerator {
+export class ClassDeclarationGenerator implements BaseGenerator {
 
     async run(neo4jSession: Session, concepts: Map<ConceptIndex, any>, connectionIndex: ConnectionIndex): Promise<void> {
         const project: LCETypeScriptProject = concepts.get(ConceptIndex.TYPESCRIPT_PROJECT);

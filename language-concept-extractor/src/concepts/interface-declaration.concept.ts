@@ -1,17 +1,21 @@
-import { LCEDecorator } from './decorator.concept';
-import { LCEConstructorDeclaration, LCEGetterDeclaration, LCEMethodDeclaration, LCESetterDeclaration } from './method-declaration.concept';
+import { LCEConcept } from '../concept';
+import { LCEGetterDeclaration, LCEMethodDeclaration, LCESetterDeclaration } from './method-declaration.concept';
 import { LCEPropertyDeclaration } from './property-declaration.concept';
 import { LCETypeParameterDeclaration } from './type-parameter.concept';
 import { LCETypeDeclared } from './type.concept';
 
-export interface LCEInterfaceDeclaration {
-    interfaceName: string;
-    typeParameters: LCETypeParameterDeclaration[];
-    extendsInterfaces: LCETypeDeclared[];
-    properties: LCEPropertyDeclaration[];
-    methods: LCEMethodDeclaration[];
-    getters: LCEGetterDeclaration[];
-    setters: LCESetterDeclaration[];
-    sourceFilePath: string;
+export class LCEInterfaceDeclaration extends LCEConcept {
+    constructor(
+        public interfaceName: string,
+        public typeParameters: LCETypeParameterDeclaration[],
+        public extendsInterfaces: LCETypeDeclared[],
+        public properties: LCEPropertyDeclaration[],
+        public methods: LCEMethodDeclaration[],
+        public getters: LCEGetterDeclaration[],
+        public setters: LCESetterDeclaration[],
+        public sourceFilePath: string
+    ) {
+        super();
+    }
 }
   

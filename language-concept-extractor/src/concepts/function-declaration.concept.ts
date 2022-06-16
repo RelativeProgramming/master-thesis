@@ -1,12 +1,17 @@
+import { LCEConcept } from '../concept';
 import { LCEParameterDeclaration } from './method-declaration.concept';
 import { LCETypeParameterDeclaration } from './type-parameter.concept';
-import LCEType from './type.concept';
+import { LCEType } from './type.concept';
 
-export interface LCEFunctionDeclaration {
-    functionName: string;
-    parameters: LCEParameterDeclaration[];
-    returnType: LCEType;
-    typeParameters: LCETypeParameterDeclaration[];
-    sourceFilePath: string;
+export class LCEFunctionDeclaration extends LCEConcept{
+    constructor(
+        public functionName: string,
+        public parameters: LCEParameterDeclaration[],
+        public returnType: LCEType,
+        public typeParameters: LCETypeParameterDeclaration[],
+        public sourceFilePath: string
+    ) {
+        super();
+    }
 }
     

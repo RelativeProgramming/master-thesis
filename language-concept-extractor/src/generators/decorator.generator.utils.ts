@@ -1,6 +1,6 @@
 import { Integer, Session } from 'neo4j-driver';
 import { LCEDecorator } from '../concepts/decorator.concept';
-import Utils from '../utils';
+import { Utils } from '../utils';
 
 export async function createDecoratorNode(deco: LCEDecorator, neo4jSession: Session): Promise<Integer> {
     const decoratorNodeProps = {

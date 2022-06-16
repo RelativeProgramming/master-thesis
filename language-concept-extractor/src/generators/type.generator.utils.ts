@@ -1,8 +1,8 @@
 import { Session, Integer, Result } from 'neo4j-driver';
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
-import LCEType, { LCETypeDeclared, LCETypeFunction, LCETypeIntersection, LCETypeLiteral, LCETypeNotIdentified, LCETypeObject, LCETypeParameter, LCETypePrimitive, LCETypeTuple, LCETypeUnion } from '../concepts/type.concept';
-import ConnectionIndex, { ConnectionProperties } from '../connection-index';
-import Utils from '../utils';
+import { LCETypeDeclared, LCETypeFunction, LCETypeIntersection, LCETypeLiteral, LCETypeNotIdentified, LCETypeObject, LCETypeParameter, LCETypePrimitive, LCETypeTuple, LCETypeUnion, LCEType } from '../concepts/type.concept';
+import { ConnectionProperties, ConnectionIndex } from '../connection-index';
+import { Utils } from '../utils';
 import { createFunctionParameterNode } from './function.generator.utils';
 
 

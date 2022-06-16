@@ -1,9 +1,10 @@
-import LCEType from './type.concept';
+import { LCEConcept } from '../concept';
+import { LCEType } from './type.concept';
 
 /**
  * Represents a type variable declared by a function or class (e.g. the `T` in `<T>(x: T) => T[]`)
  */
- export class LCETypeParameterDeclaration {
+ export class LCETypeParameterDeclaration extends LCEConcept{
 
     /**
      * @param name name of type variable
@@ -12,5 +13,7 @@ import LCEType from './type.concept';
     constructor(
         public name: string,
         public constraint: LCEType
-    ) {}
+    ) {
+        super();
+    }
 }

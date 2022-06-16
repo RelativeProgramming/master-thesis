@@ -1,47 +1,70 @@
+import { LCEConcept } from '../concept';
 import { LCEDecorator } from './decorator.concept';
 import { LCEPropertyDeclaration } from './property-declaration.concept';
 import { LCETypeParameterDeclaration } from './type-parameter.concept';
-import LCEType from './type.concept';
+import { LCEType } from './type.concept';
 import { Visibility } from './visibility.concept';
 
 
-export interface LCEMethodDeclaration {
-    methodName: string;
-    parameters: LCEParameterDeclaration[];
-    returnType: LCEType;
-    typeParameters: LCETypeParameterDeclaration[];
-    decorators: LCEDecorator[];
-    visibility: Visibility;
-    override?: boolean;
+export class LCEMethodDeclaration extends LCEConcept {
+    constructor(
+        public methodName: string,
+        public parameters: LCEParameterDeclaration[],
+        public returnType: LCEType,
+        public typeParameters: LCETypeParameterDeclaration[],
+        public decorators: LCEDecorator[],
+        public visibility: Visibility,
+        public override?: boolean
+    ) {
+        super();
+    }
 }
 
-export interface LCEParameterDeclaration {
-    index: number;
-    name: string;
-    type: LCEType;
-    optional: boolean;
-    decorators: LCEDecorator[];
+export class LCEParameterDeclaration extends LCEConcept {
+    constructor(
+        public index: number,
+        public name: string,
+        public type: LCEType,
+        public optional: boolean,
+        public decorators: LCEDecorator[]
+    ) {
+        super();
+    }
 }
 
-export interface LCEConstructorDeclaration {
-    parameters: LCEParameterDeclaration[];
+export class LCEConstructorDeclaration extends LCEConcept {
 
-    /** maps parameter index numbers to declared parameter properties */
-    parameterProperties: Map<number, LCEPropertyDeclaration>;
+    /**
+     * @param parameterProperties maps parameter index numbers to declared parameter properties
+     */
+    constructor(
+        public parameters: LCEParameterDeclaration[],
+        public parameterProperties: Map<number, LCEPropertyDeclaration>
+    ) {
+        super();
+    }
 }
 
-export interface LCEGetterDeclaration {
-    methodName: string;
-    returnType: LCEType;
-    decorators: LCEDecorator[];
-    visibility: Visibility;
-    override?: boolean;
+export class LCEGetterDeclaration extends LCEConcept {
+    constructor(
+        public methodName: string,
+        public returnType: LCEType,
+        public decorators: LCEDecorator[],
+        public visibility: Visibility,
+        public override?: boolean
+    ) {
+        super();
+    }
 }
 
-export interface LCESetterDeclaration {
-    methodName: string;
-    parameters: LCEParameterDeclaration[];
-    decorators: LCEDecorator[];
-    visibility: Visibility;
-    override?: boolean;
+export class LCESetterDeclaration extends LCEConcept {
+    constructor(
+        public methodName: string,
+        public parameters: LCEParameterDeclaration[],
+        public decorators: LCEDecorator[],
+        public visibility: Visibility,
+        public override?: boolean
+    ) {
+        super();
+    }
 }

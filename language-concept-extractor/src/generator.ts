@@ -1,10 +1,10 @@
 import { Session } from 'neo4j-driver';
-import { ConceptIndex } from './concept-indexes';
-import ConnectionIndex from './connection-index';
+import { ConnectionIndex } from './connection-index';
+import { ConceptIndex } from './features';
 
 
 /** super class to all Graph Generators */
-export default interface BaseGenerator {
+export interface BaseGenerator {
 
     /** 
      * Generates nodes and relations from previously extracted Concepts and inserts them into the given Neo4j database. 

@@ -1,13 +1,18 @@
+import { LCEConcept } from '../concept';
 import { LCEDecorator } from './decorator.concept';
-import LCEType from './type.concept';
+import { LCEType } from './type.concept';
 import { Visibility } from './visibility.concept';
 
-export interface LCEPropertyDeclaration {
-    propertyName: string;
-    optional: boolean;
-    type: LCEType;
-    decorators: LCEDecorator[];
-    visibility: Visibility;
-    readonly: boolean;
-    override?: boolean;
+export class LCEPropertyDeclaration extends LCEConcept {
+    constructor(
+        public propertyName: string,
+        public optional: boolean,
+        public type: LCEType,
+        public decorators: LCEDecorator[],
+        public visibility: Visibility,
+        public readonly: boolean,
+        public override?: boolean
+    ) {
+        super();
+    }
 }

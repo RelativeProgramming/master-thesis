@@ -1,4 +1,10 @@
+import { LCEConcept } from '../concept';
 
-export interface LCETypeScriptProject {
-    projectRoot: string
+export class LCETypeScriptProject extends LCEConcept {
+    
+    public static override conceptId = "typescript-project";
+
+    constructor(public projectRoot: string) {
+        super();
+    }
 }

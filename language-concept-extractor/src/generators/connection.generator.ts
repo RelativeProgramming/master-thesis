@@ -1,10 +1,10 @@
 import { Session } from 'neo4j-driver';
-import { ConceptIndex } from '../concept-indexes';
-import BaseGenerator from '../generator';
-import ConnectionIndex from '../connection-index';
+import { ConceptIndex } from '../features';
+import { BaseGenerator } from '../generator';
+import { ConnectionIndex } from '../connection-index';
 
 
-export default class ConnectionGenerator implements BaseGenerator {
+export class ConnectionGenerator implements BaseGenerator {
 
     async run(neo4jSession: Session, concepts: Map<ConceptIndex, any>, connectionIndex: ConnectionIndex): Promise<void> {
         connectionIndex.resolve();

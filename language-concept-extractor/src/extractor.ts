@@ -1,58 +1,16 @@
+
 import { parseAndGenerateServices } from '@typescript-eslint/typescript-estree';
 import * as fs from 'fs';
-import * as ts from "typescript";
-import { driver as neo4jDriver, auth as neo4jAuth, Node} from "neo4j-driver";
-import { ConceptIndex } from './concept-indexes';
-import { BaseProcessor, SourceData } from './processor';
-import ClassDeclarationProcessor from './processors/class-declaration.processor';
-import Utils from './utils';
-import ClassDeclarationGenerator from './generators/class-declaration.generator';
-import TypeScriptProjectFilesGenerator from './generators/typescript-project-files.generator';
-import ConnectionIndex from './connection-index';
-import ConnectionGenerator from './generators/connection.generator';
-import InterfaceDeclarationProcessor from './processors/interface-declaration.processor';
-import InterfaceDeclarationGenerator from './generators/interface-declaration.generator';
-import FunctionDeclarationProcessor from './processors/function-declaration.processor';
-import FunctionDeclarationGenerator from './generators/function-declaration.generator';
-import VariableDeclarationProcessor from './processors/variable-declaration.processor';
+import { TypeChecker } from "typescript";
+import { driver as neo4jDriver, auth as neo4jAuth} from "neo4j-driver";
+import { Utils } from './utils';
+import { ConnectionIndex } from './connection-index';
+import { GlobalContext } from './context';
+import { LCEConcept, ConceptMap } from './concept';
+import { LCETypeScriptProject } from './concepts/typescript-project.concept';
+import { ConceptIndex, GENERATORS } from './features';
+import { AstTraverser } from './traversers/ast.traverser';
 
-
-const PROCESSORS = [
-  ClassDeclarationProcessor,
-  InterfaceDeclarationProcessor,
-  FunctionDeclarationProcessor,
-  VariableDeclarationProcessor
-];
-
-const GENERATORS = [
-  TypeScriptProjectFilesGenerator,
-  ClassDeclarationGenerator,
-  InterfaceDeclarationGenerator,
-  FunctionDeclarationGenerator,
-  ConnectionGenerator
-];
-
-function processSourceFile(projectRoot: string, sourceFilePath: string, concepts: Map<ConceptIndex, any> = new Map<ConceptIndex, any>(), processor: BaseProcessor) {
-  const code = fs.readFileSync(sourceFilePath, 'utf8');
-  const { ast, services } = parseAndGenerateServices(code, {
-    loc: true,
-    range: true,
-    tokens: true,
-    filePath: sourceFilePath,
-    project: projectRoot + '/tsconfig.json',
-  });
-  const typeChecker: ts.TypeChecker = services.program.getTypeChecker();
-
-  const sourceData: SourceData = {
-    projectRoot: projectRoot,
-    sourceFilePath: sourceFilePath,
-    ast: ast,
-    services: services,
-    typeChecker: typeChecker
-  }
-
-  processor.run(sourceData, concepts)
-}
 
 
 export function processProject(projectRoot: string) {
@@ -61,29 +19,39 @@ export function processProject(projectRoot: string) {
   
   const fileList = Utils.getFileList(projectRoot, [".ts", ".tsx"], [".git", "node_modules"]);
 
-  const concepts: Map<ConceptIndex, any> = new Map<ConceptIndex, any>();
-  concepts.set(ConceptIndex.TYPESCRIPT_PROJECT, {
-    projectRoot: projectRoot
-  });
+  // maps filenames to the extracted concepts from these files
+  const concepts: Map<string, ConceptMap> = new Map();
+
+  // add project-wide concepts
+  concepts.set("~~PROJECT~~", new Map<string, LCEConcept[]>([
+    [LCETypeScriptProject.conceptId, [new LCETypeScriptProject(projectRoot)]]
+  ]));
 
   console.log("Analyzing " + fileList.length + " project files...");
   const startTime = process.hrtime();
 
-  let providedConcepts: ConceptIndex[] = [ConceptIndex.TYPESCRIPT_PROJECT];
-  let processors = [...PROCESSORS];
-  while(processors.length > 0) {
-    for(let Processor of processors) {
-      let p = new Processor();
-      if(!p.requiredConcepts.every((v) => providedConcepts.includes(v)))
-        continue
-      
-      for (let file of fileList) {
-        processSourceFile(projectRoot, file, concepts, p);
-      }
+  const traverser = new AstTraverser();
 
-      providedConcepts = providedConcepts.concat(p.providedConcepts);
-      processors.splice(processors.indexOf(Processor), 1);
+  for (let file of fileList) {
+    const code = fs.readFileSync(file, 'utf8');
+    const { ast, services } = parseAndGenerateServices(code, {
+      loc: true,
+      range: true,
+      tokens: false,
+      filePath: file,
+      project: projectRoot + '/tsconfig.json',
+    });
+    const typeChecker: TypeChecker = services.program.getTypeChecker();
+
+    const globalContext: GlobalContext = {
+      projectRoot: projectRoot,
+      sourceFilePath: file,
+      ast: ast,
+      services: services,
+      typeChecker: typeChecker
     }
+    
+    concepts.set(file.replace(globalContext.projectRoot, "."), traverser.traverse(globalContext));
   }
 
   const endTime = process.hrtime();
@@ -111,6 +79,7 @@ async function generateGraphs(concepts: Map<ConceptIndex, any>) {
   const endTime = process.hrtime();
   console.log("Finished generating graph. Runtime: " + (endTime[0] - startTime[0]) + "s");
 }
+
 
 processProject("/home/sebastian/dev/master-thesis/example-projects/2multiple");
 //processProject("/home/sebastian/dev/master-thesis/example-projects/devhub");

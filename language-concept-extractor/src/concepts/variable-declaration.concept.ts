@@ -1,10 +1,15 @@
-import LCEType from './type.concept';
-import LCEValue from './value.concept';
+import { LCEConcept } from '../concept';
+import { LCEType } from './type.concept';
+import { LCEValue } from './value.concept';
 
-export interface LCEVariableDeclaration {
-    variableName: string;
-    kind: "var" | "let" | "const";
-    type: LCEType;
-    initValue: LCEValue | undefined;
-    sourceFilePath: string;
+export class LCEVariableDeclaration extends LCEConcept {
+    constructor(
+        public variableName: string,
+        public kind: "var" | "let" | "const",
+        public type: LCEType,
+        public initValue: LCEValue | undefined,
+        public sourceFilePath: string
+    ) {
+        super();
+    }
 }

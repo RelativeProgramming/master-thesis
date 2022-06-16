@@ -1,8 +1,8 @@
 import { Integer, Session } from 'neo4j-driver';
 import { LCEDecorator } from '../concepts/decorator.concept';
 import { LCEConstructorDeclaration, LCEGetterDeclaration, LCEMethodDeclaration, LCEParameterDeclaration, LCESetterDeclaration } from '../concepts/method-declaration.concept';
-import ConnectionIndex from '../connection-index';
-import Utils from '../utils';
+import { ConnectionIndex } from '../connection-index';
+import { Utils } from '../utils';
 import { createDecoratorNode } from './decorator.generator.utils';
 import { createFunctionParameterNodes } from './function.generator.utils';
 import { createPropertyNode } from './property.generator.utils';

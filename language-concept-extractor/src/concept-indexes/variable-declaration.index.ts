@@ -1,6 +1,6 @@
 import { LCEVariableDeclaration } from '../concepts/variable-declaration.concept';
 
-export default class LCEVariableDeclarationIndex {
+export class LCEVariableDeclarationIndex {
 
     /** maps FQN of a variable to the corresponding model object */
     declarations: Map<string, LCEVariableDeclaration>;

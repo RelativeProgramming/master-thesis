@@ -1,6 +1,6 @@
 import { Integer } from "neo4j-driver"
 
-export default class ConnectionIndex {
+export class ConnectionIndex {
 
     /** 
      * Used for registering connection to be made between nodes. 

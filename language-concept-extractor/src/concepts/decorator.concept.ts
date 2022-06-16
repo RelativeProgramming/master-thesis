@@ -1,4 +1,12 @@
+import { LCEConcept } from '../concept';
 
-export interface LCEDecorator {
-    decoratorName: string
+export class LCEDecorator extends LCEConcept {
+
+    public static override conceptId = "decorator";
+
+    constructor(
+        public decoratorName: string
+    ) {
+        super();
+    }
 }

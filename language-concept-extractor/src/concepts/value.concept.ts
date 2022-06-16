@@ -1,11 +1,14 @@
-import LCEType, { LCETypeParameter } from './type.concept';
+import { LCEConcept } from '../concept';
+import { LCEType } from './type.concept';
 
 /** Base class for all values. */
-export default abstract class LCEValue {
+export abstract class LCEValue extends LCEConcept {
     /** 
      * @param type type of the value 
      */
-    constructor(public type: LCEType) {}
+    constructor(public type: LCEType) {
+        super();
+    }
 };
 
 /**

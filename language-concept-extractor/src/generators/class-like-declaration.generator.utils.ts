@@ -1,7 +1,7 @@
 import { Integer, Session } from 'neo4j-driver';
 import { LCEClassDeclaration } from '../concepts/class-declaration.concept';
 import { LCEInterfaceDeclaration } from '../concepts/interface-declaration.concept';
-import ConnectionIndex from '../connection-index';
+import { ConnectionIndex } from '../connection-index';
 import { createConstructorNode, createGetterNode, createMethodNode, createSetterNode } from './method.generator.utils';
 import { createPropertyNode } from './property.generator.utils';
 import { createTypeParameterNodes } from './type.generator.utils';

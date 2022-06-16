@@ -1,10 +1,10 @@
 import { Session } from 'neo4j-driver';
-import { ConceptIndex } from '../concept-indexes';
+import { ConceptIndex } from '../features';
 import { LCETypeScriptProject } from '../concepts/typescript-project.concept';
-import ConnectionIndex from '../connection-index';
-import BaseGenerator from '../generator';
+import { ConnectionIndex } from '../connection-index';
+import { BaseGenerator } from '../generator';
 
-export default class TypeScriptProjectFilesGenerator implements BaseGenerator {
+export class TypeScriptProjectFilesGenerator implements BaseGenerator {
 
     async run(neo4jSession: Session, concepts: Map<ConceptIndex, any>, connectionIndex: ConnectionIndex): Promise<void> {
         // TODO: add exception of directories like `node_modules`
