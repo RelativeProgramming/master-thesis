@@ -3,6 +3,9 @@ import { LCEType } from './type.concept';
 
 /** Base class for all values. */
 export abstract class LCEValue extends LCEConcept {
+
+    public static override conceptId = "value";
+
     /** 
      * @param type type of the value 
      */
@@ -15,6 +18,8 @@ export abstract class LCEValue extends LCEConcept {
  * Represents a null value (`undefined` or `null`)
  */
 export class LCEValueNull extends LCEValue {
+
+    public static override conceptId = "null-value";
 
     /**
      * @param kind indicates whether value is `undefined` or `null`
@@ -32,6 +37,8 @@ export class LCEValueNull extends LCEValue {
  */
 export class LCEValueLiteral extends LCEValue {
 
+    public static override conceptId = "literal-value";
+
     /**
      * @param value the value of the literal
      */
@@ -47,6 +54,8 @@ export class LCEValueLiteral extends LCEValue {
  * Represents a declared variable/function/class used as a value (e.g. `myVariable` or `myFunction`)
  */
 export class LCEValueDeclared extends LCEValue {
+
+    public static override conceptId = "declared-value";
 
     /**
      * @param fqn fully qualified name of the referenced variable/function/class
@@ -66,6 +75,8 @@ export class LCEValueDeclared extends LCEValue {
  */
  export class LCEValueMember extends LCEValue {
 
+    public static override conceptId = "member-value";
+
     /**
      * @param parent parent value of which a member is accessed
      * @param member member value which is accessed
@@ -84,6 +95,8 @@ export class LCEValueDeclared extends LCEValue {
  */
 export class LCEValueObject extends LCEValue {
 
+    public static override conceptId = "object-value";
+
     /**
      * @param members map of the object member's names to their respective values
      */
@@ -100,6 +113,8 @@ export class LCEValueObject extends LCEValue {
  */
 export class LCEValueArray extends LCEValue {
 
+    public static override conceptId = "array-value";
+
     /**
      * @param items item values of the array
      */
@@ -115,6 +130,8 @@ export class LCEValueArray extends LCEValue {
  * Represents a call expression (e.g. `myArr.concat([4, 5])`)
  */
  export class LCEValueCall extends LCEValue {
+
+    public static override conceptId = "call-value";
 
     /**
      * @param callee value that is called (e.g. `myArr.concat`)
@@ -134,17 +151,23 @@ export class LCEValueArray extends LCEValue {
 /**
  * Represents a function expression (e.g. `function(x: string) { return x.trim(); }`)
  */
-export class LCEValueFunction extends LCEValue {}
+export class LCEValueFunction extends LCEValue {
+    public static override conceptId = "function-value";
+}
 
 /**
  * Represents a class expression (e.g. `class A {}`)
  */
- export class LCEValueClass extends LCEValue {}
+ export class LCEValueClass extends LCEValue {
+    public static override conceptId = "class-value";
+ }
 
 /**
  * Represents an expression that could not be resolved with other value types
  */
  export class LCEValueComplex extends LCEValue {
+
+    public static override conceptId = "complex-value";
 
     /**
      * @param expression string representation of the value's expression

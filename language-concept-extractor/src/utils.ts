@@ -1,21 +1,22 @@
-import * as path from 'path';
-import * as fs from 'fs';
-import { Node, Symbol } from 'typescript';
 import { Node as ESNode } from '@typescript-eslint/types/dist/generated/ast-spec';
+import * as fs from 'fs';
 import { Integer, QueryResult } from 'neo4j-driver';
+import * as path from 'path';
+import { Node, Symbol } from 'typescript';
+
 import { GlobalContext } from './context';
 
 
 export class Utils {
     
     /**
-     * @param sourceData basic data strcutures of current source file
+     * @param globalContext basic data strcutures of current source file
      * @param node TS node in AST
      * @returns the fully qualified name of the element described in node
      */
-    static getRelativeFQNForDeclaredTypeESNode(sourceData: GlobalContext, statement: ESNode): string {
-        const tc = sourceData.typeChecker;
-        const node: Node = sourceData.services.esTreeNodeToTSNodeMap.get(statement);
+    static getRelativeFQNForDeclaredTypeESNode(globalContext: GlobalContext, statement: ESNode): string {
+        const tc = globalContext.typeChecker;
+        const node: Node = globalContext.services.esTreeNodeToTSNodeMap.get(statement);
         const type = tc.getTypeAtLocation(node);
         const symbol = type.getSymbol();
         if(symbol === undefined) {
@@ -23,29 +24,29 @@ export class Utils {
         }
         
         const fqn = tc.getFullyQualifiedName(symbol);
-        if(this.isSymbolInProject(sourceData, symbol)) {
-            return this.getRelativeFQN(sourceData, fqn);
+        if(this.isSymbolInProject(globalContext, symbol)) {
+            return this.getRelativeFQN(globalContext, fqn);
         } else {
             return fqn;
         }
     }
 
     /**
-     * @param sourceData basic data strcutures of current source file
+     * @param globalContext basic data strcutures of current source file
      * @param node TS node in AST
      * @returns the fully qualified name of the element described in node
      */
-    static getRelativeFQNForIdentifierESNode(sourceData: GlobalContext, statement: ESNode): string {
-        const tc = sourceData.typeChecker;
-        const node: Node = sourceData.services.esTreeNodeToTSNodeMap.get(statement);
+    static getRelativeFQNForIdentifierESNode(globalContext: GlobalContext, statement: ESNode): string {
+        const tc = globalContext.typeChecker;
+        const node: Node = globalContext.services.esTreeNodeToTSNodeMap.get(statement);
         const symbol = tc.getSymbolAtLocation(node);
         if(symbol === undefined) {
             return "";
         }
         
         const fqn = tc.getFullyQualifiedName(symbol);
-        if(this.isSymbolInProject(sourceData, symbol)) {
-            return this.getRelativeFQN(sourceData, fqn);
+        if(this.isSymbolInProject(globalContext, symbol)) {
+            return this.getRelativeFQN(globalContext, fqn);
         } else {
             return fqn;
         }
@@ -53,30 +54,30 @@ export class Utils {
 
 
     /**
-     * @param sourceData data for the source file that contains the given FQN
+     * @param globalContext data for the source file that contains the given FQN
      * @param fqn a fully qualified name obtained by the TS TypeChecker
      * @returns a consistent fully qualified name using a path relative to the project root
      */
-    static getRelativeFQN(sourceData: GlobalContext, fqn: string): string {
-        let relativeFqn = fqn.replace(sourceData.projectRoot, ".");
+    static getRelativeFQN(globalContext: GlobalContext, fqn: string): string {
+        let relativeFqn = fqn.replace(globalContext.projectRoot, ".");
 
         // local object: add source file path
         if(fqn === relativeFqn) {
-          relativeFqn = '"' + sourceData.sourceFilePath.replace(sourceData.projectRoot, ".").replace(".ts", "") + '".' + relativeFqn;
+          relativeFqn = '"' + globalContext.sourceFilePath.replace(globalContext.projectRoot, ".").replace(".ts", "") + '".' + relativeFqn;
         }
         return relativeFqn;
     }
 
     /**
-     * @param sourceData data for the source file that contains the given symbol
+     * @param globalContext data for the source file that contains the given symbol
      * @param symbol symbol data of a source code node (may be undefined)
      * @returns whether if the given symbol is declared inside the local project
      */
-    static isSymbolInProject(sourceData: GlobalContext, symbol?: Symbol): boolean {
+    static isSymbolInProject(globalContext: GlobalContext, symbol?: Symbol): boolean {
         const sourceFile = symbol?.valueDeclaration?.getSourceFile();
         const hasSource = !!sourceFile;
-        const isStandardLibrary = hasSource && sourceData.services.program.isSourceFileDefaultLibrary(sourceFile!)
-        const isExternal = hasSource && sourceData.services.program.isSourceFileFromExternalLibrary(sourceFile!);
+        const isStandardLibrary = hasSource && globalContext.services.program.isSourceFileDefaultLibrary(sourceFile!)
+        const isExternal = hasSource && globalContext.services.program.isSourceFileFromExternalLibrary(sourceFile!);
         return hasSource && !isStandardLibrary && !isExternal;
     }
 
@@ -140,24 +141,6 @@ export class Utils {
      */
     static getNodeIdsFromQueryResult(res: QueryResult): Integer[] {
         return res.records.map(rec => rec.get(0));
-    }
-
-    /**
-     * Merges the given Maps. Array values of the same key are concatenated.
-     */
-    static mergeArrayMaps<K, V>(...maps: Map<K, V[]>[]): Map<K, V[]> {
-        const result: Map<K, V[]> = new Map();
-        for(let map of maps) {
-            for(let [k, vArr] of map.entries()) {
-                const res = result.get(k);
-                if(res) {
-                    result.set(k, res.concat(vArr));
-                } else {
-                    result.set(k, vArr);
-                }
-            }
-        }
-        return result;
     }
     
 }

@@ -4,6 +4,9 @@ import { LCETypeParameterDeclaration } from './type-parameter.concept';
 import { LCEType } from './type.concept';
 
 export class LCEFunctionDeclaration extends LCEConcept{
+
+    public static override conceptId = "function-declaration";
+
     constructor(
         public functionName: string,
         public parameters: LCEParameterDeclaration[],

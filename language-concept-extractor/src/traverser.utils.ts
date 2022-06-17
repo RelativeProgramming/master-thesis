@@ -1,24 +1,29 @@
 import { Node } from '@typescript-eslint/types/dist/generated/ast-spec';
-import { ConceptMap } from './concept';
+
+import { ConceptMap, mergeConceptMaps } from './concept';
 import { ProcessingContext } from './context';
 import { TRAVERSERS } from './features';
-import { ProcessorMap } from './traverser';
-import { Utils } from './utils';
+import { ProcessorMap } from './processor';
+import { TraverserContext } from './traverser';
 
-
+/**
+ * Tries to find an appropriate `Traverser` for the given node and calls its `traverse` method on the node.
+ * @returns the concepts generated for the node and/or its children or `undefined` if no `Traverser` could be found
+ */
 export function runTraverserForNode(
-    node_: Node, 
-    {globalContext, localContexts, node}: ProcessingContext, 
+    node: Node, 
+    traverserContext: TraverserContext,
+    {globalContext, localContexts, node: parentNode}: ProcessingContext, 
     processors: ProcessorMap,
     conceptMaps?: ConceptMap[]
 ): ConceptMap | undefined {
     const traverser = TRAVERSERS.get(node.type);
     if(traverser) {
-        node_.parent = node;
-        const result = traverser.traverse({
+        node.parent = parentNode;
+        const result = traverser.traverse(traverserContext, {
             globalContext,
             localContexts,
-            node: node_
+            node
         }, processors);
         if(conceptMaps)
             conceptMaps.push(result);
@@ -29,23 +34,24 @@ export function runTraverserForNode(
     }
 }
 
+/**
+ * Runs`runTraverserForNode` for the given nodes.
+ * Also provides index information of the parent node property to the traversers.
+ */
 export function runTraverserForNodes(
-    nodes: Node[], 
-    {globalContext, localContexts, node}: ProcessingContext, 
+    nodes: Node[],
+    {parentPropName}: TraverserContext,
+    processingContext: ProcessingContext, 
     processors: ProcessorMap,
     conceptMaps?: ConceptMap[]
 ): ConceptMap | undefined {
     const concepts: ConceptMap[] = [];
-    for(let n of nodes) {
-        n.parent = node;
-        runTraverserForNode(n, {
-            globalContext,
-            localContexts,
-            node: n
-        }, processors, concepts);
+    for(let i = 0; i < nodes.length; i++) {
+        let n = nodes[i];
+        runTraverserForNode(n, {parentPropName, parentPropIndex: i}, processingContext, processors, concepts);
     }
     if(concepts.length > 0) {
-        const result = Utils.mergeArrayMaps(...concepts);
+        const result = mergeConceptMaps(...concepts);
         if(conceptMaps)
             conceptMaps.push(result);
         return result;

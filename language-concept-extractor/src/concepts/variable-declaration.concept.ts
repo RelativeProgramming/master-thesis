@@ -3,6 +3,9 @@ import { LCEType } from './type.concept';
 import { LCEValue } from './value.concept';
 
 export class LCEVariableDeclaration extends LCEConcept {
+
+    public static override conceptId = "variable-declaration";
+    
     constructor(
         public variableName: string,
         public kind: "var" | "let" | "const",

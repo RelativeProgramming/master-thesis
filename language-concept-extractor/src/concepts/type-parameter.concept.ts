@@ -6,6 +6,8 @@ import { LCEType } from './type.concept';
  */
  export class LCETypeParameterDeclaration extends LCEConcept{
 
+    public static override conceptId = "type-parameter-declaration";
+
     /**
      * @param name name of type variable
      * @param constraint type of the constraint on the type variable

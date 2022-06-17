@@ -1,9 +1,15 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
-import { LCEConcept } from '../concept';
+
+import { ConceptMap, createMapForConcept } from '../concept';
 import { LCEClassDeclaration } from '../concepts/class-declaration.concept';
-import { LocalContexts, ProcessingContext } from '../context';
+import { LCEDecorator } from '../concepts/decorator.concept';
+import { ProcessingContext } from '../context';
 import { ExecutionCondition } from '../execution-rule';
+import { TRAVERSERS } from '../features';
 import { Processor } from '../processor';
+import { getAndDeleteChildConcepts, getParentPropName } from '../processor.utils';
+import { ClassDeclarationTraverser } from '../traversers/class-declaration.traverser';
+import { parseClassLikeTypeParameters } from './type.utils';
 
 export class ClassDeclarationProcessor extends Processor {
 
@@ -21,19 +27,19 @@ export class ClassDeclarationProcessor extends Processor {
         (globalConText, localContexts) => true
     );
 
-    public override preChildrenProcessing({globalContext, localContexts, node}: ProcessingContext): Processor[] {
+    public override preChildrenProcessing({globalContext, localContexts, node}: ProcessingContext): void {
         localContexts.currentContexts.set(ClassDeclarationProcessor.CONTEXT_ID, new Map<string, any>([
-            
+            // use to set any class declaration related local context
         ]));
-        return []
     }
 
-    public override postChildrenProcessing({globalContext, localContexts, node}: ProcessingContext, childConcepts: Map<string, LCEConcept[]>): Map<string, LCEConcept[]> {
+    public override postChildrenProcessing({globalContext, localContexts, node}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
         if(node.type === AST_NODE_TYPES.ClassDeclaration) {
             // TODO: implement child processors
+
             const classDecl = new LCEClassDeclaration(
                 node.id!.name,
-                [],
+                parseClassLikeTypeParameters(globalContext, node),
                 undefined,
                 [],
                 undefined,
@@ -41,12 +47,11 @@ export class ClassDeclarationProcessor extends Processor {
                 [],
                 [],
                 [],
-                [],
+                getAndDeleteChildConcepts(ClassDeclarationTraverser.DECORATORS_PROP ,LCEDecorator.conceptId, childConcepts),
                 globalContext.sourceFilePath
             );
-            return new Map([[LCEClassDeclaration.conceptId, [classDecl]]]);
+            return createMapForConcept(getParentPropName(localContexts), LCEClassDeclaration.conceptId, classDecl);
         }
         return new Map();
     }
-    
 }

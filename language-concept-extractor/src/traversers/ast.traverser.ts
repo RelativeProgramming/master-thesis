@@ -1,4 +1,5 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
+
 import { ConceptMap } from '../concept';
 import { GlobalContext, LocalContexts } from '../context';
 import { PROCESSORS } from '../features';
@@ -19,7 +20,7 @@ export class AstTraverser {
 
     public traverse(globalContext: GlobalContext): ConceptMap {
 
-        const conceptMap = runTraverserForNode(globalContext.ast, {
+        const conceptMap = runTraverserForNode(globalContext.ast, {parentPropName: "ast"}, {
             globalContext: globalContext,
             localContexts: new LocalContexts(),
             node: globalContext.ast

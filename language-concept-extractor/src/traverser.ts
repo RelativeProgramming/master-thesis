@@ -1,15 +1,17 @@
-import { AST_NODE_TYPES } from '@typescript-eslint/types';
-import { ConceptMap } from './concept';
-import { GlobalContext, LocalContexts, ProcessingContext } from './context';
-import { PROCESSORS } from './features';
-import { Processor } from './processor';
-import { Utils } from './utils';
+import { ConceptMap, mergeConceptMaps, unifyConceptMap } from './concept';
+import { ProcessingContext } from './context';
+import { Processor, ProcessorMap } from './processor';
 
-export type ProcessorMap = Map<AST_NODE_TYPES, Processor[]>;
+export interface TraverserContext {
+    parentPropName: string;
+    parentPropIndex?: number;
+}
 
 export abstract class Traverser {
 
-    public traverse(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
+    public static readonly LOCAL_TRAVERSER_CONTEXT = "~traverser";
+
+    public traverse(traverserContext: TraverserContext, processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
         const processorCandidates = processors.get(processingContext.node.type);
         let validProcessors: Processor[] = [];
         if(processorCandidates) {
@@ -18,25 +20,22 @@ export abstract class Traverser {
                     proc.executionCondition.contextCheck(processingContext.globalContext, processingContext.localContexts)
             );
         }
-        
-        let localProcessors: Processor[] = [];
 
-        // push local contexts
+        // push new local context
         processingContext.localContexts.pushContexts();
 
-        // pre-processing + adding local processors
+        // add traverser context to local context
+        processingContext.localContexts.currentContexts.set(Traverser.LOCAL_TRAVERSER_CONTEXT, traverserContext);
+
+        // pre-processing
         if(validProcessors) {
             for(let proc of validProcessors) {
-                localProcessors = localProcessors.concat(proc.preChildrenProcessing(processingContext));
+                proc.preChildrenProcessing(processingContext);
             }
-        }
-        let childProcessors = processors;
-        if(localProcessors.length > 0) {
-            childProcessors = Utils.mergeArrayMaps(processors, createProcessorMap(localProcessors));
         }
 
         // process children
-        const childConcepts = this.processChildren(processingContext, childProcessors);
+        let childConcepts = this.processChildren(processingContext, processors);
 
         // post-processing
         const concepts: ConceptMap[] = [];
@@ -46,10 +45,13 @@ export abstract class Traverser {
             }
         }
 
-        // pop local contexts
+        // reset parentPropNames of childConcepts
+        childConcepts = unifyConceptMap(childConcepts, traverserContext.parentPropName);
+
+        // pop local context
         processingContext.localContexts.popContexts();
         
-        return Utils.mergeArrayMaps(childConcepts, ...concepts);
+        return mergeConceptMaps(childConcepts, ...concepts);
     }
 
     public abstract processChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap;

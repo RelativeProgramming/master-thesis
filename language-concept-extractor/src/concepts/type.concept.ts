@@ -2,12 +2,16 @@ import { LCEConcept } from '../concept'
 import { LCETypeParameterDeclaration } from './type-parameter.concept'
 
 /** Base class for all types. */
-export abstract class LCEType extends LCEConcept {};
+export abstract class LCEType extends LCEConcept {
+    public static override conceptId = "type";
+};
 
 /**
  * Represents a primitive type (e.g. `string`)
  */
 export class LCETypePrimitive extends LCEType {
+
+    public static override conceptId = "primitive-type";
 
     /**
      * @param name identifier of the primitive type
@@ -23,6 +27,8 @@ export class LCETypePrimitive extends LCEType {
  * Represents a type defined by a class, interface or type alias
  */
 export class LCETypeDeclared extends LCEType {
+
+    public static override conceptId = "declared-type";
 
     /**
      * @param fqn fully qualified name of a class/interface/type alias
@@ -43,6 +49,8 @@ export class LCETypeDeclared extends LCEType {
  */
 export class LCETypeUnion extends LCEType {
 
+    public static override conceptId = "union-type";
+
     /**
      * @param types constituents of the union type
      */
@@ -57,6 +65,8 @@ export class LCETypeUnion extends LCEType {
  * Represents an intersection type (e.g. `A & B`)
  */
 export class LCETypeIntersection extends LCEType {
+
+    public static override conceptId = "intersection-type";
 
     /**
      * @param types constituents of the intersection type
@@ -73,6 +83,8 @@ export class LCETypeIntersection extends LCEType {
  */
 export class LCETypeObject extends LCEType {
 
+    public static override conceptId = "object-type";
+
     /**
      * @param members members of the object type
      */
@@ -87,6 +99,8 @@ export class LCETypeObject extends LCEType {
  * Represents a function type (e.g. `(x: string) => number`)
  */
 export class LCETypeFunction extends LCEType {
+
+    public static override conceptId = "function-type";
 
     /**
      * @param returnType return type of the function
@@ -105,6 +119,8 @@ export class LCETypeFunction extends LCEType {
  * Represents a parameter inside a function type (e.g. `x: string` in `(x: string) => number`)
  */
  export class LCETypeFunctionParameter extends LCEConcept{
+
+    public static override conceptId = "function-type-parameter";
 
     /**
      * @param index position of the parameter in the parameter list
@@ -125,6 +141,8 @@ export class LCETypeFunction extends LCEType {
  */
 export class LCETypeParameter extends LCEType {
 
+    public static override conceptId = "type-parameter";
+
     /**
      * @param name name of the type parameter
      */
@@ -139,6 +157,8 @@ export class LCETypeParameter extends LCEType {
  * Represents a type literal (e.g. `"zero"` or `0` in `x: "zero" | 0`)
  */
 export class LCETypeLiteral extends LCEType {
+
+    public static override conceptId = "literal-type";
 
     /**
      * @param value content of the type literal
@@ -155,6 +175,8 @@ export class LCETypeLiteral extends LCEType {
  */
 export class LCETypeTuple extends LCEType {
 
+    public static override conceptId = "tuple-type";
+
     /**
      * @param types types of the tuple
      */
@@ -169,6 +191,8 @@ export class LCETypeTuple extends LCEType {
  * Represents a type that could not be parsed correctly.
  */
 export class LCETypeNotIdentified extends LCEType {
+
+    public static override conceptId = "not-identified-type";
 
     /**
      * @param identifier string representation of type that could not successfully parsed

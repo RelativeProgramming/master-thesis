@@ -5,6 +5,9 @@ import { LCETypeParameterDeclaration } from './type-parameter.concept';
 import { LCETypeDeclared } from './type.concept';
 
 export class LCEInterfaceDeclaration extends LCEConcept {
+
+    public static override conceptId = "interface-declaration";
+
     constructor(
         public interfaceName: string,
         public typeParameters: LCETypeParameterDeclaration[],

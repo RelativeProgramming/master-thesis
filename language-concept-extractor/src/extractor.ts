@@ -1,17 +1,15 @@
-
 import { parseAndGenerateServices } from '@typescript-eslint/typescript-estree';
 import * as fs from 'fs';
-import { TypeChecker } from "typescript";
-import { driver as neo4jDriver, auth as neo4jAuth} from "neo4j-driver";
-import { Utils } from './utils';
+import { auth as neo4jAuth, driver as neo4jDriver } from 'neo4j-driver';
+import { TypeChecker } from 'typescript';
+
+import { ConceptMap, createMapForConcept, mergeConceptMaps, unifyConceptMap } from './concept';
+import { LCETypeScriptProject } from './concepts/typescript-project.concept';
 import { ConnectionIndex } from './connection-index';
 import { GlobalContext } from './context';
-import { LCEConcept, ConceptMap } from './concept';
-import { LCETypeScriptProject } from './concepts/typescript-project.concept';
 import { ConceptIndex, GENERATORS } from './features';
 import { AstTraverser } from './traversers/ast.traverser';
-
-
+import { Utils } from './utils';
 
 export function processProject(projectRoot: string) {
   // TODO: take tsconfig.json into consideration (assumes projectRoot = path that contains tsconfig.json)
@@ -20,12 +18,7 @@ export function processProject(projectRoot: string) {
   const fileList = Utils.getFileList(projectRoot, [".ts", ".tsx"], [".git", "node_modules"]);
 
   // maps filenames to the extracted concepts from these files
-  const concepts: Map<string, ConceptMap> = new Map();
-
-  // add project-wide concepts
-  concepts.set("~~PROJECT~~", new Map<string, LCEConcept[]>([
-    [LCETypeScriptProject.conceptId, [new LCETypeScriptProject(projectRoot)]]
-  ]));
+  let concepts: ConceptMap = createMapForConcept("~~PROJECT~~", LCETypeScriptProject.conceptId, new LCETypeScriptProject(projectRoot));
 
   console.log("Analyzing " + fileList.length + " project files...");
   const startTime = process.hrtime();
@@ -51,7 +44,7 @@ export function processProject(projectRoot: string) {
       typeChecker: typeChecker
     }
     
-    concepts.set(file.replace(globalContext.projectRoot, "."), traverser.traverse(globalContext));
+    concepts = mergeConceptMaps(concepts, unifyConceptMap(traverser.traverse(globalContext), file.replace(globalContext.projectRoot, ".")))
   }
 
   const endTime = process.hrtime();

@@ -1,6 +1,11 @@
-import { LCEConcept } from './concept';
+import { AST_NODE_TYPES } from '@typescript-eslint/types';
+
+import { ConceptMap } from './concept';
 import { ProcessingContext } from './context';
 import { ExecutionCondition } from './execution-rule';
+
+
+export type ProcessorMap = Map<AST_NODE_TYPES, Processor[]>;
 
 export abstract class Processor {
 
@@ -11,11 +16,9 @@ export abstract class Processor {
 
     /**
      * Function that is executed before the children of the current AST node are processed.
-     * Use to setup the context and/or add local processors by returning them.
+     * Use to setup the local context.
      */
-    public preChildrenProcessing(context: ProcessingContext): Processor[] { 
-        return []; 
-    }
+    public preChildrenProcessing(context: ProcessingContext): void {}
 
     /**
      * Function that is executed after the children of the current AST node have been processed.
@@ -27,9 +30,9 @@ export abstract class Processor {
      */
     public postChildrenProcessing(
         processingContext: ProcessingContext, 
-        childConcepts: Map<string, LCEConcept[]>
-    ): Map<string, LCEConcept[]> {
-        return childConcepts;
+        childConcepts: ConceptMap
+    ): ConceptMap {
+        return new Map();
     }
 
 }

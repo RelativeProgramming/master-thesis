@@ -7,6 +7,9 @@ import { Visibility } from './visibility.concept';
 
 
 export class LCEMethodDeclaration extends LCEConcept {
+
+    public static override conceptId = "method-declaration";
+
     constructor(
         public methodName: string,
         public parameters: LCEParameterDeclaration[],
@@ -21,6 +24,9 @@ export class LCEMethodDeclaration extends LCEConcept {
 }
 
 export class LCEParameterDeclaration extends LCEConcept {
+
+    public static override conceptId = "parameter-declaration";
+
     constructor(
         public index: number,
         public name: string,
@@ -34,6 +40,8 @@ export class LCEParameterDeclaration extends LCEConcept {
 
 export class LCEConstructorDeclaration extends LCEConcept {
 
+    public static override conceptId = "constructor-declaration";
+
     /**
      * @param parameterProperties maps parameter index numbers to declared parameter properties
      */
@@ -46,6 +54,9 @@ export class LCEConstructorDeclaration extends LCEConcept {
 }
 
 export class LCEGetterDeclaration extends LCEConcept {
+
+    public static override conceptId = "getter-declaration";
+
     constructor(
         public methodName: string,
         public returnType: LCEType,
@@ -58,6 +69,9 @@ export class LCEGetterDeclaration extends LCEConcept {
 }
 
 export class LCESetterDeclaration extends LCEConcept {
+
+    public static override conceptId = "setter-declaration";
+
     constructor(
         public methodName: string,
         public parameters: LCEParameterDeclaration[],
