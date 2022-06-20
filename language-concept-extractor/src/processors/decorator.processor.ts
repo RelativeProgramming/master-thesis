@@ -11,7 +11,6 @@ export class DecoratorProcessor extends Processor {
 
     public executionCondition: ExecutionCondition = new ExecutionCondition(
         [AST_NODE_TYPES.Decorator],
-        () => true,
         () => true
     );
 
@@ -21,6 +20,7 @@ export class DecoratorProcessor extends Processor {
                 const decorator = new LCEDecorator(node.expression.name);
                 return createMapForConcept(getParentPropName(localContexts), LCEDecorator.conceptId, decorator);
             }
+            // TODO: implement decorator call pattern
         }
         return new Map();
     }

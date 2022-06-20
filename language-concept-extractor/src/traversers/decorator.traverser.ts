@@ -10,7 +10,7 @@ export class DecoratorTraverser extends Traverser {
 
     public static readonly EXPRESSION_PROP = "expression";
 
-    public processChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
+    public traverseChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
         const {node} = processingContext;
 
         if(node.type === AST_NODE_TYPES.Decorator) {

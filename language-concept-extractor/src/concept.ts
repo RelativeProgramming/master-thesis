@@ -77,3 +77,10 @@ export function createMapForConcept(parentPropName: string, conceptId: string, c
         new Map([[conceptId, [concept]]])
     ]]);
 }
+
+/**
+ * retrieves an array of concepts from a ConceptMap entry and casts it to the provided type
+ */
+export function getAndCastConcepts<T extends LCEConcept>(conceptId: string, concepts: Map<string, LCEConcept[]>): T[] {
+    return concepts.has(conceptId) ? (concepts.get(conceptId) as T[]) : [];
+}

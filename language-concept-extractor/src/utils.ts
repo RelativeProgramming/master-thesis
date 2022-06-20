@@ -78,7 +78,7 @@ export class Utils {
         const hasSource = !!sourceFile;
         const isStandardLibrary = hasSource && globalContext.services.program.isSourceFileDefaultLibrary(sourceFile!)
         const isExternal = hasSource && globalContext.services.program.isSourceFileFromExternalLibrary(sourceFile!);
-        return hasSource && !isStandardLibrary && !isExternal;
+        return !isStandardLibrary && !isExternal;
     }
 
     /**

@@ -10,7 +10,7 @@ export class ExportNamedDeclarationTraverser extends Traverser {
 
     public static readonly DECLARATION_PROP = "declaration";
 
-    public processChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
+    public traverseChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
         const {node} = processingContext;
         
         if(node.type === AST_NODE_TYPES.ExportNamedDeclaration) {

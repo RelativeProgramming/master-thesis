@@ -97,8 +97,8 @@ export async function createConstructorNode(
     );
 
     // create parameter property nodes and connections
-    for(let [i, paramProp] of constructorDecl.parameterProperties.entries()) {
-        const paramNodeId = paramNodeIds.get(i)!;
+    for(let paramProp of constructorDecl.parameterProperties) {
+        const paramNodeId = paramNodeIds.get(paramProp.index)!;
         const propNodeId = await createPropertyNode(
             paramProp,
             neo4jSession,

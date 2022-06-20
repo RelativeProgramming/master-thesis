@@ -7,25 +7,32 @@ export interface TraverserContext {
     parentPropIndex?: number;
 }
 
+/**
+ * Used for traversing an AST.
+ * Provides context for and executes processors for the current node.
+ * Delegates the traversal of any child nodes.
+ */
 export abstract class Traverser {
 
     public static readonly LOCAL_TRAVERSER_CONTEXT = "~traverser";
 
     public traverse(traverserContext: TraverserContext, processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
-        const processorCandidates = processors.get(processingContext.node.type);
-        let validProcessors: Processor[] = [];
-        if(processorCandidates) {
-            validProcessors = processorCandidates.filter(
-                (proc) => proc.executionCondition.nodeTypeCheck(processingContext.node) &&
-                    proc.executionCondition.contextCheck(processingContext.globalContext, processingContext.localContexts)
-            );
-        }
-
+        
         // push new local context
         processingContext.localContexts.pushContexts();
 
         // add traverser context to local context
         processingContext.localContexts.currentContexts.set(Traverser.LOCAL_TRAVERSER_CONTEXT, traverserContext);
+
+
+        // find processors for current
+        const processorCandidates = processors.get(processingContext.node.type);
+        let validProcessors: Processor[] = [];
+        if(processorCandidates) {
+            validProcessors = processorCandidates.filter(
+                (proc) => proc.executionCondition.check(processingContext)
+            );
+        }
 
         // pre-processing
         if(validProcessors) {
@@ -35,7 +42,7 @@ export abstract class Traverser {
         }
 
         // process children
-        let childConcepts = this.processChildren(processingContext, processors);
+        let childConcepts = this.traverseChildren(processingContext, processors);
 
         // post-processing
         const concepts: ConceptMap[] = [];
@@ -54,7 +61,13 @@ export abstract class Traverser {
         return mergeConceptMaps(childConcepts, ...concepts);
     }
 
-    public abstract processChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap;
+    public abstract traverseChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap;
+}
+
+export class SimpleTraverser extends Traverser {
+    public traverseChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
+        return new Map();
+    }
 }
 
 export function createProcessorMap(processors: Processor[]): ProcessorMap {

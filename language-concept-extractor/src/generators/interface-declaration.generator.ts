@@ -1,29 +1,29 @@
 import { Session } from 'neo4j-driver';
-import { ConceptIndex } from '../features';
+import { getAndCastConcepts, LCEConcept } from '../concept';
+import { LCEInterfaceDeclaration } from '../concepts/interface-declaration.concept';
 import { LCETypeScriptProject } from '../concepts/typescript-project.concept';
-import { BaseGenerator } from '../generator';
 import { ConnectionIndex } from '../connection-index';
+import { Generator } from '../generator';
 import { Utils } from '../utils';
 import { createClassLikeTypeParameterNodes, createMemberNodes } from './class-like-declaration.generator.utils';
-import { LCEInterfaceDeclarationIndex } from '../concept-indexes/interface-declaration.index';
 import { createTypeNode } from './type.generator.utils';
 
 /**
  * Generates all graph structures related to interface declarations.
  * This includes type parameters, properties, methods, along with their types.
  */
-export class InterfaceDeclarationGenerator implements BaseGenerator {
+export class InterfaceDeclarationGenerator extends Generator {
 
-    async run(neo4jSession: Session, concepts: Map<ConceptIndex, any>, connectionIndex: ConnectionIndex): Promise<void> {
-        const project: LCETypeScriptProject = concepts.get(ConceptIndex.TYPESCRIPT_PROJECT);
-        const interfaceDeclIndex: LCEInterfaceDeclarationIndex = concepts.get(ConceptIndex.INTERFACE_DECLARATIONS);
+    async run(neo4jSession: Session, concepts: Map<string, LCEConcept[]>, connectionIndex: ConnectionIndex): Promise<void> {
+        const project = getAndCastConcepts<LCETypeScriptProject>(LCETypeScriptProject.conceptId, concepts)[0];
+        const interfaceDecls = getAndCastConcepts<LCEInterfaceDeclaration>(LCEInterfaceDeclaration.conceptId, concepts);
 
-        console.log("Generating graph structures for " + interfaceDeclIndex.declarations.size + " interface declarations...")
+        console.log("Generating graph structures for " + interfaceDecls.length + " interface declarations...")
         // create interface structures
-        for(let [fqn, interfaceDecl] of interfaceDeclIndex.declarations.entries()) {
+        for(let interfaceDecl of interfaceDecls) {
             // create interface node
             const interfaceNodeProps = {
-                fqn: fqn,
+                fqn: interfaceDecl.fqn,
                 name: interfaceDecl.interfaceName
             }
             const interfaceNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
@@ -32,7 +32,7 @@ export class InterfaceDeclarationGenerator implements BaseGenerator {
                 RETURN id(interface)
                 `,{interfaceProps: interfaceNodeProps}
             ));
-            connectionIndex.provideTypes.set(fqn, interfaceNodeId);
+            connectionIndex.provideTypes.set(interfaceDecl.fqn, interfaceNodeId);
 
             // create type parameter nodes and connections
             const interfaceTypeParameters = await createClassLikeTypeParameterNodes(

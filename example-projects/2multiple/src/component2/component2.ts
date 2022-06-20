@@ -1,4 +1,4 @@
-import { myConst as myC} from '../component1/component1';
+import { ImplementMe, myConst as myC} from '../component1/component1';
 import { component, required } from '../framework';
 import { Model2 } from './component2.model';
 
@@ -97,11 +97,6 @@ interface TestInterface {
 
 interface TestInterfaceExtended extends TestInterface, GenericInterface<string> {
     z: number;
-}
-
-interface ImplementMe {
-    implProp: number;
-    implMethod(a: number): void;
 }
 
 interface TestInterface2<T extends {a: number, b: string}> {

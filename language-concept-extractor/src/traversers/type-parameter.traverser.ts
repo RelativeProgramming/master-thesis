@@ -10,7 +10,7 @@ export class TypeParameterDeclarationTraverser extends Traverser {
 
     public static readonly PARAMS_PROP = "params";
 
-    public processChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
+    public traverseChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
         const {node} = processingContext;
         const conceptMaps: ConceptMap[] = [];
 
@@ -27,7 +27,7 @@ export class TypeParameterInstantiationTraverser extends Traverser {
 
     public static readonly PARAMS_PROP = "params";
 
-    public processChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
+    public traverseChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
         const {node} = processingContext;
         const conceptMaps: ConceptMap[] = [];
 
@@ -44,7 +44,7 @@ export class TypeParameterTraverser extends Traverser {
 
     public static readonly CONSTRAINT_PROP = "constraint";
 
-    public processChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
+    public traverseChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
         const {node} = processingContext;
 
         if(node.type === AST_NODE_TYPES.TSTypeParameter) {

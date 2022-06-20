@@ -1,14 +1,14 @@
 import { Session } from 'neo4j-driver';
-import { ConceptIndex } from '../features';
+import { getAndCastConcepts, LCEConcept } from '../concept';
 import { LCETypeScriptProject } from '../concepts/typescript-project.concept';
 import { ConnectionIndex } from '../connection-index';
-import { BaseGenerator } from '../generator';
+import { Generator } from '../generator';
 
-export class TypeScriptProjectFilesGenerator implements BaseGenerator {
+export class TypeScriptProjectFilesGenerator extends Generator {
 
-    async run(neo4jSession: Session, concepts: Map<ConceptIndex, any>, connectionIndex: ConnectionIndex): Promise<void> {
+    async run(neo4jSession: Session, concepts: Map<string, LCEConcept[]>, connectionIndex: ConnectionIndex): Promise<void> {
         // TODO: add exception of directories like `node_modules`
-        const project: LCETypeScriptProject = concepts.get(ConceptIndex.TYPESCRIPT_PROJECT);
+        const project = getAndCastConcepts<LCETypeScriptProject>(LCETypeScriptProject.conceptId, concepts)[0];
         await neo4jSession.run(
             `
             MATCH (root:Directory {fileName: $projectRoot})-[:CONTAINS]->(sourceFile:File)

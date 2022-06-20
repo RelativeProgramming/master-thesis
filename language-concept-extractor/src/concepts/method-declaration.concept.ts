@@ -38,6 +38,31 @@ export class LCEParameterDeclaration extends LCEConcept {
     }
 }
 
+export class LCEParameterPropertyDeclaration extends LCEPropertyDeclaration {
+    public static override conceptId = "parameter-property-declaration";
+
+    constructor(
+        public index: number,
+        propertyName: string,
+        optional: boolean,
+        type: LCEType,
+        decorators: LCEDecorator[],
+        visibility: Visibility,
+        readonly: boolean,
+        override?: boolean
+    ) {
+        super(
+            propertyName,
+            optional,
+            type,
+            decorators,
+            visibility,
+            readonly,
+            override
+        );
+    }
+}
+
 export class LCEConstructorDeclaration extends LCEConcept {
 
     public static override conceptId = "constructor-declaration";
@@ -47,7 +72,7 @@ export class LCEConstructorDeclaration extends LCEConcept {
      */
     constructor(
         public parameters: LCEParameterDeclaration[],
-        public parameterProperties: Map<number, LCEPropertyDeclaration>
+        public parameterProperties: LCEParameterPropertyDeclaration[]
     ) {
         super();
     }

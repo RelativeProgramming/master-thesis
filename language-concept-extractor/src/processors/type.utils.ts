@@ -1,7 +1,34 @@
-import {ClassPropertyNameNonComputed, ClassDeclaration, VariableDeclarator, Expression, FunctionDeclaration, TSInterfaceDeclaration, MethodDefinitionNonComputedName, TSInterfaceHeritage, TSClassImplements, TypeNode, TSMethodSignatureNonComputedName, Identifier} from '@typescript-eslint/types/dist/generated/ast-spec'
-import { TypeReference, Type, Node, isTypeParameterDeclaration, Signature, Symbol, SignatureKind, PseudoBigInt} from 'typescript';
+import {
+    ClassDeclaration,
+    ClassPropertyNameNonComputed,
+    Expression,
+    FunctionDeclaration,
+    Identifier,
+    MethodDefinitionNonComputedName,
+    TSClassImplements,
+    TSInterfaceDeclaration,
+    TSInterfaceHeritage,
+    TSMethodSignatureNonComputedName,
+    TypeNode,
+    VariableDeclarator,
+} from '@typescript-eslint/types/dist/generated/ast-spec';
+import { isTypeParameterDeclaration, Node, PseudoBigInt, Signature, SignatureKind, Symbol, Type, TypeReference } from 'typescript';
+
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
-import { LCEType, LCETypeFunction, LCETypeIntersection, LCETypeNotIdentified, LCETypeObject, LCETypeParameter, LCETypeDeclared, LCETypeUnion, LCETypePrimitive, LCETypeFunctionParameter, LCETypeLiteral, LCETypeTuple } from '../concepts/type.concept';
+import {
+    LCEType,
+    LCETypeDeclared,
+    LCETypeFunction,
+    LCETypeFunctionParameter,
+    LCETypeIntersection,
+    LCETypeLiteral,
+    LCETypeNotIdentified,
+    LCETypeObject,
+    LCETypeParameter,
+    LCETypePrimitive,
+    LCETypeTuple,
+    LCETypeUnion,
+} from '../concepts/type.concept';
 import { GlobalContext } from '../context';
 import { Utils } from '../utils';
 

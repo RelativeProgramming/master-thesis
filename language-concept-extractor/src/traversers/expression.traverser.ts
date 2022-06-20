@@ -12,7 +12,7 @@ export class IdentifierTraverser extends Traverser {
     public static readonly DECORATORS_PROP = "decorators";
     public static readonly TYPE_ANNOTATIONS_PROP = "type-annotations";
 
-    public processChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
+    public traverseChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
         const {node} = processingContext;
         const conceptMaps: ConceptMap[] = [];
 

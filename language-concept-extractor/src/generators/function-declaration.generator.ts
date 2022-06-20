@@ -1,31 +1,29 @@
 import { Session } from 'neo4j-driver';
-import { ConceptIndex } from '../features';
+import { getAndCastConcepts, LCEConcept } from '../concept';
+import { LCEFunctionDeclaration } from '../concepts/function-declaration.concept';
 import { LCETypeScriptProject } from '../concepts/typescript-project.concept';
-import { BaseGenerator } from '../generator';
 import { ConnectionIndex } from '../connection-index';
+import { Generator } from '../generator';
 import { Utils } from '../utils';
-import { createClassLikeTypeParameterNodes, createMemberNodes } from './class-like-declaration.generator.utils';
-import { LCEInterfaceDeclarationIndex } from '../concept-indexes/interface-declaration.index';
-import { createTypeNode, createTypeParameterNodes } from './type.generator.utils';
-import { LCEFunctionDeclarationIndex } from '../concept-indexes/function-declaration.index';
 import { createFunctionParameterNodes } from './function.generator.utils';
+import { createTypeNode, createTypeParameterNodes } from './type.generator.utils';
 
 /**
  * Generates all graph structures related to function declarations on file level.
  * This includes type parameters, return type and parameters.
  */
-export class FunctionDeclarationGenerator implements BaseGenerator {
+export class FunctionDeclarationGenerator extends Generator {
 
-    async run(neo4jSession: Session, concepts: Map<ConceptIndex, any>, connectionIndex: ConnectionIndex): Promise<void> {
-        const project: LCETypeScriptProject = concepts.get(ConceptIndex.TYPESCRIPT_PROJECT);
-        const interfaceDeclIndex: LCEFunctionDeclarationIndex = concepts.get(ConceptIndex.FUNCTION_DECLARATIONS);
+    async run(neo4jSession: Session, concepts: Map<string, LCEConcept[]>, connectionIndex: ConnectionIndex): Promise<void> {
+        const project = getAndCastConcepts<LCETypeScriptProject>(LCETypeScriptProject.conceptId, concepts)[0];
+        const functionDecls = getAndCastConcepts<LCEFunctionDeclaration>(LCEFunctionDeclaration.conceptId, concepts);
 
-        console.log("Generating graph structures for " + interfaceDeclIndex.declarations.size + " function declarations...")
+        console.log("Generating graph structures for " + functionDecls.length + " function declarations...")
         // create function structures
-        for(let [fqn, funcDecl] of interfaceDeclIndex.declarations.entries()) {
+        for(let funcDecl of functionDecls) {
             // create function node
             const funcNodeProps = {
-                fqn: fqn,
+                fqn: funcDecl.fqn,
                 name: funcDecl.functionName,
             }
             const funcNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
@@ -34,7 +32,7 @@ export class FunctionDeclarationGenerator implements BaseGenerator {
                 RETURN id(func)
                 `,{funcNodeProps: funcNodeProps}
             ));
-            connectionIndex.provideTypes.set(fqn, funcNodeId);
+            connectionIndex.provideTypes.set(funcDecl.fqn, funcNodeId);
 
             // create type parameter nodes and connections
             const funcTypeParameters = await createTypeParameterNodes(

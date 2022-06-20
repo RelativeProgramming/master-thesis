@@ -9,6 +9,7 @@ export class LCEFunctionDeclaration extends LCEConcept{
 
     constructor(
         public functionName: string,
+        public fqn: string,
         public parameters: LCEParameterDeclaration[],
         public returnType: LCEType,
         public typeParameters: LCETypeParameterDeclaration[],

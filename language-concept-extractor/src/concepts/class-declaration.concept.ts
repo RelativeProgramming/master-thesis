@@ -11,6 +11,7 @@ export class LCEClassDeclaration extends LCEConcept {
 
     constructor(
         public className: string,
+        public fqn: string,
         public typeParameters: LCETypeParameterDeclaration[],
         public extendsClass: LCETypeDeclared | undefined,
         public implementsInterfaces: LCETypeDeclared[],

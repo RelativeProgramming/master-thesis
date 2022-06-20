@@ -7,6 +7,9 @@ import { ExecutionCondition } from './execution-rule';
 
 export type ProcessorMap = Map<AST_NODE_TYPES, Processor[]>;
 
+/**
+ * Extracts language concepts from a given node of an AST and its children.
+ */
 export abstract class Processor {
 
     /** 
@@ -18,7 +21,7 @@ export abstract class Processor {
      * Function that is executed before the children of the current AST node are processed.
      * Use to setup the local context.
      */
-    public preChildrenProcessing(context: ProcessingContext): void {}
+    public preChildrenProcessing(processingContext: ProcessingContext): void {}
 
     /**
      * Function that is executed after the children of the current AST node have been processed.

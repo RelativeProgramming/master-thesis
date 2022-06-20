@@ -3,11 +3,11 @@ import * as fs from 'fs';
 import { auth as neo4jAuth, driver as neo4jDriver } from 'neo4j-driver';
 import { TypeChecker } from 'typescript';
 
-import { ConceptMap, createMapForConcept, mergeConceptMaps, unifyConceptMap } from './concept';
+import { ConceptMap, createMapForConcept, LCEConcept, mergeConceptMaps, unifyConceptMap } from './concept';
 import { LCETypeScriptProject } from './concepts/typescript-project.concept';
 import { ConnectionIndex } from './connection-index';
 import { GlobalContext } from './context';
-import { ConceptIndex, GENERATORS } from './features';
+import { GENERATORS } from './features';
 import { AstTraverser } from './traversers/ast.traverser';
 import { Utils } from './utils';
 
@@ -50,10 +50,10 @@ export function processProject(projectRoot: string) {
   const endTime = process.hrtime();
   console.log("Finished analyzing project files. Runtime: " + (endTime[0] - startTime[0]) + "s");
 
-  // generateGraphs(concepts);
+  generateGraphs(unifyConceptMap(concepts, "").get("")!);
 }
 
-async function generateGraphs(concepts: Map<ConceptIndex, any>) {
+async function generateGraphs(concepts: Map<string, LCEConcept[]>) {
   console.log("Generating graph...")
   const startTime = process.hrtime();
   const driver = neo4jDriver("bolt://localhost:7687", neo4jAuth.basic("", ""));
@@ -61,8 +61,7 @@ async function generateGraphs(concepts: Map<ConceptIndex, any>) {
   const connectionIndex = new ConnectionIndex();
 
   try {
-    for(let Generator of GENERATORS) {
-      const generator = new Generator();
+    for(let generator of GENERATORS) {
       await generator.run(session, concepts, connectionIndex);
     }
   } finally {

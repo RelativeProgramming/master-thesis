@@ -10,6 +10,7 @@ export class LCEInterfaceDeclaration extends LCEConcept {
 
     constructor(
         public interfaceName: string,
+        public fqn: string,
         public typeParameters: LCETypeParameterDeclaration[],
         public extendsInterfaces: LCETypeDeclared[],
         public properties: LCEPropertyDeclaration[],

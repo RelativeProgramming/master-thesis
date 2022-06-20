@@ -15,7 +15,7 @@ export class ClassDeclarationTraverser extends Traverser {
     public static readonly SUPER_TYPE_PARAMETERS_PROP = "super-type-parameters";
     public static readonly CLASS_ELEMENTS_PROP = "class-elements";
 
-    public processChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
+    public traverseChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
         const {node} = processingContext;
         const conceptMaps: ConceptMap[] = [];
 
@@ -40,5 +40,11 @@ export class ClassDeclarationTraverser extends Traverser {
 
         return mergeConceptMaps(...conceptMaps);
     }
+}
 
+export class ClassImplementsTraverser extends Traverser {
+    public traverseChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
+        // TODO: refine traversal
+        return new Map();
+    }
 }

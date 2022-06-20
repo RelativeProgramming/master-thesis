@@ -1,12 +1,12 @@
 import { Session } from 'neo4j-driver';
-import { ConceptIndex } from '../features';
-import { BaseGenerator } from '../generator';
+import { LCEConcept } from '../concept';
 import { ConnectionIndex } from '../connection-index';
+import { Generator } from '../generator';
 
 
-export class ConnectionGenerator implements BaseGenerator {
+export class ConnectionGenerator extends Generator {
 
-    async run(neo4jSession: Session, concepts: Map<ConceptIndex, any>, connectionIndex: ConnectionIndex): Promise<void> {
+    async run(neo4jSession: Session, concepts: Map<string, LCEConcept[]>, connectionIndex: ConnectionIndex): Promise<void> {
         connectionIndex.resolve();
 
         console.log("Generating " + connectionIndex.connectionsToCreate.length + " outstanding connections...");

@@ -15,3 +15,8 @@ export class Component1 {
 }
 
 export const myConst = 1;
+
+export interface ImplementMe {
+    implProp: number;
+    implMethod(a: number): void;
+}
