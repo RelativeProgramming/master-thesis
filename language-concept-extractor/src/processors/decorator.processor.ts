@@ -1,6 +1,6 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 
-import { ConceptMap, createMapForConcept } from '../concept';
+import { ConceptMap, createConceptMap } from '../concept';
 import { LCEDecorator } from '../concepts/decorator.concept';
 import { ProcessingContext } from '../context';
 import { ExecutionCondition } from '../execution-rule';
@@ -18,7 +18,7 @@ export class DecoratorProcessor extends Processor {
         if(node.type === AST_NODE_TYPES.Decorator) {
             if(node.expression.type === AST_NODE_TYPES.Identifier) {
                 const decorator = new LCEDecorator(node.expression.name);
-                return createMapForConcept(getParentPropName(localContexts), LCEDecorator.conceptId, decorator);
+                return createConceptMap(LCEDecorator.conceptId, decorator);
             }
             // TODO: implement decorator call pattern
         }

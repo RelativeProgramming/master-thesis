@@ -10,11 +10,13 @@ import { Processor } from './processor';
 import { ClassDeclarationProcessor, ImplementsDeclarationProcessor, SuperClassDeclarationProcessor } from './processors/class-declaration.processor';
 import { MethodParameterProcessor, MethodProcessor, PropertyProcessor } from './processors/class-like-declaration.processor';
 import { DecoratorProcessor } from './processors/decorator.processor';
-import { Traverser } from './traverser';
-import { ClassDeclarationTraverser, ClassImplementsTraverser } from './traversers/class-declaration.traverser';
+import { InterfaceDeclarationProcessor, SuperInterfaceDeclarationProcessor } from './processors/interface-declaration.processor';
+import { SimpleTraverser, Traverser } from './traverser';
+import { ClassDeclarationTraverser } from './traversers/class-declaration.traverser';
 import { DecoratorTraverser } from './traversers/decorator.traverser';
 import { ExportNamedDeclarationTraverser } from './traversers/export-named-declaration.traverser';
 import { IdentifierTraverser } from './traversers/expression.traverser';
+import { InterfaceDeclarationTraverser, InterfaceHeritageTraverser } from './traversers/interface-declaration.traverser';
 import { MethodDefinitionTraverser, MethodParameterPropertyTraverser, MethodSignatureTraverser } from './traversers/method.traverser';
 import { ProgramTraverser } from './traversers/program.traverser';
 import { PropertyDeclarationTraverser } from './traversers/property.traverser';
@@ -28,7 +30,9 @@ export const TRAVERSERS: Map<AST_NODE_TYPES, Traverser> = new Map([
     [AST_NODE_TYPES.MethodDefinition, new MethodDefinitionTraverser()],
     [AST_NODE_TYPES.Program, new ProgramTraverser()],
     [AST_NODE_TYPES.PropertyDefinition, new PropertyDeclarationTraverser()],
-    [AST_NODE_TYPES.TSClassImplements, new ClassImplementsTraverser()],
+    [AST_NODE_TYPES.TSClassImplements, new SimpleTraverser()],
+    [AST_NODE_TYPES.TSInterfaceDeclaration, new InterfaceDeclarationTraverser()],
+    [AST_NODE_TYPES.TSInterfaceHeritage, new InterfaceHeritageTraverser()],
     [AST_NODE_TYPES.TSMethodSignature, new MethodSignatureTraverser()],
     [AST_NODE_TYPES.TSParameterProperty, new MethodParameterPropertyTraverser()],
     [AST_NODE_TYPES.TSPropertySignature, new PropertyDeclarationTraverser()],
@@ -41,10 +45,12 @@ export const PROCESSORS: Processor[] = [
     new ClassDeclarationProcessor(),
     new DecoratorProcessor(),
     new ImplementsDeclarationProcessor(),
+    new InterfaceDeclarationProcessor(),
     new MethodParameterProcessor(),
     new MethodProcessor(),
     new PropertyProcessor(),
     new SuperClassDeclarationProcessor(),
+    new SuperInterfaceDeclarationProcessor(),
 ]
 
 export const GENERATORS: Generator[] = [

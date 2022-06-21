@@ -10,10 +10,10 @@ export class ClassDeclarationTraverser extends Traverser {
 
     public static readonly DECORATORS_PROP = "decorators";
     public static readonly TYPE_PARAMETERS_PROP = "type-parameters";
-    public static readonly SUPER_CLASS_PROP = "super-class";
+    public static readonly EXTENDS_PROP = "extends";
     public static readonly IMPLEMENTS_PROP = "implements";
-    public static readonly SUPER_TYPE_PARAMETERS_PROP = "super-type-parameters";
-    public static readonly CLASS_ELEMENTS_PROP = "class-elements";
+    public static readonly EXTENDS_TYPE_PARAMETERS_PROP = "extends-type-parameters";
+    public static readonly MEMBERS_PROP = "members";
 
     public traverseChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
         const {node} = processingContext;
@@ -27,24 +27,17 @@ export class ClassDeclarationTraverser extends Traverser {
                 runTraverserForNodes(node.typeParameters.params, {parentPropName: ClassDeclarationTraverser.TYPE_PARAMETERS_PROP}, processingContext, processors, conceptMaps);
             }
             if(node.superClass) {
-                runTraverserForNode(node.superClass, {parentPropName: ClassDeclarationTraverser.SUPER_CLASS_PROP}, processingContext, processors, conceptMaps);
+                runTraverserForNode(node.superClass, {parentPropName: ClassDeclarationTraverser.EXTENDS_PROP}, processingContext, processors, conceptMaps);
             }
             if(node.implements) {
                 runTraverserForNodes(node.implements, {parentPropName: ClassDeclarationTraverser.IMPLEMENTS_PROP}, processingContext, processors, conceptMaps);
             }
             if(node.superTypeParameters) {
-                runTraverserForNodes(node.superTypeParameters.params, {parentPropName: ClassDeclarationTraverser.SUPER_TYPE_PARAMETERS_PROP}, processingContext, processors, conceptMaps);
+                runTraverserForNodes(node.superTypeParameters.params, {parentPropName: ClassDeclarationTraverser.EXTENDS_TYPE_PARAMETERS_PROP}, processingContext, processors, conceptMaps);
             }
-            runTraverserForNodes(node.body.body, {parentPropName: ClassDeclarationTraverser.CLASS_ELEMENTS_PROP}, processingContext, processors, conceptMaps);
+            runTraverserForNodes(node.body.body, {parentPropName: ClassDeclarationTraverser.MEMBERS_PROP}, processingContext, processors, conceptMaps);
         }
 
         return mergeConceptMaps(...conceptMaps);
-    }
-}
-
-export class ClassImplementsTraverser extends Traverser {
-    public traverseChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
-        // TODO: refine traversal
-        return new Map();
     }
 }

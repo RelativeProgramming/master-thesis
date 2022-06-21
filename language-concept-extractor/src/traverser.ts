@@ -52,13 +52,11 @@ export abstract class Traverser {
             }
         }
 
-        // reset parentPropNames of childConcepts
-        childConcepts = unifyConceptMap(childConcepts, traverserContext.parentPropName);
-
         // pop local context
         processingContext.localContexts.popContexts();
         
-        return mergeConceptMaps(childConcepts, ...concepts);
+        // unify created concepts and remaining childConcepts under current parentPropName
+        return unifyConceptMap(mergeConceptMaps(childConcepts, ...concepts), traverserContext.parentPropName);
     }
 
     public abstract traverseChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap;

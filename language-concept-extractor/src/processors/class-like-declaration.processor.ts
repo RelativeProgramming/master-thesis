@@ -1,7 +1,7 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 import { ClassPropertyNameNonComputed, PropertyNameNonComputed } from '@typescript-eslint/types/dist/generated/ast-spec';
 
-import { ConceptMap, createMapForConcept, mergeConceptMaps } from '../concept';
+import { ConceptMap, createConceptMap, mergeConceptMaps } from '../concept';
 import { LCEDecorator } from '../concepts/decorator.concept';
 import { LCEConstructorDeclaration, LCEGetterDeclaration, LCEMethodDeclaration, LCEParameterDeclaration, LCEParameterPropertyDeclaration } from '../concepts/method-declaration.concept';
 import { LCEPropertyDeclaration } from '../concepts/property-declaration.concept';
@@ -46,7 +46,7 @@ export class MethodProcessor extends Processor {
                 if(node.kind === "method") {
                     // method
                     if(functionType) {
-                        return createMapForConcept(getParentPropName(localContexts), LCEMethodDeclaration.conceptId, new LCEMethodDeclaration(
+                        return createConceptMap(LCEMethodDeclaration.conceptId, new LCEMethodDeclaration(
                             methodName,
                             getAndDeleteChildConcepts(MethodSignatureTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
                             functionType.returnType,
@@ -58,13 +58,13 @@ export class MethodProcessor extends Processor {
                     }
                 } else if(node.kind === "constructor") {
                     // constructor
-                    return createMapForConcept(getParentPropName(localContexts), LCEConstructorDeclaration.conceptId, new LCEConstructorDeclaration(
+                    return createConceptMap(LCEConstructorDeclaration.conceptId, new LCEConstructorDeclaration(
                         getAndDeleteChildConcepts(MethodSignatureTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
                         getAndDeleteChildConcepts(MethodSignatureTraverser.PARAMETERS_PROP, LCEParameterPropertyDeclaration.conceptId, childConcepts)
                     ));
                 } else if(node.kind === "get") {
                     // getter
-                    return createMapForConcept(getParentPropName(localContexts), LCEGetterDeclaration.conceptId, new LCEGetterDeclaration(
+                    return createConceptMap(LCEGetterDeclaration.conceptId, new LCEGetterDeclaration(
                         methodName,
                         functionType.returnType,
                         "decorators" in node ? getAndDeleteChildConcepts(MethodDefinitionTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts) : [],
@@ -73,7 +73,7 @@ export class MethodProcessor extends Processor {
                     ));
                 } else {
                     // setter
-                    return createMapForConcept(getParentPropName(localContexts), LCEGetterDeclaration.conceptId, new LCEGetterDeclaration(
+                    return createConceptMap(LCEGetterDeclaration.conceptId, new LCEGetterDeclaration(
                         methodName,
                         getAndDeleteChildConcepts(MethodSignatureTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
                         "decorators" in node ? getAndDeleteChildConcepts(MethodDefinitionTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts) : [],
@@ -103,7 +103,7 @@ export class MethodParameterProcessor extends Processor {
             const funcTypeParam = functionType.parameters[paramIndex];
             
             if(node.type === AST_NODE_TYPES.Identifier) {
-                return createMapForConcept(getParentPropName(localContexts), LCEParameterDeclaration.conceptId, new LCEParameterDeclaration(
+                return createConceptMap(LCEParameterDeclaration.conceptId, new LCEParameterDeclaration(
                     funcTypeParam.index,
                     funcTypeParam.name,
                     funcTypeParam.type,
@@ -111,7 +111,7 @@ export class MethodParameterProcessor extends Processor {
                     getAndDeleteChildConcepts(IdentifierTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts)
                 ));
             } else if(node.type === AST_NODE_TYPES.TSParameterProperty) {
-                const paramPropConcept = createMapForConcept(getParentPropName(localContexts), LCEParameterPropertyDeclaration.conceptId, new LCEParameterPropertyDeclaration(
+                const paramPropConcept = createConceptMap(LCEParameterPropertyDeclaration.conceptId, new LCEParameterPropertyDeclaration(
                     funcTypeParam.index,
                     funcTypeParam.name,
                     "optional" in node.parameter && !!node.parameter.optional,
@@ -121,7 +121,7 @@ export class MethodParameterProcessor extends Processor {
                     !!node.readonly,
                     node.override
                 ));
-                const paramConcept = createMapForConcept(getParentPropName(localContexts), LCEParameterDeclaration.conceptId, new LCEParameterDeclaration(
+                const paramConcept = createConceptMap(LCEParameterDeclaration.conceptId, new LCEParameterDeclaration(
                     funcTypeParam.index,
                     funcTypeParam.name,
                     funcTypeParam.type,
@@ -149,7 +149,7 @@ export class PropertyProcessor extends Processor {
         if((node.type === AST_NODE_TYPES.PropertyDefinition || node.type === AST_NODE_TYPES.TSPropertySignature) && !node.computed) {
             // TODO: handle static properties
             let [propertyName, jsPrivate] = processMemberName(node.key);
-            return createMapForConcept(getParentPropName(localContexts), LCEPropertyDeclaration.conceptId, new LCEPropertyDeclaration(
+            return createConceptMap(LCEPropertyDeclaration.conceptId, new LCEPropertyDeclaration(
                 propertyName,
                 !!node.optional,
                 parseClassPropertyType(globalContext, node.key),

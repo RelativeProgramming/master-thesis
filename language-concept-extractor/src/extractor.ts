@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { auth as neo4jAuth, driver as neo4jDriver } from 'neo4j-driver';
 import { TypeChecker } from 'typescript';
 
-import { ConceptMap, createMapForConcept, LCEConcept, mergeConceptMaps, unifyConceptMap } from './concept';
+import { ConceptMap, createConceptMap, LCEConcept, mergeConceptMaps, unifyConceptMap } from './concept';
 import { LCETypeScriptProject } from './concepts/typescript-project.concept';
 import { ConnectionIndex } from './connection-index';
 import { GlobalContext } from './context';
@@ -18,7 +18,7 @@ export function processProject(projectRoot: string) {
   const fileList = Utils.getFileList(projectRoot, [".ts", ".tsx"], [".git", "node_modules"]);
 
   // maps filenames to the extracted concepts from these files
-  let concepts: ConceptMap = createMapForConcept("~~PROJECT~~", LCETypeScriptProject.conceptId, new LCETypeScriptProject(projectRoot));
+  let concepts: ConceptMap = createConceptMap(LCETypeScriptProject.conceptId, new LCETypeScriptProject(projectRoot));
 
   console.log("Analyzing " + fileList.length + " project files...");
   const startTime = process.hrtime();
