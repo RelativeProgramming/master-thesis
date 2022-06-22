@@ -9,8 +9,7 @@ import { LCETypeFunction } from '../concepts/type.concept';
 import { ProcessingContext } from '../context';
 import { ExecutionCondition } from '../execution-rule';
 import { Processor } from '../processor';
-import { getAndDeleteChildConcepts, getChildConcepts, getParentPropName } from '../processor.utils';
-import { Traverser, TraverserContext } from '../traverser';
+import { getAndDeleteChildConcepts, getChildConcepts, getParentPropIndex } from '../processor.utils';
 import { IdentifierTraverser } from '../traversers/expression.traverser';
 import { MethodDefinitionTraverser, MethodParameterPropertyTraverser, MethodSignatureTraverser } from '../traversers/method.traverser';
 import { PropertyDeclarationTraverser } from '../traversers/property.traverser';
@@ -30,7 +29,7 @@ export class MethodProcessor extends Processor {
             const [methodName, jsPrivate] = processMemberName(node.key)
             const functionType = parseMethodType(globalContext, node.parent, node, methodName, jsPrivate);
             if(functionType) {
-                localContexts.currentContexts.set(MethodParameterProcessor.METHOD_TYPE_CONTEXT_ID, functionType)
+                localContexts.currentContexts.set(MethodParameterProcessor.METHOD_TYPE_CONTEXT_ID, functionType);
             }
         }
     }
@@ -99,36 +98,38 @@ export class MethodParameterProcessor extends Processor {
     public override postChildrenProcessing({node, localContexts, globalContext}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
         if(localContexts.parentContexts) {
             const functionType: LCETypeFunction = localContexts.parentContexts.get(MethodParameterProcessor.METHOD_TYPE_CONTEXT_ID);
-            const paramIndex: number = (localContexts.currentContexts.get(Traverser.LOCAL_TRAVERSER_CONTEXT) as TraverserContext).parentPropIndex!;
-            const funcTypeParam = functionType.parameters[paramIndex];
-            
-            if(node.type === AST_NODE_TYPES.Identifier) {
-                return createConceptMap(LCEParameterDeclaration.conceptId, new LCEParameterDeclaration(
-                    funcTypeParam.index,
-                    funcTypeParam.name,
-                    funcTypeParam.type,
-                    "optional" in node && !!node.optional,
-                    getAndDeleteChildConcepts(IdentifierTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts)
-                ));
-            } else if(node.type === AST_NODE_TYPES.TSParameterProperty) {
-                const paramPropConcept = createConceptMap(LCEParameterPropertyDeclaration.conceptId, new LCEParameterPropertyDeclaration(
-                    funcTypeParam.index,
-                    funcTypeParam.name,
-                    "optional" in node.parameter && !!node.parameter.optional,
-                    funcTypeParam.type,
-                    getChildConcepts(MethodParameterPropertyTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts),
-                    node.accessibility ?? "public",
-                    !!node.readonly,
-                    node.override
-                ));
-                const paramConcept = createConceptMap(LCEParameterDeclaration.conceptId, new LCEParameterDeclaration(
-                    funcTypeParam.index,
-                    funcTypeParam.name,
-                    funcTypeParam.type,
-                    "optional" in node.parameter && !!node.parameter.optional,
-                    getAndDeleteChildConcepts(MethodParameterPropertyTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts)
-                ));
-                return mergeConceptMaps(paramConcept, paramPropConcept);
+            if(functionType) {
+                const paramIndex: number = getParentPropIndex(localContexts)!;
+                const funcTypeParam = functionType.parameters[paramIndex];
+                
+                if(node.type === AST_NODE_TYPES.Identifier) {
+                    return createConceptMap(LCEParameterDeclaration.conceptId, new LCEParameterDeclaration(
+                        funcTypeParam.index,
+                        funcTypeParam.name,
+                        funcTypeParam.type,
+                        "optional" in node && !!node.optional,
+                        getAndDeleteChildConcepts(IdentifierTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts)
+                    ));
+                } else if(node.type === AST_NODE_TYPES.TSParameterProperty) {
+                    const paramPropConcept = createConceptMap(LCEParameterPropertyDeclaration.conceptId, new LCEParameterPropertyDeclaration(
+                        funcTypeParam.index,
+                        funcTypeParam.name,
+                        "optional" in node.parameter && !!node.parameter.optional,
+                        funcTypeParam.type,
+                        getChildConcepts(MethodParameterPropertyTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts),
+                        node.accessibility ?? "public",
+                        !!node.readonly,
+                        node.override
+                    ));
+                    const paramConcept = createConceptMap(LCEParameterDeclaration.conceptId, new LCEParameterDeclaration(
+                        funcTypeParam.index,
+                        funcTypeParam.name,
+                        funcTypeParam.type,
+                        "optional" in node.parameter && !!node.parameter.optional,
+                        getAndDeleteChildConcepts(MethodParameterPropertyTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts)
+                    ));
+                    return mergeConceptMaps(paramConcept, paramPropConcept);
+                }
             }
         }
 

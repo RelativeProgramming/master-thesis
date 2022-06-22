@@ -1,10 +1,8 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 
 import { ConceptMap, createConceptMap } from '../concept';
-import { LCEClassDeclaration } from '../concepts/class-declaration.concept';
-import { LCEDecorator } from '../concepts/decorator.concept';
 import { LCEInterfaceDeclaration } from '../concepts/interface-declaration.concept';
-import { LCEConstructorDeclaration, LCEGetterDeclaration, LCEMethodDeclaration, LCESetterDeclaration } from '../concepts/method-declaration.concept';
+import { LCEGetterDeclaration, LCEMethodDeclaration, LCESetterDeclaration } from '../concepts/method-declaration.concept';
 import { LCEPropertyDeclaration } from '../concepts/property-declaration.concept';
 import { LCETypeDeclared } from '../concepts/type.concept';
 import { ProcessingContext } from '../context';

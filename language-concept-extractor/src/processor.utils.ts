@@ -2,6 +2,9 @@ import { ConceptMap, LCEConcept } from './concept';
 import { LocalContexts } from './context';
 import { Traverser, TraverserContext } from './traverser';
 
+/**
+ * 
+ */
 export function getAndDeleteChildConcepts<T extends LCEConcept>(propName: string, conceptId: string, childConcepts: ConceptMap): T[] {
     const propConcepts = childConcepts.get(propName);
     if(!propConcepts)
@@ -25,4 +28,9 @@ export function getChildConcepts<T extends LCEConcept>(propName: string, concept
 export function getParentPropName(localContexts: LocalContexts): string {
     const traverserContext: TraverserContext = localContexts.currentContexts.get(Traverser.LOCAL_TRAVERSER_CONTEXT)!;
     return traverserContext.parentPropName;
+}
+
+export function getParentPropIndex(localContexts: LocalContexts): number | undefined {
+    const traverserContext: TraverserContext = localContexts.currentContexts.get(Traverser.LOCAL_TRAVERSER_CONTEXT)!;
+    return traverserContext.parentPropIndex;
 }
