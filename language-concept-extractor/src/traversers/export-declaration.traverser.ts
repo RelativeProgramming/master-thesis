@@ -22,3 +22,19 @@ export class ExportNamedDeclarationTraverser extends Traverser {
     }
 
 }
+
+export class ExportDefaultDeclarationTraverser extends Traverser {
+
+    public static readonly DECLARATION_PROP = "declaration";
+
+    public traverseChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
+        const {node} = processingContext;
+        
+        if(node.type === AST_NODE_TYPES.ExportDefaultDeclaration) {
+            return runTraverserForNode(node.declaration, {parentPropName: ExportDefaultDeclarationTraverser.DECLARATION_PROP}, processingContext, processors) ?? new Map();
+        }
+
+        return new Map();
+    }
+
+}

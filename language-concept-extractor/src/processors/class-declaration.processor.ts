@@ -22,6 +22,7 @@ export class ClassDeclarationProcessor extends Processor {
             // TODO: process class declarations in nested contexts
             return !!node.parent && (
                 node.parent.type === AST_NODE_TYPES.ExportNamedDeclaration || 
+                node.parent.type === AST_NODE_TYPES.ExportDefaultDeclaration ||
                 node.parent.type === AST_NODE_TYPES.Program
             );
         },

@@ -21,7 +21,8 @@ export class InterfaceDeclarationProcessor extends Processor {
         ({node}) => {
             // TODO: process interface declarations in nested contexts
             return !!node.parent && (
-                node.parent.type === AST_NODE_TYPES.ExportNamedDeclaration || 
+                node.parent.type === AST_NODE_TYPES.ExportNamedDeclaration ||
+                node.parent.type === AST_NODE_TYPES.ExportDefaultDeclaration || 
                 node.parent.type === AST_NODE_TYPES.Program
             );
         },

@@ -24,6 +24,7 @@ export class FunctionDeclarationProcessor extends Processor {
             // TODO: process function declarations in nested contexts
             return !!node.parent && (
                 node.parent.type === AST_NODE_TYPES.ExportNamedDeclaration || 
+                node.parent.type === AST_NODE_TYPES.ExportDefaultDeclaration ||
                 node.parent.type === AST_NODE_TYPES.Program
             );
         },

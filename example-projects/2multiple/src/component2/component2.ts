@@ -1,8 +1,13 @@
 import { ImplementMe, myConst as myC} from '../component1/component1';
 import { component, required } from '../framework';
 import { Model2 } from './component2.model';
+import { TestClass } from '../../../1simple/example-program1'; 
+import * as path from "path";
 
 export { Component2 as C2}
+export * as fs from "fs";
+
+let externalTestInstance = new TestClass(5);
 
 @component
 class Component2 {
@@ -47,7 +52,7 @@ class Component2 {
     #myJSPrivateFunc() : void {}
 }
 
-class Component2Extended extends Component2 implements ImplementMe {
+export default class Component2Extended extends Component2 implements ImplementMe {
 
     newExtensionProp: TestInterfaceExtended = {x: 1, y: 2, z: 3, genericProp: "generic"};
     implProp: number = 42;

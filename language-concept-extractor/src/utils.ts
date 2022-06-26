@@ -69,6 +69,55 @@ export class Utils {
     }
 
     /**
+     * Returns if path specified in a file (e.g inside an import statement) refers to a file inside the project.
+     * @param targetPath Path specified in a file referencing some other file
+     * @param projectPath absolute path of the Project
+     * @param filePath absolute path of the file that contains the path
+     */
+    static isPathInProject(targetPath: string, projectPath: string, filePath: string): boolean {
+        if(path.isAbsolute(targetPath)) {
+            return targetPath.startsWith(projectPath);
+        } else if(targetPath.startsWith(".")) {
+            const startPath = filePath.substring(0, filePath.lastIndexOf("/"));
+            return path.resolve(startPath, targetPath).startsWith(projectPath);
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * @param targetPath relative or absolute path to some target
+     * @param filePath absolute path to the file where targetPath may be relative to
+     * @returns absolute version of targetPath
+     */
+    static toAbsolutePath(targetPath: string, filePath: string): string {
+        if(!path.isAbsolute(targetPath) && targetPath.startsWith(".")) {
+            const startPath = filePath.substring(0, filePath.lastIndexOf("/"));
+            const resolved = path.resolve(startPath, targetPath);
+            return this.addFileEnding(resolved);
+        } else {
+            return this.addFileEnding(targetPath);
+        }
+    }
+
+    private static addFileEnding(filePath: string): string {
+        if(fs.existsSync(filePath)) {
+            return filePath;
+        } else if(fs.existsSync(filePath+".ts")) {
+            return filePath+".ts";
+        } else if(fs.existsSync(filePath+".tsx")) {
+            return filePath+".ts";
+        } else if(fs.existsSync(filePath+".js")) {
+            return filePath+".js";
+        } else if(fs.existsSync(filePath+".jsx")) {
+            return filePath+".jsx";
+        } else if(fs.existsSync(filePath+".d.ts")) {
+            return filePath+".d.ts";
+        }
+        return filePath;
+    }
+
+    /**
      * @param globalContext data for the source file that contains the given symbol
      * @param symbol symbol data of a source code node (may be undefined)
      * @returns whether if the given symbol is declared inside the local project

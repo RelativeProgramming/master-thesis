@@ -10,12 +10,14 @@ import { Processor } from './processor';
 import { ClassDeclarationProcessor, ImplementsDeclarationProcessor, SuperClassDeclarationProcessor } from './processors/class-declaration.processor';
 import { MethodParameterProcessor, MethodProcessor, PropertyProcessor } from './processors/class-like-declaration.processor';
 import { DecoratorProcessor } from './processors/decorator.processor';
+import { ExportDeclarationProcessor } from './processors/export-declaration.processor';
 import { FunctionDeclarationProcessor, FunctionParameterProcessor } from './processors/function-declaration.processor';
+import { ImportDeclarationProcessor } from './processors/import-declaration.processor';
 import { InterfaceDeclarationProcessor, SuperInterfaceDeclarationProcessor } from './processors/interface-declaration.processor';
 import { SimpleTraverser, Traverser } from './traverser';
 import { ClassDeclarationTraverser } from './traversers/class-declaration.traverser';
 import { DecoratorTraverser } from './traversers/decorator.traverser';
-import { ExportNamedDeclarationTraverser } from './traversers/export-named-declaration.traverser';
+import { ExportDefaultDeclarationTraverser, ExportNamedDeclarationTraverser } from './traversers/export-declaration.traverser';
 import { IdentifierTraverser } from './traversers/expression.traverser';
 import { FunctionDeclarationTraverser } from './traversers/function-declaration.traverser';
 import { InterfaceDeclarationTraverser, InterfaceHeritageTraverser } from './traversers/interface-declaration.traverser';
@@ -27,9 +29,12 @@ import { TypeParameterDeclarationTraverser, TypeParameterInstantiationTraverser,
 export const TRAVERSERS: Map<AST_NODE_TYPES, Traverser> = new Map([
     [AST_NODE_TYPES.ClassDeclaration, new ClassDeclarationTraverser()],
     [AST_NODE_TYPES.Decorator, new DecoratorTraverser()],
+    [AST_NODE_TYPES.ExportAllDeclaration, new SimpleTraverser()],
+    [AST_NODE_TYPES.ExportDefaultDeclaration, new ExportDefaultDeclarationTraverser()],
     [AST_NODE_TYPES.ExportNamedDeclaration, new ExportNamedDeclarationTraverser()],
     [AST_NODE_TYPES.FunctionDeclaration, new FunctionDeclarationTraverser()],
     [AST_NODE_TYPES.Identifier, new IdentifierTraverser()],
+    [AST_NODE_TYPES.ImportDeclaration, new SimpleTraverser()],
     [AST_NODE_TYPES.MethodDefinition, new MethodDefinitionTraverser()],
     [AST_NODE_TYPES.Program, new ProgramTraverser()],
     [AST_NODE_TYPES.PropertyDefinition, new PropertyDeclarationTraverser()],
@@ -47,9 +52,11 @@ export const TRAVERSERS: Map<AST_NODE_TYPES, Traverser> = new Map([
 export const PROCESSORS: Processor[] = [
     new ClassDeclarationProcessor(),
     new DecoratorProcessor(),
+    new ExportDeclarationProcessor(),
     new FunctionDeclarationProcessor(),
     new FunctionParameterProcessor(),
     new ImplementsDeclarationProcessor(),
+    new ImportDeclarationProcessor(),
     new InterfaceDeclarationProcessor(),
     new MethodParameterProcessor(),
     new MethodProcessor(),

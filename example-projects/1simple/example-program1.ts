@@ -1,5 +1,5 @@
 
-class TestClass {
+export class TestClass {
     public num: number;
 
     constructor(i: number) {

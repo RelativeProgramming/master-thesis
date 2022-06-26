@@ -1,8 +1,8 @@
 {
-  "name": "ast-extraction",
+  "name": "language-concept-extractor",
   "version": "1.0.0",
-  "description": "extracts ASTs from given TS project and enriches/optimizes it",
-  "main": "build/ast-extractor.js",
+  "description": "extracts language concepts from given TS project",
+  "main": "build/extractor.js",
   "author": "Sebastian Wendorf",
   "license": "MIT",
   "private": true,

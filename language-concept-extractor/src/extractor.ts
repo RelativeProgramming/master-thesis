@@ -39,6 +39,7 @@ export function processProject(projectRoot: string) {
     const globalContext: GlobalContext = {
       projectRoot: projectRoot,
       sourceFilePath: file,
+      sourceFilePathRelative: file.replace(projectRoot, "."),
       ast: ast,
       services: services,
       typeChecker: typeChecker

@@ -10,6 +10,7 @@ export class GlobalContext {
     constructor(
         public projectRoot: string,
         public sourceFilePath: string,
+        public sourceFilePathRelative: string,
         public ast: AST<{
             filePath: string;
             loc: true;
