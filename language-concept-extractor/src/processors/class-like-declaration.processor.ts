@@ -13,6 +13,7 @@ import { getAndDeleteChildConcepts, getChildConcepts, getParentPropIndex } from 
 import { IdentifierTraverser } from '../traversers/expression.traverser';
 import { MethodDefinitionTraverser, MethodParameterPropertyTraverser, MethodSignatureTraverser } from '../traversers/method.traverser';
 import { PropertyDeclarationTraverser } from '../traversers/property.traverser';
+import { DependencyResolutionProcessor } from './dependency-resolution.processor';
 import { parseClassPropertyType, parseMethodType } from './type.utils';
 
 
@@ -31,6 +32,7 @@ export class MethodProcessor extends Processor {
             if(functionType) {
                 localContexts.currentContexts.set(MethodParameterProcessor.METHOD_TYPE_CONTEXT_ID, functionType);
             }
+            DependencyResolutionProcessor.addNamespaceContext(localContexts, methodName);
         }
     }
 
@@ -42,11 +44,14 @@ export class MethodProcessor extends Processor {
             if(functionType) {
                 const [methodName, jsPrivate] = processMemberName(node.key)
                 const visibility = jsPrivate ? "js_private" : node.accessibility ?? "public";
+                let fqn = DependencyResolutionProcessor.constructNamespaceFQN(localContexts);
+                DependencyResolutionProcessor.registerDeclaration(localContexts, fqn);
                 if(node.kind === "method") {
                     // method
                     if(functionType) {
                         return createConceptMap(LCEMethodDeclaration.conceptId, new LCEMethodDeclaration(
                             methodName,
+                            fqn,
                             getAndDeleteChildConcepts(MethodSignatureTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
                             functionType.returnType,
                             functionType.typeParameters,
@@ -58,6 +63,7 @@ export class MethodProcessor extends Processor {
                 } else if(node.kind === "constructor") {
                     // constructor
                     return createConceptMap(LCEConstructorDeclaration.conceptId, new LCEConstructorDeclaration(
+                        fqn,
                         getAndDeleteChildConcepts(MethodSignatureTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
                         getAndDeleteChildConcepts(MethodSignatureTraverser.PARAMETERS_PROP, LCEParameterPropertyDeclaration.conceptId, childConcepts)
                     ));
@@ -65,6 +71,7 @@ export class MethodProcessor extends Processor {
                     // getter
                     return createConceptMap(LCEGetterDeclaration.conceptId, new LCEGetterDeclaration(
                         methodName,
+                        fqn,
                         functionType.returnType,
                         "decorators" in node ? getAndDeleteChildConcepts(MethodDefinitionTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts) : [],
                         visibility,
@@ -74,6 +81,7 @@ export class MethodProcessor extends Processor {
                     // setter
                     return createConceptMap(LCEGetterDeclaration.conceptId, new LCEGetterDeclaration(
                         methodName,
+                        fqn,
                         getAndDeleteChildConcepts(MethodSignatureTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
                         "decorators" in node ? getAndDeleteChildConcepts(MethodDefinitionTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts) : [],
                         visibility,
@@ -114,6 +122,7 @@ export class MethodParameterProcessor extends Processor {
                     const paramPropConcept = createConceptMap(LCEParameterPropertyDeclaration.conceptId, new LCEParameterPropertyDeclaration(
                         funcTypeParam.index,
                         funcTypeParam.name,
+                        DependencyResolutionProcessor.constructNamespaceFQN(localContexts) + funcTypeParam.name,
                         "optional" in node.parameter && !!node.parameter.optional,
                         funcTypeParam.type,
                         getChildConcepts(MethodParameterPropertyTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts),
@@ -152,6 +161,7 @@ export class PropertyProcessor extends Processor {
             let [propertyName, jsPrivate] = processMemberName(node.key);
             return createConceptMap(LCEPropertyDeclaration.conceptId, new LCEPropertyDeclaration(
                 propertyName,
+                DependencyResolutionProcessor.constructFQNPrefix(localContexts) + propertyName,
                 !!node.optional,
                 parseClassPropertyType(globalContext, node.key),
                 "decorators" in node ? getAndDeleteChildConcepts(PropertyDeclarationTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts) : [],

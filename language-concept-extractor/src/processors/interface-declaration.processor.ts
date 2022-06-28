@@ -12,6 +12,7 @@ import { getAndDeleteChildConcepts, getParentPropName } from '../processor.utils
 import { ClassDeclarationTraverser } from '../traversers/class-declaration.traverser';
 import { InterfaceDeclarationTraverser } from '../traversers/interface-declaration.traverser';
 import { Utils } from '../utils';
+import { DependencyResolutionProcessor } from './dependency-resolution.processor';
 import { parseClassLikeBaseType, parseClassLikeTypeParameters } from './type.utils';
 
 export class InterfaceDeclarationProcessor extends Processor {
@@ -28,9 +29,16 @@ export class InterfaceDeclarationProcessor extends Processor {
         },
     );
 
+    public override preChildrenProcessing({localContexts, node}: ProcessingContext): void {
+        if(node.type === AST_NODE_TYPES.TSInterfaceDeclaration) {
+            DependencyResolutionProcessor.addNamespaceContext(localContexts, node.id.name);
+        }
+    }
+
     public override postChildrenProcessing({globalContext, localContexts, node}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
         if(node.type === AST_NODE_TYPES.TSInterfaceDeclaration) {
-            const fqn = Utils.getRelativeFQNForDeclaredTypeESNode(globalContext, node);
+            const fqn = DependencyResolutionProcessor.constructNamespaceFQN(localContexts);
+            DependencyResolutionProcessor.registerDeclaration(localContexts, fqn);
             const classDecl = new LCEInterfaceDeclaration(
                 node.id!.name,
                 fqn,

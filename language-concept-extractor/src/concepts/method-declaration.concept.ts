@@ -1,4 +1,4 @@
-import { LCEConcept } from '../concept';
+import { LCEConcept, LCENamedConcept } from '../concept';
 import { LCEDecorator } from './decorator.concept';
 import { LCEPropertyDeclaration } from './property-declaration.concept';
 import { LCETypeParameterDeclaration } from './type-parameter.concept';
@@ -6,12 +6,13 @@ import { LCEType } from './type.concept';
 import { Visibility } from './visibility.concept';
 
 
-export class LCEMethodDeclaration extends LCEConcept {
+export class LCEMethodDeclaration extends LCENamedConcept {
 
     public static override conceptId = "method-declaration";
 
     constructor(
         public methodName: string,
+        fqn: string,
         public parameters: LCEParameterDeclaration[],
         public returnType: LCEType,
         public typeParameters: LCETypeParameterDeclaration[],
@@ -19,7 +20,7 @@ export class LCEMethodDeclaration extends LCEConcept {
         public visibility: Visibility,
         public override?: boolean
     ) {
-        super();
+        super(fqn);
     }
 }
 
@@ -44,6 +45,7 @@ export class LCEParameterPropertyDeclaration extends LCEPropertyDeclaration {
     constructor(
         public index: number,
         propertyName: string,
+        fqn: string,
         optional: boolean,
         type: LCEType,
         decorators: LCEDecorator[],
@@ -53,6 +55,7 @@ export class LCEParameterPropertyDeclaration extends LCEPropertyDeclaration {
     ) {
         super(
             propertyName,
+            fqn,
             optional,
             type,
             decorators,
@@ -63,7 +66,7 @@ export class LCEParameterPropertyDeclaration extends LCEPropertyDeclaration {
     }
 }
 
-export class LCEConstructorDeclaration extends LCEConcept {
+export class LCEConstructorDeclaration extends LCENamedConcept {
 
     public static override conceptId = "constructor-declaration";
 
@@ -71,39 +74,42 @@ export class LCEConstructorDeclaration extends LCEConcept {
      * @param parameterProperties maps parameter index numbers to declared parameter properties
      */
     constructor(
+        fqn: string,
         public parameters: LCEParameterDeclaration[],
         public parameterProperties: LCEParameterPropertyDeclaration[]
     ) {
-        super();
+        super(fqn);
     }
 }
 
-export class LCEGetterDeclaration extends LCEConcept {
+export class LCEGetterDeclaration extends LCENamedConcept {
 
     public static override conceptId = "getter-declaration";
 
     constructor(
         public methodName: string,
+        fqn: string,
         public returnType: LCEType,
         public decorators: LCEDecorator[],
         public visibility: Visibility,
         public override?: boolean
     ) {
-        super();
+        super(fqn);
     }
 }
 
-export class LCESetterDeclaration extends LCEConcept {
+export class LCESetterDeclaration extends LCENamedConcept {
 
     public static override conceptId = "setter-declaration";
 
     constructor(
         public methodName: string,
+        fqn: string,
         public parameters: LCEParameterDeclaration[],
         public decorators: LCEDecorator[],
         public visibility: Visibility,
         public override?: boolean
     ) {
-        super();
+        super(fqn);
     }
 }

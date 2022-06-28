@@ -13,6 +13,7 @@ import { getAndDeleteChildConcepts, getParentPropIndex } from '../processor.util
 import { IdentifierTraverser } from '../traversers/expression.traverser';
 import { FunctionDeclarationTraverser } from '../traversers/function-declaration.traverser';
 import { Utils } from '../utils';
+import { DependencyResolutionProcessor } from './dependency-resolution.processor';
 import { parseFunctionType } from './type.utils';
 
 
@@ -36,6 +37,10 @@ export class FunctionDeclarationProcessor extends Processor {
             if(functionType) {
                 localContexts.currentContexts.set(FunctionParameterProcessor.FUNCTION_TYPE_CONTEXT_ID, functionType);
             }
+
+            if(node.id) {
+                DependencyResolutionProcessor.addNamespaceContext(localContexts, node.id.name);
+            }
         }
     }
 
@@ -44,7 +49,8 @@ export class FunctionDeclarationProcessor extends Processor {
             // TODO: handle overloads
             const functionType: LCETypeFunction | undefined = localContexts.currentContexts.get(FunctionParameterProcessor.FUNCTION_TYPE_CONTEXT_ID);
             if(functionType) {
-                const fqn = Utils.getRelativeFQNForDeclaredTypeESNode(globalContext, node);
+                const fqn = DependencyResolutionProcessor.constructNamespaceFQN(localContexts);
+                DependencyResolutionProcessor.registerDeclaration(localContexts, fqn);
                 const typeParameters: LCETypeParameterDeclaration[] = functionType.typeParameters;
                 const returnType = functionType.returnType;
                 return createConceptMap(LCEFunctionDeclaration.conceptId, new LCEFunctionDeclaration(

@@ -10,6 +10,19 @@ export abstract class LCEConcept {
     public static conceptId: string;
 }
 
+/**
+ * Base class for all language concepts that can be referred to by a name.
+ */
+export abstract class LCENamedConcept extends LCEConcept {
+    constructor(public fqn: string) {
+        super();
+    }
+}
+
+export function isNamedConcept(concept: LCEConcept): concept is LCENamedConcept {
+    return "fqn" in concept;
+}
+
 /** 
  * Represents a set of language concepts identified by their child concept id, given by their parent and their concept id representing their type.
  * 

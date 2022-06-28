@@ -18,19 +18,38 @@ Relations:
 - `CONTAINS`: contained files (already provided by default)
 - [ ]  `REQUIRES`: references to external types, etc.
 
-## TS Source File
-→ all .ts source files
-- [x]  Label: `:TS:SourceFile`
+## TS Module
+→ all .ts source files, each representing a module
+- [x]  Label: `:TS:Module`
 
 Relations:
-- [ ]  `DEPENDS_ON` references to all dependencies outside the file (files and declarations)
-- [x]  `DECLARES` all declarations made inside the source file (e.g. Classes, Functions, etc.)
-- [ ]  `EXPORTS` all declarations that are exported by the file
-    - [ ]  attribute `exportedName` for potential aliases
+- [ ]  `DEPENDS_ON` references to all dependencies outside the module (files and declarations)
+  - [ ]  attribute `cardinality` indicates the number of references made (added up transitively)
+- [x]  `DECLARES` all declarations made inside the source module (e.g. classes, functions, etc.)
+- [ ]  `EXPORTS` all declarations that are exported by the module
+    - [ ]  attribute `exportedName` for potential aliases (or just the name of the declaration)
 
 ## tsconfig.json
 → configuration file of project
 - [x]  Label: `:TS:ProjectConfiguration`
+
+## External Module
+→ all external modules used by inside the project
+- [ ]  Label: `:TS:ExternalModule`
+
+Properties:
+- [ ]  `fileName` module path under which the reference was imported
+
+Relations:
+- [ ]  `DECLARES` all declaration made inside the external module, that are referenced inside the project
+
+## External Declaration
+→ all declarations used by inside the project, that could not be resolved (i.e. came from external modules)
+- [ ]  Label: `:TS:ExternalDeclaration`
+
+Properties:
+- [ ]  `fqn` fully qualified name under which the external reference was used
+
 
 ## Class Declaration
 → all `class` declarations inside TS files
@@ -47,6 +66,7 @@ Relations:
 - [x]  `EXTENDS`: super class
 - [x]  `IMPLEMENTS`: all interfaces that are implemented by class
 - [ ]  `DEPENDS_ON`: all internal and external declarations that are used within the class
+  - [ ]  attribute `cardinality` indicates the number of references made (added up transitively)
 
 ## Interface Declaration
 → all `interface` declarations inside TS files
@@ -75,6 +95,7 @@ Relations:
 - [x]  `HAS`: references to parameters
 - [x]  `DECLARES`: all declared type parameters
 - [ ]  `DEPENDS_ON`: all internal and external declarations that are used within the function
+  - [ ]  attribute `cardinality` indicates the number of references made (added up transitively)
 
 ## Variable Declaration
 → all variable declarations made on file level
@@ -123,6 +144,7 @@ Relations:
 - [x]  `DECORATED_BY`: all decorators of the method
 - [x]  `DECLARES`: references to declared type parameters
 - [ ]  `DEPENDS_ON`: all internal and external declarations that are used within the method
+  - [ ]  attribute `cardinality` indicates the number of references made (added up transitively)
 
 Sub-Types:
 - Constructor

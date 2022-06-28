@@ -3,6 +3,7 @@ import { AST_NODE_TYPES } from '@typescript-eslint/types';
 import { Generator } from './generator';
 import { ClassDeclarationGenerator } from './generators/class-declaration.generator';
 import { ConnectionGenerator } from './generators/connection.generator';
+import { DependencyGenerator } from './generators/dependency.generator';
 import { FunctionDeclarationGenerator } from './generators/function-declaration.generator';
 import { InterfaceDeclarationGenerator } from './generators/interface-declaration.generator';
 import { TypeScriptProjectFilesGenerator } from './generators/typescript-project-files.generator';
@@ -10,6 +11,7 @@ import { Processor } from './processor';
 import { ClassDeclarationProcessor, ImplementsDeclarationProcessor, SuperClassDeclarationProcessor } from './processors/class-declaration.processor';
 import { MethodParameterProcessor, MethodProcessor, PropertyProcessor } from './processors/class-like-declaration.processor';
 import { DecoratorProcessor } from './processors/decorator.processor';
+import { DependencyResolutionProcessor } from './processors/dependency-resolution.processor';
 import { ExportDeclarationProcessor } from './processors/export-declaration.processor';
 import { FunctionDeclarationProcessor, FunctionParameterProcessor } from './processors/function-declaration.processor';
 import { ImportDeclarationProcessor } from './processors/import-declaration.processor';
@@ -52,6 +54,7 @@ export const TRAVERSERS: Map<AST_NODE_TYPES, Traverser> = new Map([
 export const PROCESSORS: Processor[] = [
     new ClassDeclarationProcessor(),
     new DecoratorProcessor(),
+    new DependencyResolutionProcessor(),
     new ExportDeclarationProcessor(),
     new FunctionDeclarationProcessor(),
     new FunctionParameterProcessor(),
@@ -70,5 +73,6 @@ export const GENERATORS: Generator[] = [
     new ClassDeclarationGenerator(), 
     new InterfaceDeclarationGenerator(),
     new FunctionDeclarationGenerator(),
+    new DependencyGenerator(),
     new ConnectionGenerator()
 ];

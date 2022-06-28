@@ -14,7 +14,7 @@ export class TypeScriptProjectFilesGenerator extends Generator {
             MATCH (root:Directory {fileName: $projectRoot})-[:CONTAINS]->(sourceFile:File)
             WHERE NOT (sourceFile:Directory) AND sourceFile.fileName ENDS WITH '.ts'
             SET root:TS:Project
-            SET sourceFile:TS:SourceFile
+            SET sourceFile:TS:Module
             RETURN root
             `,{projectRoot: project.projectRoot}
         );

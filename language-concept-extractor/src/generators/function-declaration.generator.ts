@@ -66,7 +66,7 @@ export class FunctionDeclarationGenerator extends Generator {
             await neo4jSession.run(
                 `
                 MATCH (interface)
-                MATCH (file:TS:SourceFile {fileName: $sourcePath})
+                MATCH (file:TS:Module {fileName: $sourcePath})
                 WHERE id(interface) = $interfaceId
                 CREATE (file)-[:DECLARES]->(interface)
                 RETURN interface

@@ -59,11 +59,12 @@ export class Utils {
      * @returns a consistent fully qualified name using a path relative to the project root
      */
     static getRelativeFQN(globalContext: GlobalContext, fqn: string): string {
-        let relativeFqn = fqn.replace(globalContext.projectRoot, ".");
+        let relativeFqn = fqn.replace(globalContext.projectRoot, "");
 
         // local object: add source file path
+        // TODO: handle different file types
         if(fqn === relativeFqn) {
-          relativeFqn = '"' + globalContext.sourceFilePath.replace(globalContext.projectRoot, ".").replace(".ts", "") + '".' + relativeFqn;
+          relativeFqn = '"' + globalContext.sourceFilePath.replace(globalContext.projectRoot, "").replace(".ts", "") + '".' + relativeFqn;
         }
         return relativeFqn;
     }
@@ -115,6 +116,13 @@ export class Utils {
             return filePath+".d.ts";
         }
         return filePath;
+    }
+
+    static extractPathFromFQN(fqn: string): string {
+        if(fqn.startsWith('"'))
+            return fqn.substring(1, fqn.lastIndexOf('"'));
+        else
+            return fqn.substring(0, fqn.indexOf("."));
     }
 
     /**

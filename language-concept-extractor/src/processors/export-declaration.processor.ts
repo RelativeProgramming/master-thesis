@@ -10,6 +10,7 @@ import { ExecutionCondition } from '../execution-rule';
 import { Processor } from '../processor';
 import { ExportDefaultDeclarationTraverser, ExportNamedDeclarationTraverser } from '../traversers/export-declaration.traverser';
 import { Utils } from '../utils';
+import { DependencyResolutionProcessor } from './dependency-resolution.processor';
 
 
 export class ExportDeclarationProcessor extends Processor {
@@ -26,17 +27,20 @@ export class ExportDeclarationProcessor extends Processor {
     public override postChildrenProcessing({node, localContexts, globalContext}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
         const concepts: ConceptMap[] = [];
         if(node.type === AST_NODE_TYPES.ExportNamedDeclaration) {
-            let source;
+            let inProject, source;
             if(node.source) {
-                const inProject = Utils.isPathInProject(node.source.value, globalContext.projectRoot, globalContext.sourceFilePath);
+                inProject = Utils.isPathInProject(node.source.value, globalContext.projectRoot, globalContext.sourceFilePath);
                 source = inProject ? Utils.toAbsolutePath(node.source.value, globalContext.sourceFilePath) : node.source.value;
             }
 
             if(node.declaration) {
                 let identifier = this.extractExportedIdentifier(childConcepts.get(ExportNamedDeclarationTraverser.DECLARATION_PROP));
                 if(identifier) {
+                    const fqn = DependencyResolutionProcessor.constructFQNPrefix(localContexts) + identifier;
                     concepts.push(createConceptMap(LCEExportDeclaration.conceptId, new LCEExportDeclaration(
                         identifier,
+                        undefined,
+                        fqn,
                         undefined,
                         undefined,
                         false,
@@ -46,11 +50,14 @@ export class ExportDeclarationProcessor extends Processor {
                 }
             } else {
                 for(let specifier of node.specifiers) {
+                    const fqn = DependencyResolutionProcessor.constructFQNPrefix(localContexts) + specifier.local.name;
                     concepts.push(createConceptMap(LCEExportDeclaration.conceptId, new LCEExportDeclaration(
                         specifier.local.name,
                         specifier.exported.name === "default" || specifier.exported.name === specifier.local.name ? 
                             undefined : specifier.exported.name,
+                        fqn,
                         source,
+                        inProject,
                         specifier.exported.name === "default",
                         node.exportKind,
                         globalContext.sourceFilePath
@@ -60,8 +67,11 @@ export class ExportDeclarationProcessor extends Processor {
         } else if(node.type === AST_NODE_TYPES.ExportDefaultDeclaration) {
             let identifier = this.extractExportedIdentifier(childConcepts.get(ExportDefaultDeclarationTraverser.DECLARATION_PROP));
             if(identifier) {
+                const fqn = DependencyResolutionProcessor.constructFQNPrefix(localContexts) + identifier;
                 concepts.push(createConceptMap(LCEExportDeclaration.conceptId, new LCEExportDeclaration(
                     identifier,
+                    undefined,
+                    fqn,
                     undefined,
                     undefined,
                     true,
@@ -75,7 +85,9 @@ export class ExportDeclarationProcessor extends Processor {
             concepts.push(createConceptMap(LCEExportDeclaration.conceptId, new LCEExportDeclaration(
                 "*",
                 node.exported?.name,
+                undefined,
                 source,
+                inProject,
                 false,
                 "namespace",
                 globalContext.sourceFilePath

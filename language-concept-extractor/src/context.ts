@@ -27,7 +27,7 @@ export class GlobalContext {
  * represents the local contexts currently available at a given node inside the AST
  */
 export class LocalContexts {
-    private contexts: Map<string, any>[] = [];
+    public contexts: Map<string, any>[] = [];
 
     get currentContexts(): Map<string, any> {
         if(this.contexts.length === 0) {

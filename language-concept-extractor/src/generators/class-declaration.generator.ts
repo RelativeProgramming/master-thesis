@@ -86,7 +86,7 @@ export class ClassDeclarationGenerator extends Generator {
             await neo4jSession.run(
                 `
                 MATCH (class)
-                MATCH (file:TS:SourceFile {fileName: $sourcePath})
+                MATCH (file:TS:Module {fileName: $sourcePath})
                 WHERE id(class) = $classId
                 CREATE (file)-[:DECLARES]->(class)
                 RETURN class

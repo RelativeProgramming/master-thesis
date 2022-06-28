@@ -5,7 +5,6 @@ import { LCEDecorator } from '../concepts/decorator.concept';
 import { ProcessingContext } from '../context';
 import { ExecutionCondition } from '../execution-rule';
 import { Processor } from '../processor';
-import { getParentPropName } from '../processor.utils';
 
 export class DecoratorProcessor extends Processor {
 
