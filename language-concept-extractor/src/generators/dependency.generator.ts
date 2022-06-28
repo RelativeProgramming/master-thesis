@@ -20,6 +20,7 @@ export class DependencyGenerator extends Generator {
     async run(neo4jSession: Session, concepts: Map<string, LCEConcept[]>, connectionIndex: ConnectionIndex): Promise<void> {
         const project = getAndCastConcepts<LCETypeScriptProject>(LCETypeScriptProject.conceptId, concepts)[0];
 
+        // Create export relations
         const exports: LCEExportDeclaration[] = getAndCastConcepts(LCEExportDeclaration.conceptId, concepts);
         console.log("Generating graph structures for " + exports.length + " exports...");
         
@@ -45,12 +46,7 @@ export class DependencyGenerator extends Generator {
             }
         }
 
-        /*
-            TODO: properly implement dependency generation
-            1. generate all depends-on relations, based on direct usage and create external references on demand
-            2. transitively propagate and merge all depends-on relations
-        */
-
+        // create dependency structures
         const dependencies: LCEDependency[] = getAndCastConcepts(LCEDependency.conceptId, concepts);
         console.log("Generating graph structures for " + dependencies.length + " direct dependencies...");
         const externalModules = new Map<string, Integer>();
@@ -116,6 +112,8 @@ export class DependencyGenerator extends Generator {
                 `, options
             );
         }
+
+        // TODO: transitively propagate and merge all depends-on relations
     }
 
 }

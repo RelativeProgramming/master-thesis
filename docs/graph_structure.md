@@ -16,18 +16,18 @@ Properties:
 
 Relations:
 - `CONTAINS`: contained files (already provided by default)
-- [ ]  `REQUIRES`: references to external types, etc.
+- [ ]  `REQUIRES`: references to external declarations
 
 ## TS Module
 → all .ts source files, each representing a module
 - [x]  Label: `:TS:Module`
 
 Relations:
-- [ ]  `DEPENDS_ON` references to all dependencies outside the module (files and declarations)
+- [x]  `DEPENDS_ON` references to all dependencies outside the module (files and declarations)
   - [ ]  attribute `cardinality` indicates the number of references made (added up transitively)
 - [x]  `DECLARES` all declarations made inside the source module (e.g. classes, functions, etc.)
-- [ ]  `EXPORTS` all declarations that are exported by the module
-    - [ ]  attribute `exportedName` for potential aliases (or just the name of the declaration)
+- [x]  `EXPORTS` all declarations that are exported by the module
+    - [x]  attribute `exportedName` for potential aliases (or just the name of the declaration)
 
 ## tsconfig.json
 → configuration file of project
@@ -35,20 +35,20 @@ Relations:
 
 ## External Module
 → all external modules used by inside the project
-- [ ]  Label: `:TS:ExternalModule`
+- [x]  Label: `:TS:ExternalModule`
 
 Properties:
-- [ ]  `fileName` module path under which the reference was imported
+- [x]  `fileName` module path under which the reference was imported
 
 Relations:
-- [ ]  `DECLARES` all declaration made inside the external module, that are referenced inside the project
+- [x]  `DECLARES` all declaration made inside the external module, that are referenced inside the project
 
 ## External Declaration
 → all declarations used by inside the project, that could not be resolved (i.e. came from external modules)
-- [ ]  Label: `:TS:ExternalDeclaration`
+- [x]  Label: `:TS:ExternalDeclaration`
 
 Properties:
-- [ ]  `fqn` fully qualified name under which the external reference was used
+- [x]  `fqn` fully qualified name under which the external reference was used
 
 
 ## Class Declaration
