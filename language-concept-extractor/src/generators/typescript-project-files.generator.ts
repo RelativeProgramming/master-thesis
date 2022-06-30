@@ -7,7 +7,6 @@ import { Generator } from '../generator';
 export class TypeScriptProjectFilesGenerator extends Generator {
 
     async run(neo4jSession: Session, concepts: Map<string, LCEConcept[]>, connectionIndex: ConnectionIndex): Promise<void> {
-        // TODO: add exception of directories like `node_modules`
         const project = getAndCastConcepts<LCETypeScriptProject>(LCETypeScriptProject.conceptId, concepts)[0];
         await neo4jSession.run(
             `

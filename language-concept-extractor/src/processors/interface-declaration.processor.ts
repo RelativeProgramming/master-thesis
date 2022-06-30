@@ -1,6 +1,7 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 
-import { ConceptMap, createConceptMap } from '../concept';
+import { ConceptMap, createConceptMap, mergeConceptMaps } from '../concept';
+import { LCEDependency } from '../concepts/dependency.concept';
 import { LCEInterfaceDeclaration } from '../concepts/interface-declaration.concept';
 import { LCEGetterDeclaration, LCEMethodDeclaration, LCESetterDeclaration } from '../concepts/method-declaration.concept';
 import { LCEPropertyDeclaration } from '../concepts/property-declaration.concept';
@@ -11,7 +12,6 @@ import { Processor } from '../processor';
 import { getAndDeleteChildConcepts, getParentPropName } from '../processor.utils';
 import { ClassDeclarationTraverser } from '../traversers/class-declaration.traverser';
 import { InterfaceDeclarationTraverser } from '../traversers/interface-declaration.traverser';
-import { Utils } from '../utils';
 import { DependencyResolutionProcessor } from './dependency-resolution.processor';
 import { parseClassLikeBaseType, parseClassLikeTypeParameters } from './type.utils';
 
@@ -37,10 +37,11 @@ export class InterfaceDeclarationProcessor extends Processor {
 
     public override postChildrenProcessing({globalContext, localContexts, node}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
         if(node.type === AST_NODE_TYPES.TSInterfaceDeclaration) {
+            const interfaceName = node.id.name;
             const fqn = DependencyResolutionProcessor.constructNamespaceFQN(localContexts);
-            DependencyResolutionProcessor.registerDeclaration(localContexts, fqn);
+            DependencyResolutionProcessor.registerDeclaration(localContexts, interfaceName, fqn);
             const classDecl = new LCEInterfaceDeclaration(
-                node.id!.name,
+                interfaceName,
                 fqn,
                 parseClassLikeTypeParameters(globalContext, node),
                 getAndDeleteChildConcepts(InterfaceDeclarationTraverser.EXTENDS_PROP, LCETypeDeclared.conceptId, childConcepts),
@@ -67,10 +68,18 @@ export class SuperInterfaceDeclarationProcessor extends Processor {
     public override postChildrenProcessing({node, localContexts, globalContext}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
         if(node.type === AST_NODE_TYPES.Identifier && node.parent?.type === AST_NODE_TYPES.TSInterfaceHeritage) {
             const superType = parseClassLikeBaseType(globalContext, node, node.parent.typeParameters?.params);
-            if(superType)
-                return createConceptMap(LCETypeDeclared.conceptId, superType);
+            if(superType) {
+                const typeConcept = createConceptMap(LCETypeDeclared.conceptId, superType);
+                const dependencyConcept = new LCEDependency(
+                    superType.fqn,
+                    "declaration",
+                    DependencyResolutionProcessor.constructNamespaceFQN(localContexts),
+                    "declaration",
+                    1
+                );
+                return mergeConceptMaps(createConceptMap(LCEDependency.conceptId, dependencyConcept), typeConcept);
+            }
         }
         return new Map();
     }
-
 }

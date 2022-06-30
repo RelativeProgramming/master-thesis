@@ -1,16 +1,13 @@
 import { Integer, Session } from 'neo4j-driver';
+
 import { getAndCastConcepts, LCEConcept } from '../concept';
-import { LCEClassDeclaration } from '../concepts/class-declaration.concept';
 import { LCEDependency } from '../concepts/dependency.concept';
 import { LCEExportDeclaration } from '../concepts/export-declaration.concept';
-import { LCEImportDeclaration } from '../concepts/import-declaration.concept';
 import { LCETypeScriptProject } from '../concepts/typescript-project.concept';
 import { ConnectionIndex } from '../connection-index';
 import { Generator } from '../generator';
+import { PathUtils } from '../path.utils';
 import { Utils } from '../utils';
-import { createClassLikeTypeParameterNodes, createMemberNodes } from './class-like-declaration.generator.utils';
-import { createDecoratorNode } from './decorator.generator.utils';
-import { createTypeNode } from './type.generator.utils';
 
 /**
  * Generates all graph structures related to dependencies between files in the form of imports and exports.
@@ -38,7 +35,7 @@ export class DependencyGenerator extends Generator {
                     CREATE (file)-[:EXPORTS $relationAttrs]->(decl)
                     RETURN file
                     `, {
-                        sourcePath: ex.sourceFilePath.replace(project.projectRoot, ""),
+                        sourcePath: PathUtils.toGraphPath(ex.sourceFilePath),
                         fqn: ex.declFqn!,
                         relationAttrs
                     }
@@ -52,10 +49,11 @@ export class DependencyGenerator extends Generator {
         const externalModules = new Map<string, Integer>();
         const externalDeclarations = new Map<string, Integer>();
         for(let dep of dependencies) {
+            const external = PathUtils.isExternal(dep.targetType === "module" ? dep.fqn : PathUtils.extractFQNPath(dep.fqn));
             // Create external module/declaration nodes if needed
-            if(dep.external) {
+            if(external) {
                 if(dep.targetType === "declaration") {
-                    const modulePath = Utils.extractPathFromFQN(dep.fqn);
+                    const modulePath = PathUtils.extractFQNPath(dep.fqn);
                     if(!externalModules.has(modulePath)) {
                         externalModules.set(modulePath, Utils.getNodeIdFromQueryResult(await neo4jSession.run(
                             `
@@ -67,7 +65,7 @@ export class DependencyGenerator extends Generator {
                         )));
                     }
                     if(!externalDeclarations.has(dep.fqn)) {
-                        externalModules.set(dep.fqn, Utils.getNodeIdFromQueryResult(await neo4jSession.run(
+                        externalDeclarations.set(dep.fqn, Utils.getNodeIdFromQueryResult(await neo4jSession.run(
                             `
                             MATCH (mod:TS)
                             WHERE id(mod) = $modId
@@ -75,7 +73,7 @@ export class DependencyGenerator extends Generator {
                             RETURN id(decl)
                             `, {
                                 modId: externalModules.get(modulePath),
-                                declProps: {fqn: dep.fqn}
+                                declProps: {fqn: dep.fqn, name: PathUtils.extractFQNIdentifier(dep.fqn)}
                             }
                         )));
                     }
@@ -93,8 +91,8 @@ export class DependencyGenerator extends Generator {
 
             // Create depends-on relation
             const options = {
-                source: dep.sourceFQN,
-                target: dep.fqn,
+                source: dep.sourceType === "module" ? PathUtils.toGraphPath(dep.sourceFQN) : dep.sourceFQN,
+                target: dep.targetType === "module" && !external ? PathUtils.toGraphPath(dep.fqn) : dep.fqn,
                 depProps: {
                     cardinality: dep.cardinality,
                 }

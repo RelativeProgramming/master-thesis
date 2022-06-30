@@ -7,9 +7,9 @@ import { LCEFunctionDeclaration } from '../concepts/function-declaration.concept
 import { LCEInterfaceDeclaration } from '../concepts/interface-declaration.concept';
 import { ProcessingContext } from '../context';
 import { ExecutionCondition } from '../execution-rule';
+import { PathUtils } from '../path.utils';
 import { Processor } from '../processor';
 import { ExportDefaultDeclarationTraverser, ExportNamedDeclarationTraverser } from '../traversers/export-declaration.traverser';
-import { Utils } from '../utils';
 import { DependencyResolutionProcessor } from './dependency-resolution.processor';
 
 
@@ -29,8 +29,8 @@ export class ExportDeclarationProcessor extends Processor {
         if(node.type === AST_NODE_TYPES.ExportNamedDeclaration) {
             let inProject, source;
             if(node.source) {
-                inProject = Utils.isPathInProject(node.source.value, globalContext.projectRoot, globalContext.sourceFilePath);
-                source = inProject ? Utils.toAbsolutePath(node.source.value, globalContext.sourceFilePath) : node.source.value;
+                source = PathUtils.normalizeImportPath(globalContext.projectRootPath, node.source.value, globalContext.sourceFilePath);
+                inProject = !PathUtils.isExternal(source);
             }
 
             if(node.declaration) {
@@ -80,8 +80,8 @@ export class ExportDeclarationProcessor extends Processor {
                 )));
             }
         } else if(node.type === AST_NODE_TYPES.ExportAllDeclaration && node.source) {
-            const inProject = Utils.isPathInProject(node.source.value, globalContext.projectRoot, globalContext.sourceFilePath);
-            const source = inProject ? Utils.toAbsolutePath(node.source.value, globalContext.sourceFilePath) : node.source.value;
+            const source = PathUtils.normalizeImportPath(globalContext.projectRootPath, node.source.value, globalContext.sourceFilePath);
+            const inProject = !PathUtils.isExternal(source);
             concepts.push(createConceptMap(LCEExportDeclaration.conceptId, new LCEExportDeclaration(
                 "*",
                 node.exported?.name,

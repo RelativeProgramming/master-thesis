@@ -12,7 +12,6 @@ export class LCEDependency extends LCENamedConcept {
         public sourceFQN: string,
         public sourceType: FQNType,
         public cardinality: number,
-        public external: boolean,
     ) {
         super(fqn);
     }

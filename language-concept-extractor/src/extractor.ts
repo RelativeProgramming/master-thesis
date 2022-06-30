@@ -8,6 +8,7 @@ import { LCETypeScriptProject } from './concepts/typescript-project.concept';
 import { ConnectionIndex } from './connection-index';
 import { GlobalContext } from './context';
 import { GENERATORS } from './features';
+import { PathUtils } from './path.utils';
 import { AstTraverser } from './traversers/ast.traverser';
 import { Utils } from './utils';
 
@@ -37,15 +38,14 @@ export function processProject(projectRoot: string) {
     const typeChecker: TypeChecker = services.program.getTypeChecker();
 
     const globalContext: GlobalContext = {
-      projectRoot: projectRoot,
-      sourceFilePath: file,
-      sourceFilePathRelative: file.replace(projectRoot, ""),
+      projectRootPath: projectRoot,
+      sourceFilePath: PathUtils.normalize(projectRoot, file),
       ast: ast,
       services: services,
       typeChecker: typeChecker
     }
     
-    concepts = mergeConceptMaps(concepts, unifyConceptMap(traverser.traverse(globalContext), file.replace(globalContext.projectRoot, ".")))
+    concepts = mergeConceptMaps(concepts, unifyConceptMap(traverser.traverse(globalContext), file.replace(globalContext.projectRootPath, ".")))
   }
 
   const endTime = process.hrtime();

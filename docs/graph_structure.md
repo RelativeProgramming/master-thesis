@@ -49,7 +49,7 @@ Relations:
 
 Properties:
 - [x]  `fqn` fully qualified name under which the external reference was used
-
+- [x]  `name` name of the external declaration
 
 ## Class Declaration
 → all `class` declarations inside TS files
@@ -198,7 +198,7 @@ Properties:
 - [x]  Label: `:TS:Type:Declared`
 
 Properties:
-- [x]  `fqn`: fully qualified name of a class/interface/type alias
+- [x]  `referencedFqn`: fully qualified name of a class/interface/type alias
 - [x]  `internal`: indicates whether type is declared inside project
 
 Relations:

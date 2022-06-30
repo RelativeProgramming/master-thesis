@@ -1,6 +1,6 @@
 import { ParserServices } from '@typescript-eslint/parser';
-import { AST } from '@typescript-eslint/typescript-estree';
 import { Node } from '@typescript-eslint/types/dist/generated/ast-spec';
+import { AST } from '@typescript-eslint/typescript-estree';
 import { TypeChecker } from 'typescript';
 
 /** 
@@ -8,9 +8,8 @@ import { TypeChecker } from 'typescript';
  */
 export class GlobalContext {
     constructor(
-        public projectRoot: string,
+        public projectRootPath: string,
         public sourceFilePath: string,
-        public sourceFilePathRelative: string,
         public ast: AST<{
             filePath: string;
             loc: true;

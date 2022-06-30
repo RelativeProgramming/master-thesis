@@ -45,7 +45,7 @@ export class MethodProcessor extends Processor {
                 const [methodName, jsPrivate] = processMemberName(node.key)
                 const visibility = jsPrivate ? "js_private" : node.accessibility ?? "public";
                 let fqn = DependencyResolutionProcessor.constructNamespaceFQN(localContexts);
-                DependencyResolutionProcessor.registerDeclaration(localContexts, fqn);
+                DependencyResolutionProcessor.registerDeclaration(localContexts, methodName, fqn);
                 if(node.kind === "method") {
                     // method
                     if(functionType) {

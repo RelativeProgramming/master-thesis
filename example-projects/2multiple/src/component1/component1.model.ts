@@ -1,4 +1,14 @@
 import { model } from '../framework';
+import { TestClass } from '../../../1simple/example-program1'; 
+import { parse } from 'path';
+
+class SomeInternalClass {}
+
+class MyReferenceTestClass {
+    propTestExt: TestClass = new TestClass(5);
+    propTestNode = parse("./test.txt");
+    propTestInternal = new SomeInternalClass();
+}
 
 @model
 export class Model1 {

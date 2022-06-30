@@ -41,7 +41,7 @@ export async function createTypeNode(
     } else if(type instanceof LCETypeDeclared) {
         
         const typeNodeProps = {
-            fqn: type.fqn,
+            referencedFqn: type.fqn,
             internal: type.inProject
         }
         const typeNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
@@ -274,15 +274,17 @@ export async function createTypeParameterNodes(
         const typeParam = typeParameters[i];
         const typeParamId = nodes[i];
 
-        await createTypeNode(
-            typeParam.constraint, 
-            neo4jSession,
-            connectionIndex,
-            typeParamId,
-            {name: ":CONSTRAINED_BY", props: {}},
-            parentTypeParamNodes,
-            result
-        );
+        if(!(typeParam.constraint.constructor.name === "LCETypeObject" && (typeParam.constraint as LCETypeObject).members.size === 0)) {
+            await createTypeNode(
+                typeParam.constraint, 
+                neo4jSession,
+                connectionIndex,
+                typeParamId,
+                {name: ":CONSTRAINED_BY", props: {}},
+                parentTypeParamNodes,
+                result
+            );
+        }
     }
 
     return result;

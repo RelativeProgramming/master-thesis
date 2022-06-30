@@ -30,7 +30,7 @@ import {
     LCETypeUnion,
 } from '../concepts/type.concept';
 import { GlobalContext } from '../context';
-import { Utils } from '../utils';
+import { PathUtils } from '../path.utils';
 
 
 /**
@@ -346,15 +346,37 @@ function parseType(globalContext: GlobalContext, type: Type, node: Node, exclude
     } else {
         // declared type
 
-        // determine if type is part of the project and should receive a relative FQN
-        const inProject = Utils.isSymbolInProject(globalContext, symbol);
-        const name = inProject ? Utils.getRelativeFQN(globalContext, fqn) : fqn;
+        // normalize TypeChecker FQN and determine if type is part of the project
+        // TODO: further testing needed
+        const sourceFile = symbol?.valueDeclaration?.getSourceFile();
+        const hasSource = !!sourceFile;
+        const isStandardLibrary = hasSource && globalContext.services.program.isSourceFileDefaultLibrary(sourceFile!)
+        const isExternal = hasSource && globalContext.services.program.isSourceFileFromExternalLibrary(sourceFile!);
+        const keepName = isStandardLibrary || isExternal;
+
+        let normalizedFQN = "";
+        if(keepName) {
+            // Standard Library name (e.g. 'Array') -> keep name
+            normalizedFQN = fqn;
+        } else if(fqn.startsWith('"')) {
+            // FQN with specified module path (e.g. '"/home/../src/MyModule".MyClass') -> normalize module path
+            normalizedFQN = PathUtils.normalizeTypeCheckerFQN(globalContext.projectRootPath, fqn, globalContext.sourceFilePath);
+        } else if(fqn.includes(".")) {
+            // node reference (e.g. "path.ParsedPath") -> set node path in quotes
+            normalizedFQN = PathUtils.toFQN(fqn.slice(0, fqn.lastIndexOf("."))) + fqn.slice(fqn.lastIndexOf("."))
+        } else {
+            // internal name (e.g. "InternalClass") -> add current module path
+            normalizedFQN = PathUtils.toFQN(globalContext.sourceFilePath) + "." + fqn;
+        }
+
+        const inProject = !keepName && !PathUtils.isExternal(PathUtils.extractFQNPath(normalizedFQN));
+        
         const typeArguments: LCEType[] = tc.getTypeArguments(type as TypeReference).map((t) => parseType(globalContext, t, node));
         
         // TODO: handle locally defined (non-)anonymous types (e.g. with class expressios)
 
         return new LCETypeDeclared(
-            name,
+            normalizedFQN,
             inProject,
             typeArguments
         );

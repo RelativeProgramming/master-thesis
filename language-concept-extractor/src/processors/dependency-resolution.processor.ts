@@ -1,18 +1,19 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 
-import { ConceptMap, createConceptMap, getAndCastConcepts, LCENamedConcept, mergeConceptMaps } from '../concept';
+import { ConceptMap, createConceptMap, LCENamedConcept, mergeConceptMaps } from '../concept';
 import { LCEDependency } from '../concepts/dependency.concept';
 import { LocalContexts, ProcessingContext } from '../context';
 import { ExecutionCondition } from '../execution-rule';
+import { PathUtils } from '../path.utils';
 import { Processor } from '../processor';
-import { getAndDeleteChildConcepts, getChildConcepts } from '../processor.utils';
+import { getAndDeleteChildConcepts } from '../processor.utils';
 import { ProgramTraverser } from '../traversers/program.traverser';
 
 
 /**
- * Contains FQNs of all global and local declarations made within the current file.
+ * Maps namespace identifier and local name to FQN for all global and local declarations made within the current file.
  */
- export type DeclarationIndex = Set<string>;
+ export type DeclarationIndex = Map<string, Map<string, string>>;
 
 /** 
  * List of references that need to be resolved.
@@ -37,8 +38,8 @@ export class DependencyResolutionProcessor extends Processor {
     );
 
     public override preChildrenProcessing({localContexts, globalContext}: ProcessingContext): void {
-        localContexts.currentContexts.set(DependencyResolutionProcessor.DECLARATION_INDEX_CONTEXT, new Set());
-        localContexts.currentContexts.set(DependencyResolutionProcessor.FQN_CONTEXT, '"'+globalContext.sourceFilePathRelative+'"');
+        localContexts.currentContexts.set(DependencyResolutionProcessor.DECLARATION_INDEX_CONTEXT, new Map());
+        localContexts.currentContexts.set(DependencyResolutionProcessor.FQN_CONTEXT, PathUtils.toFQN(globalContext.sourceFilePath));
         localContexts.currentContexts.set(DependencyResolutionProcessor.FQN_RESOLVER_CONTEXT, []);
     }
 
@@ -49,9 +50,9 @@ export class DependencyResolutionProcessor extends Processor {
         // resolve FQNs
         for(let [namespaces, identifier, concept] of resolutionList) {
             for(let i = namespaces.length; i > 0; i--) {
-                const testFqn = namespaces.slice(0, i).join(".") + "." + identifier;
-                if(declIndex.has(testFqn)) {
-                    concept.fqn = testFqn;
+                const testNamespace = namespaces.slice(0, i).join(".");
+                if(declIndex.has(testNamespace) && declIndex.get(testNamespace)!.has(identifier)) {
+                    concept.fqn = declIndex.get(testNamespace)!.get(identifier)!;
                     break;
                 }
             }
@@ -97,12 +98,15 @@ export class DependencyResolutionProcessor extends Processor {
         return result.substring(0, result.length - 1);
     }
 
-    public static registerDeclaration(localContexts: LocalContexts, fqn: string): void {
+    public static registerDeclaration(localContexts: LocalContexts, localName: string, fqn: string): void {
         const declIndex: DeclarationIndex = localContexts.getNextContext(DependencyResolutionProcessor.DECLARATION_INDEX_CONTEXT)![0];
-        declIndex.add(fqn);
+        const namespace = this.constructNamespaceFQN(localContexts);
+        if(!declIndex.has(namespace))
+            declIndex.set(namespace, new Map());
+        declIndex.get(namespace)!.set(localName, fqn);
     }
 
-    public static scheduleFqnResolution(localContexts: LocalContexts, identifier: string, concept: LCENamedConcept): void {
+    public static scheduleFqnResolution(localContexts: LocalContexts, localName: string, concept: LCENamedConcept): void {
         const namespaces: string[] = [];
         for(let context of localContexts.contexts) {
             const name: string | undefined = context.get(DependencyResolutionProcessor.FQN_CONTEXT);
@@ -111,7 +115,7 @@ export class DependencyResolutionProcessor extends Processor {
             }
         }
         const resolutionList: FQNResolverContext = localContexts.getNextContext(DependencyResolutionProcessor.FQN_RESOLVER_CONTEXT)![0];
-        resolutionList.push([namespaces, identifier, concept]);
+        resolutionList.push([namespaces, localName, concept]);
     }
 
     public static addNamespaceContext(localContexts: LocalContexts, namespace: string): void {

@@ -1,9 +1,11 @@
 import { Session } from 'neo4j-driver';
+
 import { getAndCastConcepts, LCEConcept } from '../concept';
 import { LCEFunctionDeclaration } from '../concepts/function-declaration.concept';
 import { LCETypeScriptProject } from '../concepts/typescript-project.concept';
 import { ConnectionIndex } from '../connection-index';
 import { Generator } from '../generator';
+import { PathUtils } from '../path.utils';
 import { Utils } from '../utils';
 import { createFunctionParameterNodes } from './function.generator.utils';
 import { createTypeNode, createTypeParameterNodes } from './type.generator.utils';
@@ -71,13 +73,11 @@ export class FunctionDeclarationGenerator extends Generator {
                 CREATE (file)-[:DECLARES]->(interface)
                 RETURN interface
                 `, { 
-                    sourcePath: funcDecl.sourceFilePath.replace(project.projectRoot, ""),
+                    sourcePath: PathUtils.toGraphPath(funcDecl.sourceFilePath),
                     interfaceId: funcNodeId
                 }
             );
         }
-
-        // TODO: add dependencies
     }
 
 }

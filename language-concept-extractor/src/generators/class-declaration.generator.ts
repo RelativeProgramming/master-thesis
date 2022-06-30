@@ -1,9 +1,11 @@
 import { Session } from 'neo4j-driver';
+
 import { getAndCastConcepts, LCEConcept } from '../concept';
 import { LCEClassDeclaration } from '../concepts/class-declaration.concept';
 import { LCETypeScriptProject } from '../concepts/typescript-project.concept';
 import { ConnectionIndex } from '../connection-index';
 import { Generator } from '../generator';
+import { PathUtils } from '../path.utils';
 import { Utils } from '../utils';
 import { createClassLikeTypeParameterNodes, createMemberNodes } from './class-like-declaration.generator.utils';
 import { createDecoratorNode } from './decorator.generator.utils';
@@ -91,13 +93,11 @@ export class ClassDeclarationGenerator extends Generator {
                 CREATE (file)-[:DECLARES]->(class)
                 RETURN class
                 `, {
-                    sourcePath: classDecl.sourceFilePath.replace(project.projectRoot, ""),
+                    sourcePath: PathUtils.toGraphPath(classDecl.sourceFilePath),
                     classId: classNodeId
                 }
             );
         }
-
-        // TODO: add dependencies
     }
 
 }
