@@ -85,9 +85,16 @@ export function unifyConceptMap(conceptMap: ConceptMap, commonKey: string): Conc
 /**
  * creates a ConceptMap containing a single concept
  */
-export function createConceptMap(conceptId: string, concept: LCEConcept, parentPropName: string = ""): ConceptMap {
+export function singleEntryConceptMap(conceptId: string, concept: LCEConcept, parentPropName: string = ""): ConceptMap {
+    return createConceptMap(conceptId, [concept], parentPropName);
+}
+
+/**
+ * creates a ConceptMap containing a list of concepts of one concept type for a single parent property
+ */
+export function createConceptMap(conceptId: string, concepts: LCEConcept[], parentPropName: string = ""): ConceptMap {
     return new Map([[parentPropName, 
-        new Map([[conceptId, [concept]]])
+        new Map([[conceptId, concepts]])
     ]]);
 }
 

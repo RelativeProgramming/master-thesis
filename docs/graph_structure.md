@@ -23,8 +23,8 @@ Relations:
 - [x]  Label: `:TS:Module`
 
 Relations:
-- [x]  `DEPENDS_ON` references to all dependencies outside the module (files and declarations)
-  - [ ]  attribute `cardinality` indicates the number of references made (added up transitively)
+- [x]  `DEPENDS_ON` references to all dependencies outside the module (modules and declarations)
+  - [x]  attribute `cardinality` indicates the number of references made (added up transitively)
 - [x]  `DECLARES` all declarations made inside the source module (e.g. classes, functions, etc.)
 - [x]  `EXPORTS` all declarations that are exported by the module
     - [x]  attribute `exportedName` for potential aliases (or just the name of the declaration)
@@ -35,7 +35,7 @@ Relations:
 
 ## External Module
 → all external modules used by inside the project
-- [x]  Label: `:TS:ExternalModule`
+- [x]  Label: `:TS:Module:External`
 
 Properties:
 - [x]  `fileName` module path under which the reference was imported
@@ -65,8 +65,8 @@ Relations:
 - [x]  `DECORATED_BY`: all decorators on class level
 - [x]  `EXTENDS`: super class
 - [x]  `IMPLEMENTS`: all interfaces that are implemented by class
-- [ ]  `DEPENDS_ON`: all internal and external declarations that are used within the class
-  - [ ]  attribute `cardinality` indicates the number of references made (added up transitively)
+- [x]  `DEPENDS_ON`: all internal and external declarations that are used within the class
+  - [x]  attribute `cardinality` indicates the number of references made (added up transitively)
 
 ## Interface Declaration
 → all `interface` declarations inside TS files
@@ -79,6 +79,8 @@ Properties:
 Relations:
 - [x]  `DECLARES`: all declared methods, properties and type parameters
 - [x]  `EXTENDS`: base interfaces
+- [x]  `DEPENDS_ON`: all internal and external declarations that are used within the interface
+  - [x]  attribute `cardinality` indicates the number of references made (added up transitively)
 
 ## Type Alias Declaration (TODO)
 
@@ -126,6 +128,8 @@ Properties:
 Relations:
 - [x]  `OF_TYPE`: type of the property
 - [x]  `DECORATED_BY`: all decorators of the property
+- [ ]  `DEPENDS_ON`: all internal and external declarations that are used by the property
+  - [ ]  attribute `cardinality` indicates the number of references made
 
 ## Method Declaration
 → all method declarations inside classes, interfaces or types
@@ -144,7 +148,7 @@ Relations:
 - [x]  `DECORATED_BY`: all decorators of the method
 - [x]  `DECLARES`: references to declared type parameters
 - [ ]  `DEPENDS_ON`: all internal and external declarations that are used within the method
-  - [ ]  attribute `cardinality` indicates the number of references made (added up transitively)
+  - [ ]  attribute `cardinality` indicates the number of references made
 
 Sub-Types:
 - Constructor

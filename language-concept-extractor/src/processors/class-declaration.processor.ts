@@ -1,6 +1,6 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 
-import { ConceptMap, createConceptMap, mergeConceptMaps } from '../concept';
+import { ConceptMap, singleEntryConceptMap, mergeConceptMaps } from '../concept';
 import { LCEClassDeclaration } from '../concepts/class-declaration.concept';
 import { LCEDecorator } from '../concepts/decorator.concept';
 import { LCEDependency } from '../concepts/dependency.concept';
@@ -9,6 +9,7 @@ import { LCEPropertyDeclaration } from '../concepts/property-declaration.concept
 import { LCETypeDeclared } from '../concepts/type.concept';
 import { ProcessingContext } from '../context';
 import { ExecutionCondition } from '../execution-rule';
+import { PathUtils } from '../path.utils';
 import { Processor } from '../processor';
 import { getAndDeleteChildConcepts, getParentPropName } from '../processor.utils';
 import { ClassDeclarationTraverser } from '../traversers/class-declaration.traverser';
@@ -32,6 +33,7 @@ export class ClassDeclarationProcessor extends Processor {
     public override preChildrenProcessing({localContexts, node}: ProcessingContext): void {
         if(node.type === AST_NODE_TYPES.ClassDeclaration && node.id) {
             DependencyResolutionProcessor.addNamespaceContext(localContexts, node.id.name);
+            DependencyResolutionProcessor.createDependencyIndex(localContexts);
         }
     }
 
@@ -43,7 +45,7 @@ export class ClassDeclarationProcessor extends Processor {
             const classDecl = new LCEClassDeclaration(
                 className,
                 fqn,
-                parseClassLikeTypeParameters(globalContext, node),
+                parseClassLikeTypeParameters({globalContext, localContexts, node}, node),
                 getAndDeleteChildConcepts<LCETypeDeclared>(ClassDeclarationTraverser.EXTENDS_PROP, LCETypeDeclared.conceptId, childConcepts)[0],
                 getAndDeleteChildConcepts(ClassDeclarationTraverser.IMPLEMENTS_PROP, LCETypeDeclared.conceptId, childConcepts),
                 getAndDeleteChildConcepts<LCEConstructorDeclaration>(ClassDeclarationTraverser.MEMBERS_PROP, LCEConstructorDeclaration.conceptId, childConcepts)[0],
@@ -54,7 +56,8 @@ export class ClassDeclarationProcessor extends Processor {
                 getAndDeleteChildConcepts(ClassDeclarationTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts),
                 globalContext.sourceFilePath
             );
-            return createConceptMap(LCEClassDeclaration.conceptId, classDecl);
+            return mergeConceptMaps(singleEntryConceptMap(LCEClassDeclaration.conceptId, classDecl),
+                DependencyResolutionProcessor.getRegisteredDependencies(localContexts));
         }
         return new Map();
     }
@@ -70,17 +73,9 @@ export class SuperClassDeclarationProcessor extends Processor {
 
     public override postChildrenProcessing({node, localContexts, globalContext}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
         if(node.type === AST_NODE_TYPES.Identifier && node.parent?.type === AST_NODE_TYPES.ClassDeclaration) {
-            const superType = parseClassLikeBaseType(globalContext, node, node.parent.superTypeParameters?.params);
+            const superType = parseClassLikeBaseType({globalContext, localContexts, node}, node, node.parent.superTypeParameters?.params);
             if(superType){
-                const typeConcept = createConceptMap(LCETypeDeclared.conceptId, superType);
-                const dependencyConcept = new LCEDependency(
-                    superType.fqn,
-                    "declaration",
-                    DependencyResolutionProcessor.constructNamespaceFQN(localContexts),
-                    "declaration",
-                    1
-                );
-                return mergeConceptMaps(createConceptMap(LCEDependency.conceptId, dependencyConcept), typeConcept);
+                return singleEntryConceptMap(LCETypeDeclared.conceptId, superType);
             }
                 
         }
@@ -99,17 +94,9 @@ export class ImplementsDeclarationProcessor extends Processor {
 
     public override postChildrenProcessing({node, localContexts, globalContext}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
         if(node.type === AST_NODE_TYPES.TSClassImplements) {
-            const implementsType = parseClassLikeBaseType(globalContext, node, node.typeParameters?.params);
+            const implementsType = parseClassLikeBaseType({globalContext, localContexts, node}, node, node.typeParameters?.params);
             if(implementsType) {
-                const typeConcept = createConceptMap(LCETypeDeclared.conceptId, implementsType);
-                const dependencyConcept = new LCEDependency(
-                    implementsType.fqn,
-                    "declaration",
-                    DependencyResolutionProcessor.constructNamespaceFQN(localContexts),
-                    "declaration",
-                    1
-                );
-                return mergeConceptMaps(createConceptMap(LCEDependency.conceptId, dependencyConcept), typeConcept);
+                return singleEntryConceptMap(LCETypeDeclared.conceptId, implementsType);
             }
         }
         return new Map();

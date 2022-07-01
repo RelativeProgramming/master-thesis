@@ -73,6 +73,6 @@ export const GENERATORS: Generator[] = [
     new ClassDeclarationGenerator(), 
     new InterfaceDeclarationGenerator(),
     new FunctionDeclarationGenerator(),
+    new ConnectionGenerator(),
     new DependencyGenerator(),
-    new ConnectionGenerator()
 ];

@@ -1,7 +1,7 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 import { ClassPropertyNameNonComputed, PropertyNameNonComputed } from '@typescript-eslint/types/dist/generated/ast-spec';
 
-import { ConceptMap, createConceptMap, mergeConceptMaps } from '../concept';
+import { ConceptMap, singleEntryConceptMap, mergeConceptMaps, createConceptMap } from '../concept';
 import { LCEDecorator } from '../concepts/decorator.concept';
 import { LCEConstructorDeclaration, LCEGetterDeclaration, LCEMethodDeclaration, LCEParameterDeclaration, LCEParameterPropertyDeclaration } from '../concepts/method-declaration.concept';
 import { LCEPropertyDeclaration } from '../concepts/property-declaration.concept';
@@ -28,11 +28,12 @@ export class MethodProcessor extends Processor {
         if((node.type === AST_NODE_TYPES.MethodDefinition || node.type === AST_NODE_TYPES.TSMethodSignature) && !node.computed && 
         !!node.parent && (node.parent.type === AST_NODE_TYPES.ClassDeclaration || node.parent.type === AST_NODE_TYPES.TSInterfaceDeclaration)) {
             const [methodName, jsPrivate] = processMemberName(node.key)
-            const functionType = parseMethodType(globalContext, node.parent, node, methodName, jsPrivate);
+            const functionType = parseMethodType({globalContext, localContexts, node}, node.parent, node, methodName, jsPrivate);
             if(functionType) {
                 localContexts.currentContexts.set(MethodParameterProcessor.METHOD_TYPE_CONTEXT_ID, functionType);
             }
             DependencyResolutionProcessor.addNamespaceContext(localContexts, methodName);
+            DependencyResolutionProcessor.createDependencyIndex(localContexts);
         }
     }
 
@@ -46,10 +47,11 @@ export class MethodProcessor extends Processor {
                 const visibility = jsPrivate ? "js_private" : node.accessibility ?? "public";
                 let fqn = DependencyResolutionProcessor.constructNamespaceFQN(localContexts);
                 DependencyResolutionProcessor.registerDeclaration(localContexts, methodName, fqn);
+                let methodConcept: ConceptMap = new Map();
                 if(node.kind === "method") {
                     // method
                     if(functionType) {
-                        return createConceptMap(LCEMethodDeclaration.conceptId, new LCEMethodDeclaration(
+                        methodConcept = singleEntryConceptMap(LCEMethodDeclaration.conceptId, new LCEMethodDeclaration(
                             methodName,
                             fqn,
                             getAndDeleteChildConcepts(MethodSignatureTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
@@ -62,14 +64,14 @@ export class MethodProcessor extends Processor {
                     }
                 } else if(node.kind === "constructor") {
                     // constructor
-                    return createConceptMap(LCEConstructorDeclaration.conceptId, new LCEConstructorDeclaration(
+                    methodConcept = singleEntryConceptMap(LCEConstructorDeclaration.conceptId, new LCEConstructorDeclaration(
                         fqn,
                         getAndDeleteChildConcepts(MethodSignatureTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
                         getAndDeleteChildConcepts(MethodSignatureTraverser.PARAMETERS_PROP, LCEParameterPropertyDeclaration.conceptId, childConcepts)
                     ));
                 } else if(node.kind === "get") {
                     // getter
-                    return createConceptMap(LCEGetterDeclaration.conceptId, new LCEGetterDeclaration(
+                    methodConcept = singleEntryConceptMap(LCEGetterDeclaration.conceptId, new LCEGetterDeclaration(
                         methodName,
                         fqn,
                         functionType.returnType,
@@ -79,7 +81,7 @@ export class MethodProcessor extends Processor {
                     ));
                 } else {
                     // setter
-                    return createConceptMap(LCEGetterDeclaration.conceptId, new LCEGetterDeclaration(
+                    methodConcept = singleEntryConceptMap(LCEGetterDeclaration.conceptId, new LCEGetterDeclaration(
                         methodName,
                         fqn,
                         getAndDeleteChildConcepts(MethodSignatureTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
@@ -88,6 +90,7 @@ export class MethodProcessor extends Processor {
                         "override" in node ? node.override : undefined
                     ));
                 }
+                return mergeConceptMaps(methodConcept, DependencyResolutionProcessor.getRegisteredDependencies(localContexts));
             }
         }
         return new Map();
@@ -111,7 +114,7 @@ export class MethodParameterProcessor extends Processor {
                 const funcTypeParam = functionType.parameters[paramIndex];
                 
                 if(node.type === AST_NODE_TYPES.Identifier) {
-                    return createConceptMap(LCEParameterDeclaration.conceptId, new LCEParameterDeclaration(
+                    return singleEntryConceptMap(LCEParameterDeclaration.conceptId, new LCEParameterDeclaration(
                         funcTypeParam.index,
                         funcTypeParam.name,
                         funcTypeParam.type,
@@ -119,7 +122,7 @@ export class MethodParameterProcessor extends Processor {
                         getAndDeleteChildConcepts(IdentifierTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts)
                     ));
                 } else if(node.type === AST_NODE_TYPES.TSParameterProperty) {
-                    const paramPropConcept = createConceptMap(LCEParameterPropertyDeclaration.conceptId, new LCEParameterPropertyDeclaration(
+                    const paramPropConcept = singleEntryConceptMap(LCEParameterPropertyDeclaration.conceptId, new LCEParameterPropertyDeclaration(
                         funcTypeParam.index,
                         funcTypeParam.name,
                         DependencyResolutionProcessor.constructNamespaceFQN(localContexts) + funcTypeParam.name,
@@ -130,7 +133,7 @@ export class MethodParameterProcessor extends Processor {
                         !!node.readonly,
                         node.override
                     ));
-                    const paramConcept = createConceptMap(LCEParameterDeclaration.conceptId, new LCEParameterDeclaration(
+                    const paramConcept = singleEntryConceptMap(LCEParameterDeclaration.conceptId, new LCEParameterDeclaration(
                         funcTypeParam.index,
                         funcTypeParam.name,
                         funcTypeParam.type,
@@ -154,21 +157,31 @@ export class PropertyProcessor extends Processor {
         () => true,
     );
 
+    public override preChildrenProcessing({node, localContexts}: ProcessingContext): void {
+        if((node.type === AST_NODE_TYPES.PropertyDefinition || node.type === AST_NODE_TYPES.TSPropertySignature) && !node.computed) {
+            let [propertyName, _] = processMemberName(node.key);
+            DependencyResolutionProcessor.addNamespaceContext(localContexts, propertyName);
+            DependencyResolutionProcessor.createDependencyIndex(localContexts);
+            if(propertyName === "newExtensionProp")
+                propertyName
+        }
+    }
+
     public override postChildrenProcessing({node, localContexts, globalContext}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
 
         if((node.type === AST_NODE_TYPES.PropertyDefinition || node.type === AST_NODE_TYPES.TSPropertySignature) && !node.computed) {
             // TODO: handle static properties
             let [propertyName, jsPrivate] = processMemberName(node.key);
-            return createConceptMap(LCEPropertyDeclaration.conceptId, new LCEPropertyDeclaration(
+            return mergeConceptMaps(singleEntryConceptMap(LCEPropertyDeclaration.conceptId, new LCEPropertyDeclaration(
                 propertyName,
-                DependencyResolutionProcessor.constructFQNPrefix(localContexts) + propertyName,
+                DependencyResolutionProcessor.constructNamespaceFQN(localContexts),
                 !!node.optional,
-                parseClassPropertyType(globalContext, node.key),
+                parseClassPropertyType({globalContext, localContexts, node}, node.key),
                 "decorators" in node ? getAndDeleteChildConcepts(PropertyDeclarationTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts) : [],
                 jsPrivate ? "js_private" : node.accessibility ?? "public",
                 !!node.readonly,
                 "override" in node ? node.override : undefined
-            ))
+            )), DependencyResolutionProcessor.getRegisteredDependencies(localContexts));
         }
 
         return new Map();

@@ -16,6 +16,7 @@ export async function createPropertyNode(
     // create property node
     const propertyNodeProps = {
         name: propertyDecl.propertyName,
+        fqn: propertyDecl.fqn,
         optional: propertyDecl.optional,
         visibility: propertyDecl.visibility,
         readonly: propertyDecl.readonly,

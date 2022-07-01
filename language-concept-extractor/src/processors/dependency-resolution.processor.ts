@@ -1,6 +1,6 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 
-import { ConceptMap, createConceptMap, LCENamedConcept, mergeConceptMaps } from '../concept';
+import { ConceptMap, singleEntryConceptMap, LCENamedConcept, mergeConceptMaps, createConceptMap } from '../concept';
 import { LCEDependency } from '../concepts/dependency.concept';
 import { LocalContexts, ProcessingContext } from '../context';
 import { ExecutionCondition } from '../execution-rule';
@@ -28,9 +28,21 @@ export type FQNResolverContext = Array<[string[], string, LCENamedConcept]>;
  */
 export class DependencyResolutionProcessor extends Processor {
 
+    /** key to the dependency index, used for registering all declarations made within a module (`DeclarationIndex`) */
     public static readonly DECLARATION_INDEX_CONTEXT = "declaration-index";
+
+    /** key to the current namespace, used to introduce new FQN namespace levels (`string`) */
     public static readonly FQN_CONTEXT = 'fqn-namespace';
+
+    /** key to the FQN resolver index, used to schedule FQN resolutions (`FQNResolverContext`) */
     public static readonly FQN_RESOLVER_CONTEXT = 'fqn-resolver';
+
+    /** key to the FQN of the declaration that any newly discovered dependencies are added to (`string`) */
+    public static readonly DEPENDENCY_SOURCE_FQN_CONTEXT = 'dependency-fqn';
+
+    /** key to the dependency index of the current dependency fqn (`Array<LCEDependency>`) */
+    public static readonly DEPENDENCY_INDEX_CONTEXT = 'dependency-index';
+
 
     public executionCondition: ExecutionCondition = new ExecutionCondition(
         [AST_NODE_TYPES.Program],
@@ -41,6 +53,8 @@ export class DependencyResolutionProcessor extends Processor {
         localContexts.currentContexts.set(DependencyResolutionProcessor.DECLARATION_INDEX_CONTEXT, new Map());
         localContexts.currentContexts.set(DependencyResolutionProcessor.FQN_CONTEXT, PathUtils.toFQN(globalContext.sourceFilePath));
         localContexts.currentContexts.set(DependencyResolutionProcessor.FQN_RESOLVER_CONTEXT, []);
+        localContexts.currentContexts.set(DependencyResolutionProcessor.DEPENDENCY_SOURCE_FQN_CONTEXT, PathUtils.toFQN(globalContext.sourceFilePath));
+        localContexts.currentContexts.set(DependencyResolutionProcessor.DEPENDENCY_INDEX_CONTEXT, []);
     }
 
     public override postChildrenProcessing({node, localContexts}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
@@ -75,7 +89,7 @@ export class DependencyResolutionProcessor extends Processor {
         const concepts: ConceptMap[] = [];
         depIndex.forEach(valMap => {
             valMap.forEach(val => {
-                concepts.push(createConceptMap(LCEDependency.conceptId, val))
+                concepts.push(singleEntryConceptMap(LCEDependency.conceptId, val))
             });
         });
 
@@ -120,6 +134,38 @@ export class DependencyResolutionProcessor extends Processor {
 
     public static addNamespaceContext(localContexts: LocalContexts, namespace: string): void {
         localContexts.currentContexts.set(DependencyResolutionProcessor.FQN_CONTEXT, namespace);
+    }
+
+    /**
+     * creates a new dependency index for the current namespace FQN
+     * @param fqn use this to specify different FQN than the one of the current namespace
+     */
+    public static createDependencyIndex(localContexts: LocalContexts, fqn?: string): void {
+        localContexts.currentContexts.set(DependencyResolutionProcessor.DEPENDENCY_SOURCE_FQN_CONTEXT, fqn ?? DependencyResolutionProcessor.constructNamespaceFQN(localContexts));
+        localContexts.currentContexts.set(DependencyResolutionProcessor.DEPENDENCY_INDEX_CONTEXT, []);
+    }
+
+    /** registers declaration dependency (also automatically resolves FQN, disable via `resolveFQN` parameter) */
+    public static registerDependency(localContexts: LocalContexts, depFQN: string, resolveFQN: boolean = true): void {
+        const depIndex: LCEDependency[] = localContexts.getNextContext(DependencyResolutionProcessor.DEPENDENCY_INDEX_CONTEXT)![0];
+        const depSourceFQN: string = localContexts.getNextContext(DependencyResolutionProcessor.DEPENDENCY_SOURCE_FQN_CONTEXT)![0];
+
+        const dep = new LCEDependency(
+            depFQN,
+            "declaration",
+            depSourceFQN,
+            PathUtils.isFQNModule(depSourceFQN) ? "module" : "declaration",
+            1
+        );
+        if(resolveFQN) {
+            this.scheduleFqnResolution(localContexts, depFQN, dep);
+        }
+        depIndex.push(dep);
+    }
+
+    /** return all registered dependencies of the current dependency index */
+    public static getRegisteredDependencies(localContexts: LocalContexts): ConceptMap {
+        return createConceptMap(LCEDependency.conceptId, localContexts.getNextContext(DependencyResolutionProcessor.DEPENDENCY_INDEX_CONTEXT)![0]);
     }
     
 }

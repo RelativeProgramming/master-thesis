@@ -57,7 +57,7 @@ export class DependencyGenerator extends Generator {
                     if(!externalModules.has(modulePath)) {
                         externalModules.set(modulePath, Utils.getNodeIdFromQueryResult(await neo4jSession.run(
                             `
-                            CREATE (mod:TS:ExternalModule $modProps)
+                            CREATE (mod:TS:Module:External $modProps)
                             RETURN id(mod)
                             `, {
                                 modProps: {fileName: modulePath}
@@ -105,13 +105,48 @@ export class DependencyGenerator extends Generator {
                 "MATCH (trgt:TS {fileName: $target})\n";
             await neo4jSession.run(srcMatch + trgtMatch +
                 `
+                WHERE NOT (trgt)-[:DECLARES*]->(src)
                 CREATE (src)-[:DEPENDS_ON $depProps]->(trgt)
-                RETURN trgt
                 `, options
             );
         }
 
-        // TODO: transitively propagate and merge all depends-on relations
-    }
+        // create missing transitive relations
+        await neo4jSession.run(
+            `
+            MATCH (decl:TS)-[r:DEPENDS_ON]->(trgt:TS)<-[:DECLARES*]-(trgtParent:TS)
+            WHERE NOT (trgtParent)-[:DECLARES*]->(decl)
+            CREATE (decl)-[:DEPENDS_ON {cardinality: r.cardinality}]->(trgtParent)
+            `
+        );
+        await neo4jSession.run(
+            `
+            MATCH (srcParent:TS)-[:DECLARES*]->(decl:TS)-[r:DEPENDS_ON]->(trgt:TS)
+            WHERE NOT (srcParent)-[:DECLARES*]->(trgt)
+            CREATE (srcParent)-[:DEPENDS_ON {cardinality: r.cardinality}]->(trgt)
+            `
+        );
 
+        // aggregate relations
+        // solution from https://stackoverflow.com/questions/37097177/neo4j-duplicate-relationship
+        await neo4jSession.run(
+            `
+            MATCH (src:TS)-[r:DEPENDS_ON]->(trgt:TS)
+
+            // aggregate the relationships and limit it to those with more than 1
+            WITH src, trgt, collect(r) AS rels, sum(r.cardinality) AS new_cardinality
+            WHERE size(rels) > 1
+
+            // update the first relationship with the new total cardinality
+            SET (rels[0]).cardinality = new_cardinality
+
+            // bring the aggregated data forward
+            WITH src, trgt, rels, new_cardinality
+
+            // delete the relationships 1..n
+            UNWIND range(1,size(rels)-1) AS idx
+            DELETE rels[idx]
+            `
+        );
+    }
 }

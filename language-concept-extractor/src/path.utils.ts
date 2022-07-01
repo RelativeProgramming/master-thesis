@@ -131,6 +131,13 @@ export class PathUtils {
     }
 
     /**
+     * @returns whether the provided FQN is a module or not
+     */
+    static isFQNModule(fqn: string): boolean {
+        return fqn.startsWith('"') && fqn.endsWith('"');
+    }
+
+    /**
      * converts a regular path into a path for the graph
      */
     static toGraphPath(path: string): string {

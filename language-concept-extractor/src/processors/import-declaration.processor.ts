@@ -1,6 +1,6 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 
-import { ConceptMap, createConceptMap, mergeConceptMaps } from '../concept';
+import { ConceptMap, singleEntryConceptMap, mergeConceptMaps } from '../concept';
 import { LCEDependency } from '../concepts/dependency.concept';
 import { ProcessingContext } from '../context';
 import { ExecutionCondition } from '../execution-rule';
@@ -17,6 +17,7 @@ export class ImportDeclarationProcessor extends Processor {
 
     public override postChildrenProcessing({node, localContexts, globalContext}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
         // TODO: resolve complex import paths, e.g. https://stackoverflow.com/questions/42749973/what-does-the-mean-inside-an-import-path
+        // TODO: resolve internal node packages to paths
         const concepts: ConceptMap[] = [];
         if(node.type === AST_NODE_TYPES.ImportDeclaration) {
             let sourceFileFQN = globalContext.sourceFilePath;
@@ -33,7 +34,7 @@ export class ImportDeclarationProcessor extends Processor {
                     isModule = true;
                 }
                 DependencyResolutionProcessor.registerDeclaration(localContexts, specifier.local.name, target);
-                concepts.push(createConceptMap(LCEDependency.conceptId, new LCEDependency(
+                concepts.push(singleEntryConceptMap(LCEDependency.conceptId, new LCEDependency(
                     target, 
                     isModule ? "module" : "declaration",
                     sourceFileFQN,

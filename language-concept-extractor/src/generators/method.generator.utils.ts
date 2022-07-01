@@ -19,6 +19,7 @@ export async function createMethodNode(
     // create method node
     const methodNodeProps = {
         name: methodDecl.methodName,
+        fqn: methodDecl.fqn,
         visibility: methodDecl.visibility,
         override: methodDecl.override
     }
@@ -26,7 +27,7 @@ export async function createMethodNode(
         `
         CREATE (method:TS:Method $methodNodeProps)
         RETURN id(method)
-        `, {methodNodeProps: methodNodeProps}
+        `, {methodNodeProps}
     ));
     
     // create method decorator nodes and connections
@@ -80,11 +81,15 @@ export async function createConstructorNode(
     parentNodeId: Integer
 ): Promise<Integer> {
     // create constructor node
+    const constructorProps = {
+        name: "constructor",
+        fqn: constructorDecl.fqn,
+    }
     const constructorNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
         `
-        CREATE (constructor:TS:Method:Constructor {name: "constructor"})
+        CREATE (constructor:TS:Method:Constructor $constructorProps)
         RETURN id(constructor)
-        `
+        `, { constructorProps }
     ));
 
     // create constructor parameter nodes and connections
@@ -121,6 +126,7 @@ export async function createGetterNode(
     // create getter node
     const getterNodeProps = {
         name: getterDecl.methodName,
+        fqn: getterDecl.fqn,
         visibility: getterDecl.visibility,
         override: getterDecl.override
     }
@@ -156,6 +162,7 @@ export async function createSetterNode(
     // create setter node
     const setterNodeProps = {
         name: setterDecl.methodName,
+        fqn: setterDecl.fqn,
         visibility: setterDecl.visibility,
         override: setterDecl.override
     }

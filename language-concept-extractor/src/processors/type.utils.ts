@@ -29,8 +29,9 @@ import {
     LCETypeTuple,
     LCETypeUnion,
 } from '../concepts/type.concept';
-import { GlobalContext } from '../context';
+import { GlobalContext, ProcessingContext } from '../context';
 import { PathUtils } from '../path.utils';
+import { DependencyResolutionProcessor } from './dependency-resolution.processor';
 
 
 /**
@@ -38,10 +39,11 @@ import { PathUtils } from '../path.utils';
  * @param esProperty property name node provided in ESTree
  * @returns LCEType with encoded type information
  */
-export function parseClassPropertyType(globalContext: GlobalContext, esProperty: ClassPropertyNameNonComputed): LCEType {
+export function parseClassPropertyType(processingContext: ProcessingContext, esProperty: ClassPropertyNameNonComputed): LCEType {
+    const globalContext = processingContext.globalContext;
     const node = globalContext.services.esTreeNodeToTSNodeMap.get(esProperty)
     return parseType(
-        globalContext, 
+        processingContext, 
         globalContext.typeChecker.getTypeAtLocation(node),
         node
     );
@@ -54,11 +56,13 @@ export function parseClassPropertyType(globalContext: GlobalContext, esProperty:
  * @returns LCEType with encoded type information
  */
 export function parseMethodType(
-     globalContext: GlobalContext, 
-     esClassLikeDecl: ClassDeclaration | TSInterfaceDeclaration, 
-     esMethodDecl: MethodDefinitionNonComputedName | TSMethodSignatureNonComputedName, 
-     methodName: string, 
-     jsPrivate: boolean): LCETypeFunction | undefined {
+    processingContext: ProcessingContext,
+    esClassLikeDecl: ClassDeclaration | TSInterfaceDeclaration, 
+    esMethodDecl: MethodDefinitionNonComputedName | TSMethodSignatureNonComputedName, 
+    methodName: string, 
+    jsPrivate: boolean
+): LCETypeFunction | undefined {
+    const globalContext = processingContext.globalContext;
     const tc = globalContext.typeChecker;
     const classNode = globalContext.services.esTreeNodeToTSNodeMap.get(esClassLikeDecl);
     const classType = tc.getTypeAtLocation(classNode);
@@ -95,7 +99,7 @@ export function parseMethodType(
                     new LCETypeFunctionParameter(
                         i, 
                         (esParam as Identifier).name, 
-                        parseType(globalContext, paramType, paramNode)
+                        parseType(processingContext, paramType, paramNode)
                     )
                 );
             }
@@ -107,7 +111,7 @@ export function parseMethodType(
         } else if(esMethodDecl.kind === "get") {
             // getter
             return new LCETypeFunction(
-                parseType(globalContext, methodType, methodNode),
+                parseType(processingContext, methodType, methodNode),
                 [],
                 []
             );
@@ -120,20 +124,20 @@ export function parseMethodType(
             const paramType = tc.getTypeAtLocation(paramNode);
             return new LCETypeFunction(
                 new LCETypeNotIdentified("setter"),
-                [new LCETypeFunctionParameter(0, paramName, parseType(globalContext, paramType, methodNode))],
+                [new LCETypeFunctionParameter(0, paramName, parseType(processingContext, paramType, methodNode))],
                 []
             );
         }
     }
 
     // parse return type
-    const returnType = parseType(globalContext, methodSignature.getReturnType(), methodNode);
+    const returnType = parseType(processingContext, methodSignature.getReturnType(), methodNode);
 
     // parse type parameters
-    const typeParameters = parseFunctionTypeParameters(globalContext, methodSignature, methodNode);
+    const typeParameters = parseFunctionTypeParameters(processingContext, methodSignature, methodNode);
     
     // parse parameters
-    const parameters = parseFunctionParameters(globalContext, methodSignature, methodNode);
+    const parameters = parseFunctionParameters(processingContext, methodSignature, methodNode);
 
     return new LCETypeFunction(
         returnType,
@@ -145,20 +149,21 @@ export function parseMethodType(
 /** 
  * Returns the function type for a given function declaration
  */
-export function parseFunctionType(globalContext: GlobalContext, esFunctionDecl: FunctionDeclaration): LCETypeFunction {
+export function parseFunctionType(processingContext: ProcessingContext, esFunctionDecl: FunctionDeclaration): LCETypeFunction {
+    const globalContext = processingContext.globalContext;
     const tc = globalContext.typeChecker;
     const methodNode = globalContext.services.esTreeNodeToTSNodeMap.get(esFunctionDecl);
     const methodType = tc.getTypeAtLocation(methodNode)
     let methodSignature = tc.getSignaturesOfType(methodType, SignatureKind.Call)[0];
     
     // parse return type
-    const returnType = parseType(globalContext, methodSignature.getReturnType(), methodNode);
+    const returnType = parseType(processingContext, methodSignature.getReturnType(), methodNode);
 
     // parse type parameters
-    const typeParameters = parseFunctionTypeParameters(globalContext, methodSignature, methodNode);
+    const typeParameters = parseFunctionTypeParameters(processingContext, methodSignature, methodNode);
     
     // parse parameters
-    const parameters = parseFunctionParameters(globalContext, methodSignature, methodNode);
+    const parameters = parseFunctionParameters(processingContext, methodSignature, methodNode);
 
     return new LCETypeFunction(
         returnType,
@@ -172,7 +177,8 @@ export function parseFunctionType(globalContext: GlobalContext, esFunctionDecl: 
  * @param esElement declaration node provided in ESTree
  * @returns Array of LCEGenericsTypeVariable with encoded type parameter information
  */
- export function parseClassLikeTypeParameters(globalContext: GlobalContext, esElement: ClassDeclaration | TSInterfaceDeclaration): LCETypeParameterDeclaration[] {
+ export function parseClassLikeTypeParameters(processingContext: ProcessingContext, esElement: ClassDeclaration | TSInterfaceDeclaration): LCETypeParameterDeclaration[] {
+    const globalContext = processingContext.globalContext;
     const node = globalContext.services.esTreeNodeToTSNodeMap.get(esElement);
     const type = globalContext.typeChecker.getTypeAtLocation(node);
     const tc = globalContext.typeChecker;
@@ -184,7 +190,7 @@ export function parseFunctionType(globalContext: GlobalContext, esFunctionDecl: 
         const typeParamDecl = typeParam.symbol.declarations![0];
         if(isTypeParameterDeclaration(typeParamDecl) && typeParamDecl.constraint) {
             constraintType = parseType(
-                globalContext, 
+                processingContext, 
                 tc.getTypeAtLocation(typeParamDecl.constraint), 
                 typeParamDecl
             );
@@ -205,19 +211,20 @@ export function parseFunctionType(globalContext: GlobalContext, esFunctionDecl: 
  * @param esTypeArguments type arguments of the super type
  * @returns 
  */
-export function parseClassLikeBaseType(globalContext: GlobalContext, esTypeIdentifier: Identifier | TSClassImplements | TSInterfaceHeritage, esTypeArguments?: TypeNode[]
+export function parseClassLikeBaseType(processingContext: ProcessingContext, esTypeIdentifier: Identifier | TSClassImplements | TSInterfaceHeritage, esTypeArguments?: TypeNode[]
 ): LCETypeDeclared | undefined {
+    const globalContext = processingContext.globalContext;
     const tc = globalContext.typeChecker;
     const node = globalContext.services.esTreeNodeToTSNodeMap.get(esTypeIdentifier);
     const type = tc.getTypeAtLocation(node);
-    const result = parseType(globalContext, type, node);
+    const result = parseType(processingContext, type, node);
 
     if(result instanceof LCETypeDeclared) {
         const typeArgs: LCEType[] = [];
         for(let esTypeArgument of esTypeArguments?? []) {
             const node = globalContext.services.esTreeNodeToTSNodeMap.get(esTypeArgument);
             const type = tc.getTypeAtLocation(node);
-            typeArgs.push(parseType(globalContext, type, node));
+            typeArgs.push(parseType(processingContext, type, node));
         }
         result.typeArguments = typeArgs;
         return result;
@@ -226,31 +233,35 @@ export function parseClassLikeBaseType(globalContext: GlobalContext, esTypeIdent
     }
 }
 
-export function parseVariableType(globalContext: GlobalContext, esVariableDeclarator: VariableDeclarator, varName: string): LCEType {
+export function parseVariableType(processingContext: ProcessingContext, esVariableDeclarator: VariableDeclarator, varName: string): LCEType {
+    const globalContext = processingContext.globalContext;
     const tc = globalContext.typeChecker;
     const node = globalContext.services.esTreeNodeToTSNodeMap.get(esVariableDeclarator.id);
     const type = tc.getTypeAtLocation(node);
-    const result = parseType(globalContext, type, node, varName);
+    const result = parseType(processingContext, type, node, varName);
     return result;
 }
 
-export function parseExpressionType(globalContext: GlobalContext, esExpression: Expression, varName?: string): LCEType {
+export function parseExpressionType(processingContext: ProcessingContext, esExpression: Expression, varName?: string): LCEType {
+    const globalContext = processingContext.globalContext;
     const tc = globalContext.typeChecker;
     const node = globalContext.services.esTreeNodeToTSNodeMap.get(esExpression);
     const type = tc.getTypeAtLocation(node);
-    const result = parseType(globalContext, type, node, varName);
+    const result = parseType(processingContext, type, node, varName);
     return result;
 }
 
-export function parseTypeNode(globalContext: GlobalContext, esTypeNode: TypeNode): LCEType {
+export function parseTypeNode(processingContext: ProcessingContext, esTypeNode: TypeNode): LCEType {
+    const globalContext = processingContext.globalContext;
     const tc = globalContext.typeChecker;
     const node = globalContext.services.esTreeNodeToTSNodeMap.get(esTypeNode);
     const type = tc.getTypeAtLocation(node);
-    const result = parseType(globalContext, type, node);
+    const result = parseType(processingContext, type, node);
     return result;
 }
 
-function parseType(globalContext: GlobalContext, type: Type, node: Node, excludedFQN?: string) : LCEType {
+function parseType(processingContext: ProcessingContext, type: Type, node: Node, excludedFQN?: string) : LCEType {
+    const globalContext = processingContext.globalContext;
     const tc = globalContext.typeChecker;
 
     const symbol = type.symbol ? 
@@ -264,16 +275,16 @@ function parseType(globalContext: GlobalContext, type: Type, node: Node, exclude
         // complex anonymous type
         if(type.isUnion()) {
             // union type
-            return new LCETypeUnion(type.types.map((t) => parseType(globalContext, t, node)));
+            return new LCETypeUnion(type.types.map((t) => parseType(processingContext, t, node)));
         } else if(type.isIntersection()) {
             // intersection type
-            return new LCETypeIntersection(type.types.map((t) => parseType(globalContext, t, node)));
+            return new LCETypeIntersection(type.types.map((t) => parseType(processingContext, t, node)));
         } else if(type.getCallSignatures().length > 0) {
             if(type.getCallSignatures().length > 1)
                 return new LCETypeNotIdentified(tc.typeToString(type));
             // function type
             const signature = type.getCallSignatures()[0];
-            const returnType = parseType(globalContext, tc.getReturnTypeOfSignature(signature), node);
+            const returnType = parseType(processingContext, tc.getReturnTypeOfSignature(signature), node);
             const parameters: LCETypeFunctionParameter[] = [];
             const paramSyms = signature.getParameters();
             for(let i = 0; i < paramSyms.length; i++) {
@@ -283,11 +294,11 @@ function parseType(globalContext: GlobalContext, type: Type, node: Node, exclude
                     new LCETypeFunctionParameter(
                         i, 
                         parameterSym.name, 
-                        parseType(globalContext, paramType, node)
+                        parseType(processingContext, paramType, node)
                     )
                 );
             }
-            const typeParameters = parseFunctionTypeParameters(globalContext, signature, node);
+            const typeParameters = parseFunctionTypeParameters(processingContext, signature, node);
             return new LCETypeFunction(
                 returnType, 
                 parameters,
@@ -299,12 +310,12 @@ function parseType(globalContext: GlobalContext, type: Type, node: Node, exclude
             const members: Map<string, LCEType> = new Map();
             for(let prop of type.getProperties()) {
                 const propType = tc.getTypeOfSymbolAtLocation(prop, node);
-                members.set(prop.name, parseType(globalContext, propType, node));
+                members.set(prop.name, parseType(processingContext, propType, node));
             }
             return new LCETypeObject(members);
         } else if(type.isLiteral()) {
             // literal type
-            if(isLiterNumberOrString(type.value))
+            if(isLiteralNumberOrString(type.value))
                 return new LCETypeLiteral(type.value);
             else
                 return new LCETypeLiteral(type.value.toString());       
@@ -319,7 +330,7 @@ function parseType(globalContext: GlobalContext, type: Type, node: Node, exclude
             const typeArgs = tc.getTypeArguments(type as TypeReference);
             const types: LCEType[] = [];
             for(let typeArg of typeArgs) {
-                types.push(parseType(globalContext, typeArg, node));
+                types.push(parseType(processingContext, typeArg, node));
             }
             return new LCETypeTuple(types);
         }
@@ -371,10 +382,10 @@ function parseType(globalContext: GlobalContext, type: Type, node: Node, exclude
 
         const inProject = !keepName && !PathUtils.isExternal(PathUtils.extractFQNPath(normalizedFQN));
         
-        const typeArguments: LCEType[] = tc.getTypeArguments(type as TypeReference).map((t) => parseType(globalContext, t, node));
+        const typeArguments: LCEType[] = tc.getTypeArguments(type as TypeReference).map((t) => parseType(processingContext, t, node));
         
         // TODO: handle locally defined (non-)anonymous types (e.g. with class expressios)
-
+        DependencyResolutionProcessor.registerDependency(processingContext.localContexts, normalizedFQN, false);
         return new LCETypeDeclared(
             normalizedFQN,
             inProject,
@@ -390,11 +401,11 @@ function isPrimitiveType(typeStr: string): boolean {
     .includes(typeStr);
 }
 
-function isLiterNumberOrString(literalValue: number | string | PseudoBigInt): literalValue is number | string {
+function isLiteralNumberOrString(literalValue: number | string | PseudoBigInt): literalValue is number | string {
     return typeof literalValue === "string" || typeof literalValue === "number";
 }
 
-function parseFunctionTypeParameters(globalContext: GlobalContext, signature: Signature, node: Node): LCETypeParameterDeclaration[] {
+function parseFunctionTypeParameters(processingContext: ProcessingContext, signature: Signature, node: Node): LCETypeParameterDeclaration[] {
     const result: LCETypeParameterDeclaration[] = [];
     const typeParameters = signature.getTypeParameters();
     if(typeParameters) {
@@ -405,7 +416,7 @@ function parseFunctionTypeParameters(globalContext: GlobalContext, signature: Si
             const constraint = typeParam.getConstraint();
             if(constraint) {
                 constraintType = parseType(
-                    globalContext, 
+                    processingContext, 
                     constraint, 
                     node
                 );
@@ -421,7 +432,8 @@ function parseFunctionTypeParameters(globalContext: GlobalContext, signature: Si
     return result;
 }
 
-function parseFunctionParameters(globalContext: GlobalContext, signature: Signature, node: Node): LCETypeFunctionParameter[] {
+function parseFunctionParameters(processingContext: ProcessingContext, signature: Signature, node: Node): LCETypeFunctionParameter[] {
+    const globalContext = processingContext.globalContext;
     const tc = globalContext.typeChecker;
     const parameters: LCETypeFunctionParameter[] = [];
     const parameterSyms = signature.getParameters();
@@ -437,7 +449,7 @@ function parseFunctionParameters(globalContext: GlobalContext, signature: Signat
             new LCETypeFunctionParameter(
                 i, 
                 paraSym.name, 
-                parseType(globalContext, parameterType, node)
+                parseType(processingContext, parameterType, node)
             )
         );
     }

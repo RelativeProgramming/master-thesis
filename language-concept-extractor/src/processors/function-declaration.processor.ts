@@ -1,6 +1,6 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 
-import { ConceptMap, createConceptMap } from '../concept';
+import { ConceptMap, mergeConceptMaps, singleEntryConceptMap } from '../concept';
 import { LCEDecorator } from '../concepts/decorator.concept';
 import { LCEFunctionDeclaration } from '../concepts/function-declaration.concept';
 import { LCEParameterDeclaration } from '../concepts/method-declaration.concept';
@@ -32,13 +32,14 @@ export class FunctionDeclarationProcessor extends Processor {
 
     public override preChildrenProcessing({node, localContexts, globalContext}: ProcessingContext): void {
         if(node.type === AST_NODE_TYPES.FunctionDeclaration) {
-            const functionType = parseFunctionType(globalContext, node);
-            if(functionType) {
-                localContexts.currentContexts.set(FunctionParameterProcessor.FUNCTION_TYPE_CONTEXT_ID, functionType);
-            }
-
             if(node.id) {
                 DependencyResolutionProcessor.addNamespaceContext(localContexts, node.id.name);
+                DependencyResolutionProcessor.createDependencyIndex(localContexts);
+            }
+
+            const functionType = parseFunctionType({globalContext, localContexts, node}, node);
+            if(functionType) {
+                localContexts.currentContexts.set(FunctionParameterProcessor.FUNCTION_TYPE_CONTEXT_ID, functionType);
             }
         }
     }
@@ -53,14 +54,14 @@ export class FunctionDeclarationProcessor extends Processor {
                 DependencyResolutionProcessor.registerDeclaration(localContexts, functionName, fqn);
                 const typeParameters: LCETypeParameterDeclaration[] = functionType.typeParameters;
                 const returnType = functionType.returnType;
-                return createConceptMap(LCEFunctionDeclaration.conceptId, new LCEFunctionDeclaration(
+                return mergeConceptMaps(singleEntryConceptMap(LCEFunctionDeclaration.conceptId, new LCEFunctionDeclaration(
                     functionName,
                     fqn,
                     getAndDeleteChildConcepts(FunctionDeclarationTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
                     returnType,
                     typeParameters,
                     globalContext.sourceFilePath
-                ));
+                )), DependencyResolutionProcessor.getRegisteredDependencies(localContexts));
             }
         }
         return new Map();
@@ -83,8 +84,9 @@ export class FunctionParameterProcessor extends Processor {
                 const paramIndex: number = getParentPropIndex(localContexts)!;
                 const funcTypeParam = functionType.parameters[paramIndex];
                 
-                if(node.type === AST_NODE_TYPES.Identifier) {
-                    return createConceptMap(LCEParameterDeclaration.conceptId, new LCEParameterDeclaration(
+                // TODO: handle function overloads: funcTypeParam must always be defined!
+                if(funcTypeParam && node.type === AST_NODE_TYPES.Identifier) {
+                    return singleEntryConceptMap(LCEParameterDeclaration.conceptId, new LCEParameterDeclaration(
                         funcTypeParam.index,
                         funcTypeParam.name,
                         funcTypeParam.type,

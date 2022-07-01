@@ -1,6 +1,6 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 
-import { ConceptMap, createConceptMap, getAndCastConcepts, LCEConcept, mergeConceptMaps } from '../concept';
+import { ConceptMap, singleEntryConceptMap, getAndCastConcepts, LCEConcept, mergeConceptMaps } from '../concept';
 import { LCEClassDeclaration } from '../concepts/class-declaration.concept';
 import { LCEExportDeclaration } from '../concepts/export-declaration.concept';
 import { LCEFunctionDeclaration } from '../concepts/function-declaration.concept';
@@ -37,7 +37,7 @@ export class ExportDeclarationProcessor extends Processor {
                 let identifier = this.extractExportedIdentifier(childConcepts.get(ExportNamedDeclarationTraverser.DECLARATION_PROP));
                 if(identifier) {
                     const fqn = DependencyResolutionProcessor.constructFQNPrefix(localContexts) + identifier;
-                    concepts.push(createConceptMap(LCEExportDeclaration.conceptId, new LCEExportDeclaration(
+                    concepts.push(singleEntryConceptMap(LCEExportDeclaration.conceptId, new LCEExportDeclaration(
                         identifier,
                         undefined,
                         fqn,
@@ -51,7 +51,7 @@ export class ExportDeclarationProcessor extends Processor {
             } else {
                 for(let specifier of node.specifiers) {
                     const fqn = DependencyResolutionProcessor.constructFQNPrefix(localContexts) + specifier.local.name;
-                    concepts.push(createConceptMap(LCEExportDeclaration.conceptId, new LCEExportDeclaration(
+                    concepts.push(singleEntryConceptMap(LCEExportDeclaration.conceptId, new LCEExportDeclaration(
                         specifier.local.name,
                         specifier.exported.name === "default" || specifier.exported.name === specifier.local.name ? 
                             undefined : specifier.exported.name,
@@ -68,7 +68,7 @@ export class ExportDeclarationProcessor extends Processor {
             let identifier = this.extractExportedIdentifier(childConcepts.get(ExportDefaultDeclarationTraverser.DECLARATION_PROP));
             if(identifier) {
                 const fqn = DependencyResolutionProcessor.constructFQNPrefix(localContexts) + identifier;
-                concepts.push(createConceptMap(LCEExportDeclaration.conceptId, new LCEExportDeclaration(
+                concepts.push(singleEntryConceptMap(LCEExportDeclaration.conceptId, new LCEExportDeclaration(
                     identifier,
                     undefined,
                     fqn,
@@ -82,7 +82,7 @@ export class ExportDeclarationProcessor extends Processor {
         } else if(node.type === AST_NODE_TYPES.ExportAllDeclaration && node.source) {
             const source = PathUtils.normalizeImportPath(globalContext.projectRootPath, node.source.value, globalContext.sourceFilePath);
             const inProject = !PathUtils.isExternal(source);
-            concepts.push(createConceptMap(LCEExportDeclaration.conceptId, new LCEExportDeclaration(
+            concepts.push(singleEntryConceptMap(LCEExportDeclaration.conceptId, new LCEExportDeclaration(
                 "*",
                 node.exported?.name,
                 undefined,
