@@ -11,7 +11,7 @@ import { ExecutionCondition } from '../execution-rule';
 import { Processor } from '../processor';
 import { getAndDeleteChildConcepts, getParentPropIndex } from '../processor.utils';
 import { IdentifierTraverser } from '../traversers/expression.traverser';
-import { FunctionDeclarationTraverser } from '../traversers/function-declaration.traverser';
+import { FunctionTraverser } from '../traversers/function.traverser';
 import { DependencyResolutionProcessor } from './dependency-resolution.processor';
 import { parseFunctionType } from './type.utils';
 
@@ -19,7 +19,7 @@ import { parseFunctionType } from './type.utils';
 export class FunctionDeclarationProcessor extends Processor {
 
     public executionCondition: ExecutionCondition = new ExecutionCondition(
-        [AST_NODE_TYPES.FunctionDeclaration],
+        [AST_NODE_TYPES.FunctionDeclaration, AST_NODE_TYPES.TSDeclareFunction],
         ({node}) => {
             // TODO: process function declarations in nested contexts
             return !!node.parent && (
@@ -57,7 +57,7 @@ export class FunctionDeclarationProcessor extends Processor {
                 return mergeConceptMaps(singleEntryConceptMap(LCEFunctionDeclaration.conceptId, new LCEFunctionDeclaration(
                     functionName,
                     fqn,
-                    getAndDeleteChildConcepts(FunctionDeclarationTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
+                    getAndDeleteChildConcepts(FunctionTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
                     returnType,
                     typeParameters,
                     globalContext.sourceFilePath

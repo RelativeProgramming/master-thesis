@@ -9,10 +9,10 @@ import { LCETypeFunction } from '../concepts/type.concept';
 import { ProcessingContext } from '../context';
 import { ExecutionCondition } from '../execution-rule';
 import { Processor } from '../processor';
-import { getAndDeleteChildConcepts, getChildConcepts, getParentPropIndex } from '../processor.utils';
+import { getAndDeleteChildConcepts, getChildConcepts, getParentPropIndex, getParentPropName } from '../processor.utils';
 import { IdentifierTraverser } from '../traversers/expression.traverser';
-import { MethodDefinitionTraverser, MethodParameterPropertyTraverser, MethodSignatureTraverser } from '../traversers/method.traverser';
-import { PropertyDeclarationTraverser } from '../traversers/property.traverser';
+import { MethodTraverser, ParameterPropertyTraverser } from '../traversers/method.traverser';
+import { PropertyTraverser } from '../traversers/property.traverser';
 import { DependencyResolutionProcessor } from './dependency-resolution.processor';
 import { parseClassPropertyType, parseMethodType } from './type.utils';
 
@@ -54,10 +54,10 @@ export class MethodProcessor extends Processor {
                         methodConcept = singleEntryConceptMap(LCEMethodDeclaration.conceptId, new LCEMethodDeclaration(
                             methodName,
                             fqn,
-                            getAndDeleteChildConcepts(MethodSignatureTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
+                            getAndDeleteChildConcepts(MethodTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
                             functionType.returnType,
                             functionType.typeParameters,
-                            "decorators" in node ? getAndDeleteChildConcepts(MethodDefinitionTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts) : [],
+                            "decorators" in node ? getAndDeleteChildConcepts(MethodTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts) : [],
                             visibility,
                             "override" in node ? node.override : undefined
                         ));
@@ -66,8 +66,8 @@ export class MethodProcessor extends Processor {
                     // constructor
                     methodConcept = singleEntryConceptMap(LCEConstructorDeclaration.conceptId, new LCEConstructorDeclaration(
                         fqn,
-                        getAndDeleteChildConcepts(MethodSignatureTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
-                        getAndDeleteChildConcepts(MethodSignatureTraverser.PARAMETERS_PROP, LCEParameterPropertyDeclaration.conceptId, childConcepts)
+                        getAndDeleteChildConcepts(MethodTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
+                        getAndDeleteChildConcepts(MethodTraverser.PARAMETERS_PROP, LCEParameterPropertyDeclaration.conceptId, childConcepts)
                     ));
                 } else if(node.kind === "get") {
                     // getter
@@ -75,7 +75,7 @@ export class MethodProcessor extends Processor {
                         methodName,
                         fqn,
                         functionType.returnType,
-                        "decorators" in node ? getAndDeleteChildConcepts(MethodDefinitionTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts) : [],
+                        "decorators" in node ? getAndDeleteChildConcepts(MethodTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts) : [],
                         visibility,
                         "override" in node ? node.override : undefined
                     ));
@@ -84,8 +84,8 @@ export class MethodProcessor extends Processor {
                     methodConcept = singleEntryConceptMap(LCEGetterDeclaration.conceptId, new LCEGetterDeclaration(
                         methodName,
                         fqn,
-                        getAndDeleteChildConcepts(MethodSignatureTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
-                        "decorators" in node ? getAndDeleteChildConcepts(MethodDefinitionTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts) : [],
+                        getAndDeleteChildConcepts(MethodTraverser.PARAMETERS_PROP, LCEParameterDeclaration.conceptId, childConcepts),
+                        "decorators" in node ? getAndDeleteChildConcepts(MethodTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts) : [],
                         visibility,
                         "override" in node ? node.override : undefined
                     ));
@@ -103,7 +103,9 @@ export class MethodParameterProcessor extends Processor {
 
     public executionCondition: ExecutionCondition = new ExecutionCondition(
         [AST_NODE_TYPES.Identifier, AST_NODE_TYPES.TSParameterProperty], // TODO: add other parameter patterns
-        ({localContexts}) => !!localContexts.parentContexts && localContexts.parentContexts.has(MethodParameterProcessor.METHOD_TYPE_CONTEXT_ID)
+        ({localContexts}) => !!localContexts.parentContexts && 
+            localContexts.parentContexts.has(MethodParameterProcessor.METHOD_TYPE_CONTEXT_ID) &&
+            getParentPropName(localContexts) === MethodTraverser.PARAMETERS_PROP
     );
 
     public override postChildrenProcessing({node, localContexts, globalContext}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
@@ -128,7 +130,7 @@ export class MethodParameterProcessor extends Processor {
                         DependencyResolutionProcessor.constructNamespaceFQN(localContexts) + funcTypeParam.name,
                         "optional" in node.parameter && !!node.parameter.optional,
                         funcTypeParam.type,
-                        getChildConcepts(MethodParameterPropertyTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts),
+                        getChildConcepts(ParameterPropertyTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts),
                         node.accessibility ?? "public",
                         !!node.readonly,
                         node.override
@@ -138,7 +140,7 @@ export class MethodParameterProcessor extends Processor {
                         funcTypeParam.name,
                         funcTypeParam.type,
                         "optional" in node.parameter && !!node.parameter.optional,
-                        getAndDeleteChildConcepts(MethodParameterPropertyTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts)
+                        getAndDeleteChildConcepts(ParameterPropertyTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts)
                     ));
                     return mergeConceptMaps(paramConcept, paramPropConcept);
                 }
@@ -177,7 +179,7 @@ export class PropertyProcessor extends Processor {
                 DependencyResolutionProcessor.constructNamespaceFQN(localContexts),
                 !!node.optional,
                 parseClassPropertyType({globalContext, localContexts, node}, node.key),
-                "decorators" in node ? getAndDeleteChildConcepts(PropertyDeclarationTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts) : [],
+                "decorators" in node ? getAndDeleteChildConcepts(PropertyTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts) : [],
                 jsPrivate ? "js_private" : node.accessibility ?? "public",
                 !!node.readonly,
                 "override" in node ? node.override : undefined

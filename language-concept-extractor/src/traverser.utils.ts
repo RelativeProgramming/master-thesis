@@ -39,7 +39,7 @@ export function runTraverserForNode(
  * Also provides index information of the parent node property to the traversers.
  */
 export function runTraverserForNodes(
-    nodes: Node[],
+    nodes: (Node | null)[],
     {parentPropName}: TraverserContext,
     processingContext: ProcessingContext, 
     processors: ProcessorMap,
@@ -48,7 +48,9 @@ export function runTraverserForNodes(
     const concepts: ConceptMap[] = [];
     for(let i = 0; i < nodes.length; i++) {
         let n = nodes[i];
-        runTraverserForNode(n, {parentPropName, parentPropIndex: i}, processingContext, processors, concepts);
+        if(n) {
+            runTraverserForNode(n, {parentPropName, parentPropIndex: i}, processingContext, processors, concepts);
+        }
     }
     if(concepts.length > 0) {
         const result = mergeConceptMaps(...concepts);

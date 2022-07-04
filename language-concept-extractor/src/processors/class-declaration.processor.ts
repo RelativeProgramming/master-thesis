@@ -12,7 +12,7 @@ import { ExecutionCondition } from '../execution-rule';
 import { PathUtils } from '../path.utils';
 import { Processor } from '../processor';
 import { getAndDeleteChildConcepts, getParentPropName } from '../processor.utils';
-import { ClassDeclarationTraverser } from '../traversers/class-declaration.traverser';
+import { ClassTraverser } from '../traversers/class.traverser';
 import { DependencyResolutionProcessor } from './dependency-resolution.processor';
 import { parseClassLikeBaseType, parseClassLikeTypeParameters } from './type.utils';
 
@@ -46,14 +46,14 @@ export class ClassDeclarationProcessor extends Processor {
                 className,
                 fqn,
                 parseClassLikeTypeParameters({globalContext, localContexts, node}, node),
-                getAndDeleteChildConcepts<LCETypeDeclared>(ClassDeclarationTraverser.EXTENDS_PROP, LCETypeDeclared.conceptId, childConcepts)[0],
-                getAndDeleteChildConcepts(ClassDeclarationTraverser.IMPLEMENTS_PROP, LCETypeDeclared.conceptId, childConcepts),
-                getAndDeleteChildConcepts<LCEConstructorDeclaration>(ClassDeclarationTraverser.MEMBERS_PROP, LCEConstructorDeclaration.conceptId, childConcepts)[0],
-                getAndDeleteChildConcepts(ClassDeclarationTraverser.MEMBERS_PROP, LCEPropertyDeclaration.conceptId, childConcepts),
-                getAndDeleteChildConcepts(ClassDeclarationTraverser.MEMBERS_PROP, LCEMethodDeclaration.conceptId, childConcepts),
-                getAndDeleteChildConcepts(ClassDeclarationTraverser.MEMBERS_PROP, LCEGetterDeclaration.conceptId, childConcepts),
-                getAndDeleteChildConcepts(ClassDeclarationTraverser.MEMBERS_PROP, LCESetterDeclaration.conceptId, childConcepts),
-                getAndDeleteChildConcepts(ClassDeclarationTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts),
+                getAndDeleteChildConcepts<LCETypeDeclared>(ClassTraverser.EXTENDS_PROP, LCETypeDeclared.conceptId, childConcepts)[0],
+                getAndDeleteChildConcepts(ClassTraverser.IMPLEMENTS_PROP, LCETypeDeclared.conceptId, childConcepts),
+                getAndDeleteChildConcepts<LCEConstructorDeclaration>(ClassTraverser.MEMBERS_PROP, LCEConstructorDeclaration.conceptId, childConcepts)[0],
+                getAndDeleteChildConcepts(ClassTraverser.MEMBERS_PROP, LCEPropertyDeclaration.conceptId, childConcepts),
+                getAndDeleteChildConcepts(ClassTraverser.MEMBERS_PROP, LCEMethodDeclaration.conceptId, childConcepts),
+                getAndDeleteChildConcepts(ClassTraverser.MEMBERS_PROP, LCEGetterDeclaration.conceptId, childConcepts),
+                getAndDeleteChildConcepts(ClassTraverser.MEMBERS_PROP, LCESetterDeclaration.conceptId, childConcepts),
+                getAndDeleteChildConcepts(ClassTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts),
                 globalContext.sourceFilePath
             );
             return mergeConceptMaps(singleEntryConceptMap(LCEClassDeclaration.conceptId, classDecl),
@@ -68,7 +68,7 @@ export class SuperClassDeclarationProcessor extends Processor {
     public executionCondition: ExecutionCondition = new ExecutionCondition(
         [AST_NODE_TYPES.Identifier],
         ({node, localContexts}) => !!node.parent && node.parent.type === AST_NODE_TYPES.ClassDeclaration &&
-            getParentPropName(localContexts) === ClassDeclarationTraverser.EXTENDS_PROP,
+            getParentPropName(localContexts) === ClassTraverser.EXTENDS_PROP,
     );
 
     public override postChildrenProcessing({node, localContexts, globalContext}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
@@ -89,7 +89,7 @@ export class ImplementsDeclarationProcessor extends Processor {
     public executionCondition: ExecutionCondition = new ExecutionCondition(
         [AST_NODE_TYPES.TSClassImplements],
         ({node, localContexts}) => !!node.parent && node.parent.type === AST_NODE_TYPES.ClassDeclaration &&
-            getParentPropName(localContexts) === ClassDeclarationTraverser.IMPLEMENTS_PROP
+            getParentPropName(localContexts) === ClassTraverser.IMPLEMENTS_PROP
     );
 
     public override postChildrenProcessing({node, localContexts, globalContext}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
