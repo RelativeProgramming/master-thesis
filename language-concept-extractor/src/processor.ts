@@ -2,7 +2,7 @@ import { AST_NODE_TYPES } from '@typescript-eslint/types';
 
 import { ConceptMap } from './concept';
 import { ProcessingContext } from './context';
-import { ExecutionCondition } from './execution-rule';
+import { ExecutionCondition } from './execution-condition';
 
 
 export type ProcessorMap = Map<AST_NODE_TYPES, Processor[]>;

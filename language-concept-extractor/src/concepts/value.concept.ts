@@ -1,5 +1,5 @@
 import { LCEConcept } from '../concept';
-import { LCEType } from './type.concept';
+import { LCEType, LCETypeDeclared, LCETypeNotIdentified, LCETypePrimitive } from './type.concept';
 
 /** Base class for all values. */
 export abstract class LCEValue extends LCEConcept {
@@ -25,10 +25,9 @@ export class LCEValueNull extends LCEValue {
      * @param kind indicates whether value is `undefined` or `null`
      */
     constructor(
-        type: LCEType,
         public kind: "undefined" | "null"
     ) {
-        super(type);
+        super(new LCETypePrimitive(kind));
     }
 }
 
@@ -43,10 +42,9 @@ export class LCEValueLiteral extends LCEValue {
      * @param value the value of the literal
      */
     constructor(
-        type: LCEType,
-        public value: string | number | bigint | boolean | RegExp | null
+        public value: string | number | bigint | boolean | RegExp
     ) {
-        super(type);
+        super(typeof value === "object" ? new LCETypeDeclared("RegExp", false, []) : new LCETypePrimitive(typeof value));
     }
 }
 
@@ -59,12 +57,10 @@ export class LCEValueDeclared extends LCEValue {
 
     /**
      * @param fqn fully qualified name of the referenced variable/function/class
-     * @param inProject indicates whether reference is declared inside project
      */
     constructor(
         type: LCEType,
         public fqn: string,
-        public inProject: boolean,
     ) {
         super(type);
     }
@@ -109,6 +105,26 @@ export class LCEValueObject extends LCEValue {
 }
 
 /**
+ * Represents a single property of an object expression (e.g. `a: 3` in `{a: 3, b: "str"}`)
+ */
+export class LCEValueObjectProperty extends LCEValue {
+    
+    public static override conceptId = "object-value-property";
+
+    /**
+     * @param name name of the property
+     * @param value value of the property
+     */
+    constructor(
+        public name: string,
+        public value: LCEValue
+    ) {
+        super(value.type);
+    }
+
+}
+
+/**
  * Represents a array expression (e.g. `[1, 2, 3]`)
  */
 export class LCEValueArray extends LCEValue {
@@ -134,6 +150,7 @@ export class LCEValueArray extends LCEValue {
     public static override conceptId = "call-value";
 
     /**
+     * @param type return type of the call
      * @param callee value that is called (e.g. `myArr.concat`)
      * @param args values of the arguments
      * @param typeArgs type arguments specified for call
@@ -173,9 +190,23 @@ export class LCEValueFunction extends LCEValue {
      * @param expression string representation of the value's expression
      */
     constructor(
-        type: LCEType,
         public expression: string
     ) {
-        super(type);
+        super(new LCETypeNotIdentified("complex"));
     }
 }
+
+export const valueConceptIds = [
+    LCEValue.conceptId,
+    LCEValueNull.conceptId,
+    LCEValueLiteral.conceptId,
+    LCEValueDeclared.conceptId,
+    LCEValueMember.conceptId,
+    LCEValueObject.conceptId,
+    LCEValueObjectProperty.conceptId,
+    LCEValueArray.conceptId,
+    LCEValueCall.conceptId,
+    LCEValueFunction.conceptId,
+    LCEValueClass.conceptId,
+    LCEValueComplex.conceptId,
+];

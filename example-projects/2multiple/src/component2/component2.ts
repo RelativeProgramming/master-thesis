@@ -7,8 +7,6 @@ import * as path from "path";
 export { Component2 as C2}
 export * as fs from "fs";
 
-let externalTestInstance = new TestClass(5);
-
 @component
 class Component2 {
 
@@ -111,14 +109,15 @@ interface TestInterface2<T extends {a: number, b: string}> {
     boolNum: true | false | number;
 }
 
+let externalTestInstance = new TestClass(5);
 let aGeneric = myGlobalFunc<number | string>(4, [2,3]);
 let a0;
-let a1_0 = 0, a1_1 = "str", a1_2 = true, a1_3 = /.*/, a1_4 = 100n, a1_5 = null;
+let a1_0 = 0, a1_1 = "str", a1_2 = true, a1_3 = /.*/, a1_4 = 100n, a1_5 = null, a1_6 = undefined;
 let aRef = a1_0;
 let aRef2 = myC;
 let a2 = {
   a: "abc",
-  b: 32,
+  b: 32 + 4,
   c: a1_0,
   d: true
 }

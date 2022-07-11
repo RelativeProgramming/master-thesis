@@ -8,7 +8,7 @@ import { LCEConstructorDeclaration, LCEGetterDeclaration, LCEMethodDeclaration, 
 import { LCEPropertyDeclaration } from '../concepts/property-declaration.concept';
 import { LCETypeDeclared } from '../concepts/type.concept';
 import { ProcessingContext } from '../context';
-import { ExecutionCondition } from '../execution-rule';
+import { ExecutionCondition } from '../execution-condition';
 import { PathUtils } from '../path.utils';
 import { Processor } from '../processor';
 import { getAndDeleteChildConcepts, getParentPropName } from '../processor.utils';
@@ -32,7 +32,7 @@ export class ClassDeclarationProcessor extends Processor {
 
     public override preChildrenProcessing({localContexts, node}: ProcessingContext): void {
         if(node.type === AST_NODE_TYPES.ClassDeclaration && node.id) {
-            DependencyResolutionProcessor.addNamespaceContext(localContexts, node.id.name);
+            DependencyResolutionProcessor.addScopeContext(localContexts, node.id.name);
             DependencyResolutionProcessor.createDependencyIndex(localContexts);
         }
     }
@@ -40,8 +40,8 @@ export class ClassDeclarationProcessor extends Processor {
     public override postChildrenProcessing({globalContext, localContexts, node}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
         if(node.type === AST_NODE_TYPES.ClassDeclaration) {
             const className = node.id?.name ?? "";
-            const fqn = DependencyResolutionProcessor.constructNamespaceFQN(localContexts);
-            DependencyResolutionProcessor.registerDeclaration(localContexts, className, fqn);
+            const fqn = DependencyResolutionProcessor.constructScopeFQN(localContexts);
+            DependencyResolutionProcessor.registerDeclaration(localContexts, className, fqn, true);
             const classDecl = new LCEClassDeclaration(
                 className,
                 fqn,

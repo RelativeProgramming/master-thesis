@@ -15,7 +15,10 @@ import { DependencyResolutionProcessor } from './processors/dependency-resolutio
 import { ExportDeclarationProcessor } from './processors/export-declaration.processor';
 import { FunctionDeclarationProcessor, FunctionParameterProcessor } from './processors/function-declaration.processor';
 import { ImportDeclarationProcessor } from './processors/import-declaration.processor';
+import { IdentifierDependencyProcessor, ScopeProcessor } from './processors/instructional-code.processor';
 import { InterfaceDeclarationProcessor, SuperInterfaceDeclarationProcessor } from './processors/interface-declaration.processor';
+import { ArrayValueProcessor, CallValueProcessor, ClassValueProcessor, ComplexValueProcessor, FunctionValueProcessor, IdentifierValueProcessor, LiteralValueProcessor, MemberValueProcessor, ObjectValueProcessor, ObjectValuePropertyProcessor } from './processors/value.processor';
+import { VariableDeclarationProcessor, VariableDeclaratorProcessor } from './processors/variable-declaration.processor';
 import { SimpleTraverser, Traverser } from './traverser';
 import { ClassTraverser } from './traversers/class.traverser';
 import { DecoratorTraverser } from './traversers/decorator.traverser';
@@ -34,11 +37,13 @@ import {
     IdentifierTraverser,
     ImportExpressionTraverser,
     LogicalExpressionTraverser,
+    MemberExpressionTraverser,
     NewExpressionTraverser,
     NonNullExpressionTraverser,
     ObjectExpressionTraverser,
     ObjectPatternTraverser,
     SequenceExpressionTraverser,
+    SpreadElementTraverser,
     TaggedTemplateExpressionTraverser,
     TemplateLiteralTraverser,
     TypeAssertionTraverser,
@@ -71,6 +76,10 @@ import {
 import { TypeParameterDeclarationTraverser, TypeParameterInstantiationTraverser, TypeParameterTraverser } from './traversers/type-parameter.traverser';
 import { VariableDeclarationTraverser, VariableDeclaratorTraverser } from './traversers/variable-declaration.traverser';
 
+/**
+ * Central index of all traversers natively supported by the LCE.
+ * Maps AST node types to their corresponding traverser.
+ */
 export const TRAVERSERS: Map<AST_NODE_TYPES, Traverser> = new Map([
     [AST_NODE_TYPES.ArrayExpression, new ArrayExpressionTraverser()],
     [AST_NODE_TYPES.ArrayPattern, new ArrayPatternTraverser()],
@@ -100,15 +109,19 @@ export const TRAVERSERS: Map<AST_NODE_TYPES, Traverser> = new Map([
     [AST_NODE_TYPES.ImportDeclaration, new SimpleTraverser()],
     [AST_NODE_TYPES.ImportExpression, new ImportExpressionTraverser()],
     [AST_NODE_TYPES.LabeledStatement, new LabeledStatementTraverser()],
+    [AST_NODE_TYPES.Literal, new SimpleTraverser()],
     [AST_NODE_TYPES.LogicalExpression, new LogicalExpressionTraverser()],
+    [AST_NODE_TYPES.MemberExpression, new MemberExpressionTraverser()],
     [AST_NODE_TYPES.MethodDefinition, new MethodTraverser()],
     [AST_NODE_TYPES.NewExpression, new NewExpressionTraverser()],
     [AST_NODE_TYPES.ObjectExpression, new ObjectExpressionTraverser()],
     [AST_NODE_TYPES.ObjectPattern, new ObjectPatternTraverser()],
     [AST_NODE_TYPES.Program, new ProgramTraverser()],
+    [AST_NODE_TYPES.Property, new PropertyTraverser()],
     [AST_NODE_TYPES.PropertyDefinition, new PropertyTraverser()],
     [AST_NODE_TYPES.ReturnStatement, new ReturnStatementTraverser()],
     [AST_NODE_TYPES.SequenceExpression, new SequenceExpressionTraverser()],
+    [AST_NODE_TYPES.SpreadElement, new SpreadElementTraverser()],
     [AST_NODE_TYPES.SwitchCase, new SwitchCaseTraverser()],
     [AST_NODE_TYPES.SwitchStatement, new SwitchStatementTraverser()],
     [AST_NODE_TYPES.TaggedTemplateExpression, new TaggedTemplateExpressionTraverser()],
@@ -138,23 +151,43 @@ export const TRAVERSERS: Map<AST_NODE_TYPES, Traverser> = new Map([
     [AST_NODE_TYPES.YieldExpression, new YieldExpressionTraverser()],
 ]);
 
+/**
+ * Central index of all processors provided natively by the LCE.
+ */
 export const PROCESSORS: Processor[] = [
+    new ArrayValueProcessor(),
+    new CallValueProcessor(),
     new ClassDeclarationProcessor(),
+    new ClassValueProcessor(),
+    new ComplexValueProcessor(),
     new DecoratorProcessor(),
     new DependencyResolutionProcessor(),
     new ExportDeclarationProcessor(),
     new FunctionDeclarationProcessor(),
     new FunctionParameterProcessor(),
+    new FunctionValueProcessor(),
+    new IdentifierDependencyProcessor(),
+    new IdentifierValueProcessor(),
     new ImplementsDeclarationProcessor(),
     new ImportDeclarationProcessor(),
     new InterfaceDeclarationProcessor(),
+    new LiteralValueProcessor(),
+    new MemberValueProcessor(),
     new MethodParameterProcessor(),
     new MethodProcessor(),
+    new ObjectValueProcessor(),
+    new ObjectValuePropertyProcessor(),
     new PropertyProcessor(),
+    new ScopeProcessor(),
     new SuperClassDeclarationProcessor(),
     new SuperInterfaceDeclarationProcessor(),
+    new VariableDeclarationProcessor(),
+    new VariableDeclaratorProcessor(),
 ]
 
+/**
+ * Central index of all generators used by the LCE.
+ */
 export const GENERATORS: Generator[] = [
     new TypeScriptProjectFilesGenerator(),
     new ClassDeclarationGenerator(), 

@@ -6,7 +6,7 @@ import { LCEExportDeclaration } from '../concepts/export-declaration.concept';
 import { LCEFunctionDeclaration } from '../concepts/function-declaration.concept';
 import { LCEInterfaceDeclaration } from '../concepts/interface-declaration.concept';
 import { ProcessingContext } from '../context';
-import { ExecutionCondition } from '../execution-rule';
+import { ExecutionCondition } from '../execution-condition';
 import { PathUtils } from '../path.utils';
 import { Processor } from '../processor';
 import { ExportDefaultDeclarationTraverser, ExportNamedDeclarationTraverser } from '../traversers/export-declaration.traverser';

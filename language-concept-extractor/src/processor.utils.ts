@@ -1,10 +1,9 @@
 import { ConceptMap, LCEConcept } from './concept';
+import { LCEValue, valueConceptIds } from './concepts/value.concept';
 import { LocalContexts } from './context';
 import { Traverser, TraverserContext } from './traverser';
 
-/**
- * 
- */
+
 export function getAndDeleteChildConcepts<T extends LCEConcept>(propName: string, conceptId: string, childConcepts: ConceptMap): T[] {
     const propConcepts = childConcepts.get(propName);
     if(!propConcepts)
@@ -15,6 +14,14 @@ export function getAndDeleteChildConcepts<T extends LCEConcept>(propName: string
     if(propConcepts.size == 0)
         childConcepts.delete(propName);
     return (result as T[]);
+}
+
+export function getAndDeleteAllValueChildConcepts(propName: string, childConcepts: ConceptMap): LCEValue[] {
+    const values: LCEConcept[] = [];
+    for(let conceptId of valueConceptIds) {
+        values.push(...getAndDeleteChildConcepts(propName, conceptId, childConcepts));
+    }
+    return values as LCEValue[];
 }
 
 export function getChildConcepts<T extends LCEConcept>(propName: string, conceptId: string, childConcepts: ConceptMap): T[] {

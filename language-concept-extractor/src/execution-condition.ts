@@ -1,7 +1,6 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
-import { Node } from '@typescript-eslint/types/dist/generated/ast-spec';
 
-import { GlobalContext, LocalContexts, ProcessingContext } from './context';
+import { ProcessingContext } from './context';
 
 /**
  * Represents the condition under which a `Processor` is executed.

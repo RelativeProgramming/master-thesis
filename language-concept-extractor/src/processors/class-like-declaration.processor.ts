@@ -7,7 +7,7 @@ import { LCEConstructorDeclaration, LCEGetterDeclaration, LCEMethodDeclaration, 
 import { LCEPropertyDeclaration } from '../concepts/property-declaration.concept';
 import { LCETypeFunction } from '../concepts/type.concept';
 import { ProcessingContext } from '../context';
-import { ExecutionCondition } from '../execution-rule';
+import { ExecutionCondition } from '../execution-condition';
 import { Processor } from '../processor';
 import { getAndDeleteChildConcepts, getChildConcepts, getParentPropIndex, getParentPropName } from '../processor.utils';
 import { IdentifierTraverser } from '../traversers/expression.traverser';
@@ -32,7 +32,7 @@ export class MethodProcessor extends Processor {
             if(functionType) {
                 localContexts.currentContexts.set(MethodParameterProcessor.METHOD_TYPE_CONTEXT_ID, functionType);
             }
-            DependencyResolutionProcessor.addNamespaceContext(localContexts, methodName);
+            DependencyResolutionProcessor.addScopeContext(localContexts, methodName);
             DependencyResolutionProcessor.createDependencyIndex(localContexts);
         }
     }
@@ -45,8 +45,8 @@ export class MethodProcessor extends Processor {
             if(functionType) {
                 const [methodName, jsPrivate] = processMemberName(node.key)
                 const visibility = jsPrivate ? "js_private" : node.accessibility ?? "public";
-                let fqn = DependencyResolutionProcessor.constructNamespaceFQN(localContexts);
-                DependencyResolutionProcessor.registerDeclaration(localContexts, methodName, fqn);
+                let fqn = DependencyResolutionProcessor.constructScopeFQN(localContexts);
+                DependencyResolutionProcessor.registerDeclaration(localContexts, methodName, fqn, true);
                 let methodConcept: ConceptMap = new Map();
                 if(node.kind === "method") {
                     // method
@@ -127,7 +127,7 @@ export class MethodParameterProcessor extends Processor {
                     const paramPropConcept = singleEntryConceptMap(LCEParameterPropertyDeclaration.conceptId, new LCEParameterPropertyDeclaration(
                         funcTypeParam.index,
                         funcTypeParam.name,
-                        DependencyResolutionProcessor.constructNamespaceFQN(localContexts) + funcTypeParam.name,
+                        DependencyResolutionProcessor.constructScopeFQN(localContexts) + funcTypeParam.name,
                         "optional" in node.parameter && !!node.parameter.optional,
                         funcTypeParam.type,
                         getChildConcepts(ParameterPropertyTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts),
@@ -162,7 +162,7 @@ export class PropertyProcessor extends Processor {
     public override preChildrenProcessing({node, localContexts}: ProcessingContext): void {
         if((node.type === AST_NODE_TYPES.PropertyDefinition || node.type === AST_NODE_TYPES.TSPropertySignature) && !node.computed) {
             let [propertyName, _] = processMemberName(node.key);
-            DependencyResolutionProcessor.addNamespaceContext(localContexts, propertyName);
+            DependencyResolutionProcessor.addScopeContext(localContexts, propertyName);
             DependencyResolutionProcessor.createDependencyIndex(localContexts);
             if(propertyName === "newExtensionProp")
                 propertyName
@@ -173,10 +173,13 @@ export class PropertyProcessor extends Processor {
 
         if((node.type === AST_NODE_TYPES.PropertyDefinition || node.type === AST_NODE_TYPES.TSPropertySignature) && !node.computed) {
             // TODO: handle static properties
-            let [propertyName, jsPrivate] = processMemberName(node.key);
+            const [propertyName, jsPrivate] = processMemberName(node.key);
+            const fqn = DependencyResolutionProcessor.constructScopeFQN(localContexts);
+            DependencyResolutionProcessor.registerDeclaration(localContexts, propertyName, fqn, true);
+
             return mergeConceptMaps(singleEntryConceptMap(LCEPropertyDeclaration.conceptId, new LCEPropertyDeclaration(
                 propertyName,
-                DependencyResolutionProcessor.constructNamespaceFQN(localContexts),
+                fqn,
                 !!node.optional,
                 parseClassPropertyType({globalContext, localContexts, node}, node.key),
                 "decorators" in node ? getAndDeleteChildConcepts(PropertyTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts) : [],

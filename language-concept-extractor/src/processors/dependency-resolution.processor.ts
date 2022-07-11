@@ -3,7 +3,7 @@ import { AST_NODE_TYPES } from '@typescript-eslint/types';
 import { ConceptMap, singleEntryConceptMap, LCENamedConcept, mergeConceptMaps, createConceptMap } from '../concept';
 import { LCEDependency } from '../concepts/dependency.concept';
 import { LocalContexts, ProcessingContext } from '../context';
-import { ExecutionCondition } from '../execution-rule';
+import { ExecutionCondition } from '../execution-condition';
 import { PathUtils } from '../path.utils';
 import { Processor } from '../processor';
 import { getAndDeleteChildConcepts } from '../processor.utils';
@@ -22,6 +22,11 @@ import { ProgramTraverser } from '../traversers/program.traverser';
  */
 export type FQNResolverContext = Array<[string[], string, LCENamedConcept]>;
 
+export interface FQNScope {
+    identifier: string;
+    internalScopeId: number;
+}
+
 
 /**
  * Manages FQN contexts, provides index for registering declarations and resolves FQN references.
@@ -31,8 +36,8 @@ export class DependencyResolutionProcessor extends Processor {
     /** key to the dependency index, used for registering all declarations made within a module (`DeclarationIndex`) */
     public static readonly DECLARATION_INDEX_CONTEXT = "declaration-index";
 
-    /** key to the current namespace, used to introduce new FQN namespace levels (`string`) */
-    public static readonly FQN_CONTEXT = 'fqn-namespace';
+    /** key to the current scope object, used to introduce new FQN scoping levels (`FQNScope`) */
+    public static readonly FQN_SCOPE_CONTEXT = 'fqn-scope';
 
     /** key to the FQN resolver index, used to schedule FQN resolutions (`FQNResolverContext`) */
     public static readonly FQN_RESOLVER_CONTEXT = 'fqn-resolver';
@@ -51,7 +56,10 @@ export class DependencyResolutionProcessor extends Processor {
 
     public override preChildrenProcessing({localContexts, globalContext}: ProcessingContext): void {
         localContexts.currentContexts.set(DependencyResolutionProcessor.DECLARATION_INDEX_CONTEXT, new Map());
-        localContexts.currentContexts.set(DependencyResolutionProcessor.FQN_CONTEXT, PathUtils.toFQN(globalContext.sourceFilePath));
+        localContexts.currentContexts.set(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT, {
+            identifier: PathUtils.toFQN(globalContext.sourceFilePath),
+            internalScopeId: 0
+        } as FQNScope);
         localContexts.currentContexts.set(DependencyResolutionProcessor.FQN_RESOLVER_CONTEXT, []);
         localContexts.currentContexts.set(DependencyResolutionProcessor.DEPENDENCY_SOURCE_FQN_CONTEXT, PathUtils.toFQN(globalContext.sourceFilePath));
         localContexts.currentContexts.set(DependencyResolutionProcessor.DEPENDENCY_INDEX_CONTEXT, []);
@@ -76,6 +84,9 @@ export class DependencyResolutionProcessor extends Processor {
         const dependencies = getAndDeleteChildConcepts<LCEDependency>(ProgramTraverser.PROGRAM_BODY_PROP, LCEDependency.conceptId, childConcepts);
         const depIndex: Map<string, Map<string, LCEDependency>> = new Map();
         for(let dep of dependencies) {
+            if(!dep.fqn.startsWith('"') || dep.fqn.startsWith(dep.sourceFQN))
+                continue; // skip invalid FQNs and dependencies on own scope
+            
             if(!depIndex.has(dep.sourceFQN)) {
                 depIndex.set(dep.sourceFQN, new Map([[dep.fqn, dep]]));
             } else if(!depIndex.get(dep.sourceFQN)!.has(dep.fqn)) {
@@ -96,10 +107,11 @@ export class DependencyResolutionProcessor extends Processor {
         return mergeConceptMaps(...concepts);
     }
 
-    public static constructFQNPrefix(localContexts: LocalContexts): string {
+    public static constructFQNPrefix(localContexts: LocalContexts, skipLastScope = false): string {
         let result = "";
-        for(let context of localContexts.contexts) {
-            const name: string | undefined = context.get(DependencyResolutionProcessor.FQN_CONTEXT);
+        for(let i = 0; i < localContexts.contexts.length - (skipLastScope ? 1 : 0); i++) {
+            let context = localContexts.contexts[i];
+            const name: string | undefined = (context.get(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT) as FQNScope)?.identifier;
             if(name) {
                 result += name + ".";
             }
@@ -107,14 +119,19 @@ export class DependencyResolutionProcessor extends Processor {
         return result;
     }
 
-    public static constructNamespaceFQN(localContexts: LocalContexts): string {
-        let result = this.constructFQNPrefix(localContexts);
+    public static constructScopeFQN(localContexts: LocalContexts, skipLastScope = false): string {
+        let result = this.constructFQNPrefix(localContexts, skipLastScope);
         return result.substring(0, result.length - 1);
     }
 
-    public static registerDeclaration(localContexts: LocalContexts, localName: string, fqn: string): void {
+    /**
+     * @param localName local name under which the declaration is used
+     * @param fqn fully qualified name of the declaration
+     * @param insideScopeDeclaration specifies whether the declaration is registered while traversing its own scope
+     */
+    public static registerDeclaration(localContexts: LocalContexts, localName: string, fqn: string, insideScopeDeclaration = false): void {
         const declIndex: DeclarationIndex = localContexts.getNextContext(DependencyResolutionProcessor.DECLARATION_INDEX_CONTEXT)![0];
-        const namespace = this.constructNamespaceFQN(localContexts);
+        const namespace = this.constructScopeFQN(localContexts, insideScopeDeclaration);
         if(!declIndex.has(namespace))
             declIndex.set(namespace, new Map());
         declIndex.get(namespace)!.set(localName, fqn);
@@ -123,7 +140,7 @@ export class DependencyResolutionProcessor extends Processor {
     public static scheduleFqnResolution(localContexts: LocalContexts, localName: string, concept: LCENamedConcept): void {
         const namespaces: string[] = [];
         for(let context of localContexts.contexts) {
-            const name: string | undefined = context.get(DependencyResolutionProcessor.FQN_CONTEXT);
+            const name: string | undefined = (context.get(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT) as FQNScope)?.identifier;
             if(name) {
                 namespaces.push(name);
             }
@@ -132,8 +149,15 @@ export class DependencyResolutionProcessor extends Processor {
         resolutionList.push([namespaces, localName, concept]);
     }
 
-    public static addNamespaceContext(localContexts: LocalContexts, namespace: string): void {
-        localContexts.currentContexts.set(DependencyResolutionProcessor.FQN_CONTEXT, namespace);
+    public static addScopeContext(localContexts: LocalContexts, scopeIdentifier?: string): void {
+        if(!scopeIdentifier) {
+            scopeIdentifier = (localContexts.getNextContext(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT)![0] as FQNScope).internalScopeId.toString();
+            (localContexts.getNextContext(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT)![0] as FQNScope).internalScopeId++;
+        }
+        localContexts.currentContexts.set(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT, {
+            identifier: scopeIdentifier,
+            internalScopeId: 0
+        } as FQNScope);
     }
 
     /**
@@ -141,7 +165,7 @@ export class DependencyResolutionProcessor extends Processor {
      * @param fqn use this to specify different FQN than the one of the current namespace
      */
     public static createDependencyIndex(localContexts: LocalContexts, fqn?: string): void {
-        localContexts.currentContexts.set(DependencyResolutionProcessor.DEPENDENCY_SOURCE_FQN_CONTEXT, fqn ?? DependencyResolutionProcessor.constructNamespaceFQN(localContexts));
+        localContexts.currentContexts.set(DependencyResolutionProcessor.DEPENDENCY_SOURCE_FQN_CONTEXT, fqn ?? DependencyResolutionProcessor.constructScopeFQN(localContexts));
         localContexts.currentContexts.set(DependencyResolutionProcessor.DEPENDENCY_INDEX_CONTEXT, []);
     }
 

@@ -7,7 +7,7 @@ import { LCEParameterDeclaration } from '../concepts/method-declaration.concept'
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
 import { LCETypeFunction } from '../concepts/type.concept';
 import { ProcessingContext } from '../context';
-import { ExecutionCondition } from '../execution-rule';
+import { ExecutionCondition } from '../execution-condition';
 import { Processor } from '../processor';
 import { getAndDeleteChildConcepts, getParentPropIndex } from '../processor.utils';
 import { IdentifierTraverser } from '../traversers/expression.traverser';
@@ -33,7 +33,7 @@ export class FunctionDeclarationProcessor extends Processor {
     public override preChildrenProcessing({node, localContexts, globalContext}: ProcessingContext): void {
         if(node.type === AST_NODE_TYPES.FunctionDeclaration) {
             if(node.id) {
-                DependencyResolutionProcessor.addNamespaceContext(localContexts, node.id.name);
+                DependencyResolutionProcessor.addScopeContext(localContexts, node.id.name);
                 DependencyResolutionProcessor.createDependencyIndex(localContexts);
             }
 
@@ -50,8 +50,8 @@ export class FunctionDeclarationProcessor extends Processor {
             const functionType: LCETypeFunction | undefined = localContexts.currentContexts.get(FunctionParameterProcessor.FUNCTION_TYPE_CONTEXT_ID);
             if(functionType) {
                 const functionName = node.id?.name ?? "";
-                const fqn = DependencyResolutionProcessor.constructNamespaceFQN(localContexts);
-                DependencyResolutionProcessor.registerDeclaration(localContexts, functionName, fqn);
+                const fqn = DependencyResolutionProcessor.constructScopeFQN(localContexts);
+                DependencyResolutionProcessor.registerDeclaration(localContexts, functionName, fqn, true);
                 const typeParameters: LCETypeParameterDeclaration[] = functionType.typeParameters;
                 const returnType = functionType.returnType;
                 return mergeConceptMaps(singleEntryConceptMap(LCEFunctionDeclaration.conceptId, new LCEFunctionDeclaration(

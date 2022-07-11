@@ -7,7 +7,7 @@ import { LCEGetterDeclaration, LCEMethodDeclaration, LCESetterDeclaration } from
 import { LCEPropertyDeclaration } from '../concepts/property-declaration.concept';
 import { LCETypeDeclared } from '../concepts/type.concept';
 import { ProcessingContext } from '../context';
-import { ExecutionCondition } from '../execution-rule';
+import { ExecutionCondition } from '../execution-condition';
 import { Processor } from '../processor';
 import { getAndDeleteChildConcepts, getParentPropName } from '../processor.utils';
 import { ClassTraverser } from '../traversers/class.traverser';
@@ -31,7 +31,7 @@ export class InterfaceDeclarationProcessor extends Processor {
 
     public override preChildrenProcessing({localContexts, node}: ProcessingContext): void {
         if(node.type === AST_NODE_TYPES.TSInterfaceDeclaration) {
-            DependencyResolutionProcessor.addNamespaceContext(localContexts, node.id.name);
+            DependencyResolutionProcessor.addScopeContext(localContexts, node.id.name);
             DependencyResolutionProcessor.createDependencyIndex(localContexts);
         }
     }
@@ -39,8 +39,8 @@ export class InterfaceDeclarationProcessor extends Processor {
     public override postChildrenProcessing({globalContext, localContexts, node}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
         if(node.type === AST_NODE_TYPES.TSInterfaceDeclaration) {
             const interfaceName = node.id.name;
-            const fqn = DependencyResolutionProcessor.constructNamespaceFQN(localContexts);
-            DependencyResolutionProcessor.registerDeclaration(localContexts, interfaceName, fqn);
+            const fqn = DependencyResolutionProcessor.constructScopeFQN(localContexts);
+            DependencyResolutionProcessor.registerDeclaration(localContexts, interfaceName, fqn, true);
             const classDecl = new LCEInterfaceDeclaration(
                 interfaceName,
                 fqn,
@@ -75,7 +75,7 @@ export class SuperInterfaceDeclarationProcessor extends Processor {
                 const dependencyConcept = new LCEDependency(
                     superType.fqn,
                     "declaration",
-                    DependencyResolutionProcessor.constructNamespaceFQN(localContexts),
+                    DependencyResolutionProcessor.constructScopeFQN(localContexts),
                     "declaration",
                     1
                 );

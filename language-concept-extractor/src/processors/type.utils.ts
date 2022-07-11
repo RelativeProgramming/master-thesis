@@ -2,6 +2,7 @@ import {
     ClassDeclaration,
     ClassPropertyNameNonComputed,
     Expression,
+    Node as ESNode,
     FunctionDeclaration,
     Identifier,
     MethodDefinitionNonComputedName,
@@ -29,7 +30,7 @@ import {
     LCETypeTuple,
     LCETypeUnion,
 } from '../concepts/type.concept';
-import { GlobalContext, ProcessingContext } from '../context';
+import { ProcessingContext } from '../context';
 import { PathUtils } from '../path.utils';
 import { DependencyResolutionProcessor } from './dependency-resolution.processor';
 
@@ -233,30 +234,12 @@ export function parseClassLikeBaseType(processingContext: ProcessingContext, esT
     }
 }
 
-export function parseVariableType(processingContext: ProcessingContext, esVariableDeclarator: VariableDeclarator, varName: string): LCEType {
+export function parseESNodeType(processingContext: ProcessingContext, esNode: ESNode, excludedFQN?: string): LCEType {
     const globalContext = processingContext.globalContext;
     const tc = globalContext.typeChecker;
-    const node = globalContext.services.esTreeNodeToTSNodeMap.get(esVariableDeclarator.id);
+    const node = globalContext.services.esTreeNodeToTSNodeMap.get(esNode);
     const type = tc.getTypeAtLocation(node);
-    const result = parseType(processingContext, type, node, varName);
-    return result;
-}
-
-export function parseExpressionType(processingContext: ProcessingContext, esExpression: Expression, varName?: string): LCEType {
-    const globalContext = processingContext.globalContext;
-    const tc = globalContext.typeChecker;
-    const node = globalContext.services.esTreeNodeToTSNodeMap.get(esExpression);
-    const type = tc.getTypeAtLocation(node);
-    const result = parseType(processingContext, type, node, varName);
-    return result;
-}
-
-export function parseTypeNode(processingContext: ProcessingContext, esTypeNode: TypeNode): LCEType {
-    const globalContext = processingContext.globalContext;
-    const tc = globalContext.typeChecker;
-    const node = globalContext.services.esTreeNodeToTSNodeMap.get(esTypeNode);
-    const type = tc.getTypeAtLocation(node);
-    const result = parseType(processingContext, type, node);
+    const result = parseType(processingContext, type, node, excludedFQN);
     return result;
 }
 
@@ -359,6 +342,7 @@ function parseType(processingContext: ProcessingContext, type: Type, node: Node,
 
         // normalize TypeChecker FQN and determine if type is part of the project
         // TODO: further testing needed
+        // TODO: standard library (e.g. console: Console) should not be part of the project
         const sourceFile = symbol?.valueDeclaration?.getSourceFile();
         const hasSource = !!sourceFile;
         const isStandardLibrary = hasSource && globalContext.services.program.isSourceFileDefaultLibrary(sourceFile!)

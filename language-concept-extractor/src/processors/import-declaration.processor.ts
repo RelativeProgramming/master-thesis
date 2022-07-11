@@ -3,7 +3,7 @@ import { AST_NODE_TYPES } from '@typescript-eslint/types';
 import { ConceptMap, singleEntryConceptMap, mergeConceptMaps } from '../concept';
 import { LCEDependency } from '../concepts/dependency.concept';
 import { ProcessingContext } from '../context';
-import { ExecutionCondition } from '../execution-rule';
+import { ExecutionCondition } from '../execution-condition';
 import { PathUtils } from '../path.utils';
 import { Processor } from '../processor';
 import { DependencyResolutionProcessor } from './dependency-resolution.processor';

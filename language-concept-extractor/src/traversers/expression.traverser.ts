@@ -22,6 +22,22 @@ export class ArrayExpressionTraverser extends Traverser {
     }
 }
 
+export class SpreadElementTraverser extends Traverser {
+
+    public static readonly ARGUMENT_PROP = "argument";
+
+    public traverseChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
+        const {node} = processingContext;
+        const conceptMaps: ConceptMap[] = [];
+
+        if(node.type === AST_NODE_TYPES.SpreadElement) {
+            runTraverserForNode(node.argument, {parentPropName: SpreadElementTraverser.ARGUMENT_PROP}, processingContext, processors, conceptMaps);
+        }
+
+        return mergeConceptMaps(...conceptMaps);
+    }
+}
+
 export class ArrayPatternTraverser extends Traverser {
 
     public static readonly DECORATORS_PROP = "decorators";
@@ -270,7 +286,7 @@ export class NewExpressionTraverser extends Traverser {
 
 export class ObjectExpressionTraverser extends Traverser {
 
-    public static readonly PROPERTIES_PROP = "";
+    public static readonly PROPERTIES_PROP = "properties";
 
     public traverseChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
         const {node} = processingContext;

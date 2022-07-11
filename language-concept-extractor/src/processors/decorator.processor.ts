@@ -3,7 +3,7 @@ import { AST_NODE_TYPES } from '@typescript-eslint/types';
 import { ConceptMap, singleEntryConceptMap } from '../concept';
 import { LCEDecorator } from '../concepts/decorator.concept';
 import { ProcessingContext } from '../context';
-import { ExecutionCondition } from '../execution-rule';
+import { ExecutionCondition } from '../execution-condition';
 import { Processor } from '../processor';
 
 export class DecoratorProcessor extends Processor {
