@@ -34,7 +34,7 @@ export class InterfaceDeclarationGenerator extends Generator {
                 RETURN id(interface)
                 `,{interfaceProps: interfaceNodeProps}
             ));
-            connectionIndex.provideTypes.set(interfaceDecl.fqn, interfaceNodeId);
+            connectionIndex.providerNodes.set(interfaceDecl.fqn, interfaceNodeId);
 
             // create type parameter nodes and connections
             const interfaceTypeParameters = await createClassLikeTypeParameterNodes(

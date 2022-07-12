@@ -35,7 +35,7 @@ export class ClassDeclarationGenerator extends Generator {
                 RETURN id(class)
                 `,{classProps: classNodeProps}
             ));
-            connectionIndex.provideTypes.set(classDecl.fqn, classNodeId);
+            connectionIndex.providerNodes.set(classDecl.fqn, classNodeId);
 
             // create class decorator nodes and connections
             for(let deco of classDecl.decorators) {

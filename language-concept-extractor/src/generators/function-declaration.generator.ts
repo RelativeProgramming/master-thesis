@@ -34,7 +34,7 @@ export class FunctionDeclarationGenerator extends Generator {
                 RETURN id(func)
                 `,{funcNodeProps: funcNodeProps}
             ));
-            connectionIndex.provideTypes.set(funcDecl.fqn, funcNodeId);
+            connectionIndex.providerNodes.set(funcDecl.fqn, funcNodeId);
 
             // create type parameter nodes and connections
             const funcTypeParameters = await createTypeParameterNodes(

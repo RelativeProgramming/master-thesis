@@ -10,11 +10,10 @@ import { createFunctionParameterNode } from './function.generator.utils';
  * Recursively creates type nodes for given `LCEType` and registers connection information within the `ConnectionIndex`.
  * @param type `LCEType` for which nodes are created
  * @param connectionIndex index for registering connections to types (for later creation)
- * @param parentNode node which will be related to the type node#
+ * @param parentNode node which will be related to the type node
  * @param connectionProps properties of connection that will be registered from parent to type node
  * @param parentTypeParamNodes type parameter of parent class, interface or type alias
  * @param methodTypeParamNodes type parameters of parent method
- * @returns id of the main type node created or `undefined` if type is a `LCETypeDeclared`
  */
 export async function createTypeNode(
     type: LCEType, 
@@ -65,10 +64,7 @@ export async function createTypeNode(
                 methodTypeParamNodes
             );
         }
-
-        // register references connection for declared type that is defined within project
-        if(type.inProject)
-            connectionIndex.requireTypes.set(typeNodeId, [type.fqn, {name: ":REFERENCES", props:{}}]);
+        connectionIndex.referenceNodes.set(typeNodeId, [type.fqn, {name: ":REFERENCES", props:{}}]);
     } else if(type instanceof LCETypeUnion || type instanceof LCETypeIntersection) {
         const typeNodeId = type instanceof LCETypeUnion ? Utils.getNodeIdFromQueryResult(await neo4jSession.run(
             `

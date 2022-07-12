@@ -101,16 +101,16 @@ Relations:
 
 ## Variable Declaration
 → all variable declarations made on file level
-- [ ]  Label: `TS:Variable`
+- [x]  Label: `TS:Variable`
 
 Properties:
-- [ ]  `fqn`: fully qualified name (e.g. `"./src/main.ts".doSth`)
-- [ ]  `name`: local name of the function
-- [ ]  `kind`: `var`, `let` or `const`
+- [x]  `fqn`: fully qualified name (e.g. `"./src/main.ts".doSth`)
+- [x]  `name`: local name of the function
+- [x]  `kind`: `var`, `let` or `const`
 
 Relations:
-- [ ]  `OF_TYPE`: type of the declared variable
-- [ ]  `INITIALIZED_WITH`: initial value of the declared variable
+- [x]  `OF_TYPE`: type of the declared variable
+- [x]  `INITIALIZED_WITH`: initial value of the declared variable
 
 ## Property Declaration
 → all property declarations inside classes, interfaces or type aliases
@@ -269,82 +269,82 @@ Properties:
 
 ## Value
 → represents an abitrary value, this can be any kind of expression
-- [ ]  Label: `:TS:Value`
+- [x]  Label: `:TS:Value`
 
 Relations:
-- [ ]  `OF_TYPE`: type of the value (link to declaration types)
+- [x]  `OF_TYPE`: type of the value (link to declaration types)
 
 ### Null Values
 → `undefined` or `null`
-- [ ]  Label: `:TS:Value:Null`
+- [x]  Label: `:TS:Value:Null`
 
 Properties:
-- [ ]  `kind`: either `undefined` or `null`
+- [x]  `kind`: either `undefined` or `null`
 
 ### Literal Values
 → any literal values (e.g. `true`, `32` or `"abc"`)
-- [ ]  Label: `:TS:Value:Literal`
+- [x]  Label: `:TS:Value:Literal`
 
 Properties:
-- [ ]  `value`: value of the literal
+- [x]  `value`: value of the literal
 
 ### Declared Value
 → references to values declared elsewhere
-- [ ]  Label: `:TS:Value:Declared`
+- [x]  Label: `:TS:Value:Declared`
 
 Properties:
-- [ ]  `fqn`: fully qualified name of the variable/function/class referenced
-- [ ]  `internal`: indicates whether reference is declared inside project
+- [x]  `fqn`: fully qualified name of the variable/function/class referenced
+- [x]  `internal`: indicates whether reference is declared inside project
 
 Relations:
-- [ ]  `REFERENCES`: reference to declared variable/function/class (if internal)
+- [x]  `REFERENCES`: reference to declared variable/function/class (if internal)
 
 ### Member Value
 → any values that are the result of a member expression (e.g. `myObj.x`)
-- [ ]  Label: `:TS:Value:Member`
+- [x]  Label: `:TS:Value:Member`
 
 Relations:
-- [ ]  `PARENT`: parent value of which a member is accessed
-- [ ]  `MEMBER`: member value which is accessed
+- [x]  `PARENT`: parent value of which a member is accessed
+- [x]  `MEMBER`: member value which is accessed
 
 ### Object Value
 → any values representing an object (e.g. `{a: 42, b: "abc"}`)
-- [ ]  Label: `:TS:Value:Object`
+- [x]  Label: `:TS:Value:Object`
 
 Relations:
-- [ ]  `HAS_MEMBER`: references to all member values
-    - [ ]  attribute `name`: name of member
+- [x]  `HAS_MEMBER`: references to all member values
+    - [x]  attribute `name`: name of member
 
 ### Array Value
 → any values representing an array (e.g. `[1, 2, 3]`)
-- [ ]  Label: `:TS:Value:Array`
+- [x]  Label: `:TS:Value:Array`
 
 Relations:
-- [ ]  `CONTAINS`: references to all item values
-    - [ ]  attribute `index`: index of the item
+- [x]  `CONTAINS`: references to all item values
+    - [x]  attribute `index`: index of the item
 
 ### Call Value
 → any values represented by a function call (e.g. `myArr.concat([4, 5])`)
-- [ ]  Label: `:TS:Value:Call`
+- [x]  Label: `:TS:Value:Call`
 
 Relations:
-- [ ]  `CALLS`: value that is called (e.g. `myArr.concat`)
-- [ ]  `HAS_ARGUMENT`: values of the arguments
-  - [ ]  attribute `index`: index of the argument
-- [ ]  `HAS_TYPE_ARGUMENT`: type arguments specified for call
-  - [ ]  attribute `index`: index of the type argument
+- [x]  `CALLS`: value that is called (e.g. `myArr.concat`)
+- [x]  `HAS_ARGUMENT`: values of the arguments
+  - [x]  attribute `index`: index of the argument
+- [x]  `HAS_TYPE_ARGUMENT`: type arguments specified for call
+  - [x]  attribute `index`: index of the type argument
 
 ### Function Value
 → any values representing a function (e.g. `function(x: string) { return x.trim(); }`)
-- [ ]  Label: `:TS:Value:Function`
+- [x]  Label: `:TS:Value:Function`
 
 ### Class Value
 → any values represented by a class expression (e.g. `class A {}`)
-- [ ]  Label: `:TS:Value:Class`
+- [x]  Label: `:TS:Value:Class`
 
 ### Complex Values
 → any values that can't be resolved further
-- [ ]  Label: `:TS:Value:Complex`
+- [x]  Label: `:TS:Value:Complex`
 
 Properties:
-- [ ]  `expression`: string of the value expression
+- [x]  `expression`: string of the value expression

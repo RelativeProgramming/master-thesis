@@ -106,6 +106,7 @@ export class LCEValueObject extends LCEValue {
 
 /**
  * Represents a single property of an object expression (e.g. `a: 3` in `{a: 3, b: "str"}`)
+ * Only used as an intermediate concept within the traversal process
  */
 export class LCEValueObjectProperty extends LCEValue {
     

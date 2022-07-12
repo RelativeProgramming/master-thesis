@@ -7,6 +7,7 @@ import { DependencyGenerator } from './generators/dependency.generator';
 import { FunctionDeclarationGenerator } from './generators/function-declaration.generator';
 import { InterfaceDeclarationGenerator } from './generators/interface-declaration.generator';
 import { TypeScriptProjectFilesGenerator } from './generators/typescript-project-files.generator';
+import { VariableDeclarationGenerator } from './generators/variable-declaration.generator';
 import { Processor } from './processor';
 import { ClassDeclarationProcessor, ImplementsDeclarationProcessor, SuperClassDeclarationProcessor } from './processors/class-declaration.processor';
 import { MethodParameterProcessor, MethodProcessor, PropertyProcessor } from './processors/class-like-declaration.processor';
@@ -17,7 +18,18 @@ import { FunctionDeclarationProcessor, FunctionParameterProcessor } from './proc
 import { ImportDeclarationProcessor } from './processors/import-declaration.processor';
 import { IdentifierDependencyProcessor, ScopeProcessor } from './processors/instructional-code.processor';
 import { InterfaceDeclarationProcessor, SuperInterfaceDeclarationProcessor } from './processors/interface-declaration.processor';
-import { ArrayValueProcessor, CallValueProcessor, ClassValueProcessor, ComplexValueProcessor, FunctionValueProcessor, IdentifierValueProcessor, LiteralValueProcessor, MemberValueProcessor, ObjectValueProcessor, ObjectValuePropertyProcessor } from './processors/value.processor';
+import {
+    ArrayValueProcessor,
+    CallValueProcessor,
+    ClassValueProcessor,
+    ComplexValueProcessor,
+    FunctionValueProcessor,
+    IdentifierValueProcessor,
+    LiteralValueProcessor,
+    MemberValueProcessor,
+    ObjectValueProcessor,
+    ObjectValuePropertyProcessor,
+} from './processors/value.processor';
 import { VariableDeclarationProcessor, VariableDeclaratorProcessor } from './processors/variable-declaration.processor';
 import { SimpleTraverser, Traverser } from './traverser';
 import { ClassTraverser } from './traversers/class.traverser';
@@ -193,6 +205,7 @@ export const GENERATORS: Generator[] = [
     new ClassDeclarationGenerator(), 
     new InterfaceDeclarationGenerator(),
     new FunctionDeclarationGenerator(),
+    new VariableDeclarationGenerator(),
     new ConnectionGenerator(),
     new DependencyGenerator(),
 ];

@@ -11,19 +11,18 @@ export class ConnectionIndex {
     public connectionsToCreate: [Integer, Integer, ConnectionProperties][] = []
 
 
-    // declared type related indexes:
     /**
      * Used for registering nodes that can be conncected to via a FQN
      */
-    public provideTypes: Map<string, Integer> = new Map();
+    public providerNodes: Map<string, Integer> = new Map();
 
     /**
-     * Used for registering connection to be made between nodes. 
-     * Used when only from node of a connection is known. 
+     * Used for registering a connection to be made between nodes. 
+     * Used when only from-node of a connection is known. 
      * 
      * Value is FQN of target and potential properties of connection.
      */
-    public requireTypes: Map<Integer, [string, ConnectionProperties]> = new Map();
+    public referenceNodes: Map<Integer, [string, ConnectionProperties]> = new Map();
 
     
     /**
@@ -38,14 +37,14 @@ export class ConnectionIndex {
      * Adds resolved connections to `connectionsToCreate` and removes them from `requireTypes`
      */
     private resolveRequireTypes(): void {
-        for(let [from, [fqn, props]] of this.requireTypes.entries()) {
-            if(this.provideTypes.has(fqn)) {
+        for(let [from, [fqn, props]] of this.referenceNodes.entries()) {
+            if(this.providerNodes.has(fqn)) {
                 this.connectionsToCreate.push([
                     from,
-                    this.provideTypes.get(fqn)!,
+                    this.providerNodes.get(fqn)!,
                     props
                 ]);
-                this.requireTypes.delete(from);
+                this.referenceNodes.delete(from);
             }
         }
     }
