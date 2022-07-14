@@ -81,7 +81,8 @@ export class DependencyResolutionProcessor extends Processor {
         }
 
         // merge dependencies
-        const dependencies = getAndDeleteChildConcepts<LCEDependency>(ProgramTraverser.PROGRAM_BODY_PROP, LCEDependency.conceptId, childConcepts);
+        const dependencies = getAndDeleteChildConcepts<LCEDependency>(ProgramTraverser.PROGRAM_BODY_PROP, LCEDependency.conceptId, childConcepts)
+            .concat(localContexts.currentContexts.get(DependencyResolutionProcessor.DEPENDENCY_INDEX_CONTEXT)!);
         const depIndex: Map<string, Map<string, LCEDependency>> = new Map();
         for(let dep of dependencies) {
             if(!dep.fqn.startsWith('"') || dep.fqn.startsWith(dep.sourceFQN))
@@ -173,7 +174,6 @@ export class DependencyResolutionProcessor extends Processor {
     public static registerDependency(localContexts: LocalContexts, depFQN: string, resolveFQN: boolean = true): void {
         const depIndex: LCEDependency[] = localContexts.getNextContext(DependencyResolutionProcessor.DEPENDENCY_INDEX_CONTEXT)![0];
         const depSourceFQN: string = localContexts.getNextContext(DependencyResolutionProcessor.DEPENDENCY_SOURCE_FQN_CONTEXT)![0];
-
         const dep = new LCEDependency(
             depFQN,
             "declaration",

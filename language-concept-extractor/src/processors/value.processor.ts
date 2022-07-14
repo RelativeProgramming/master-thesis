@@ -1,9 +1,21 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
-import { TypeReference } from 'typescript';
 
 import { ConceptMap, singleEntryConceptMap } from '../concept';
 import { LCETypeNotIdentified } from '../concepts/type.concept';
-import { LCEValue, LCEValueArray, LCEValueCall, LCEValueClass, LCEValueComplex, LCEValueDeclared, LCEValueFunction, LCEValueLiteral, LCEValueMember, LCEValueNull, LCEValueObject, LCEValueObjectProperty } from '../concepts/value.concept';
+import {
+    LCEValue,
+    LCEValueArray,
+    LCEValueCall,
+    LCEValueClass,
+    LCEValueComplex,
+    LCEValueDeclared,
+    LCEValueFunction,
+    LCEValueLiteral,
+    LCEValueMember,
+    LCEValueNull,
+    LCEValueObject,
+    LCEValueObjectProperty,
+} from '../concepts/value.concept';
 import { ProcessingContext } from '../context';
 import { ExecutionCondition } from '../execution-condition';
 import { Processor } from '../processor';
@@ -12,6 +24,7 @@ import { ArrayExpressionTraverser, CallExpressionTraverser, MemberExpressionTrav
 import { PropertyTraverser } from '../traversers/property.traverser';
 import { DependencyResolutionProcessor } from './dependency-resolution.processor';
 import { parseESNodeType } from './type.utils';
+import { VariableDeclaratorProcessor } from './variable-declaration.processor';
 
 export const VALUE_PROCESSING_FLAG = "value-processing";
 
@@ -54,7 +67,7 @@ export class IdentifierValueProcessor extends Processor {
                 return singleEntryConceptMap(LCEValueNull.conceptId, new LCEValueNull("undefined"));
             } else {
                 const declaredValue = new LCEValueDeclared(
-                    parseESNodeType({node, localContexts, globalContext}, node, node.name),
+                    parseESNodeType({node, localContexts, globalContext}, node, node.name, true),
                     node.name
                 );
                 const resolve: number | undefined = localContexts.parentContexts?.get(IdentifierValueProcessor.DO_NOT_RESOLVE_VALUE_IDENTIFIER_FLAG);
@@ -125,8 +138,10 @@ export class ObjectValueProcessor extends Processor {
     public override postChildrenProcessing({node, localContexts, globalContext}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
         if(node.type === AST_NODE_TYPES.ObjectExpression) {
             const properties: LCEValueObjectProperty[] = getAndDeleteChildConcepts(ObjectExpressionTraverser.PROPERTIES_PROP, LCEValueObjectProperty.conceptId, childConcepts);
+            const variableDeclarationFQN = localContexts.getNextContext(VariableDeclaratorProcessor.VARIABLE_DECLARATOR_FQN_CONTEXT);
+            const type = parseESNodeType({node, localContexts, globalContext}, node, variableDeclarationFQN?.[0]);
             return singleEntryConceptMap(LCEValueObject.conceptId, new LCEValueObject(
-                parseESNodeType({node, localContexts, globalContext}, node),
+                type,
                 new Map(properties.map((prop => [prop.name, prop.value]))),
             ));
         }

@@ -38,6 +38,7 @@ export class VariableDeclarationProcessor extends Processor {
 
 export class VariableDeclaratorProcessor extends Processor {
 
+    public static readonly VARIABLE_DECLARATOR_FQN_CONTEXT = 'variable-declarator-fqn';
 
     public executionCondition: ExecutionCondition = new ExecutionCondition(
         [AST_NODE_TYPES.VariableDeclarator],
@@ -47,8 +48,9 @@ export class VariableDeclaratorProcessor extends Processor {
     );
 
     public override preChildrenProcessing({localContexts, node}: ProcessingContext): void {
-        if(node.type === AST_NODE_TYPES.VariableDeclarator && node.init) {
+        if(node.type === AST_NODE_TYPES.VariableDeclarator && node.init && node.id.type === AST_NODE_TYPES.Identifier) {
             localContexts.currentContexts.set(VALUE_PROCESSING_FLAG, true);
+            localContexts.currentContexts.set(VariableDeclaratorProcessor.VARIABLE_DECLARATOR_FQN_CONTEXT, DependencyResolutionProcessor.constructFQNPrefix(localContexts) + node.id.name);
         }
     }
 
@@ -69,7 +71,7 @@ export class VariableDeclaratorProcessor extends Processor {
             }
 
             const name = node.id.name;
-            const fqn = DependencyResolutionProcessor.constructFQNPrefix(localContexts) + node.id.name;
+            const fqn: string = localContexts.currentContexts.get(VariableDeclaratorProcessor.VARIABLE_DECLARATOR_FQN_CONTEXT)!;
             DependencyResolutionProcessor.registerDeclaration(localContexts, name, fqn);
 
             const kind = localContexts.parentContexts!.get(VariableDeclarationProcessor.VARIABLE_DECLARATION_KIND_CONTEXT)!;
