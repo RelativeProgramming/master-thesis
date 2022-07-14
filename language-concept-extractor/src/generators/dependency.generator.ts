@@ -91,7 +91,7 @@ export class DependencyGenerator extends Generator {
 
             // Create depends-on relation
             const options = {
-                source: dep.sourceType === "module" ? PathUtils.toGraphPath(dep.sourceFQN) : dep.sourceFQN,
+                source: dep.sourceType === "module" ? PathUtils.toGraphPath(PathUtils.extractFQNPath(dep.sourceFQN)) : dep.sourceFQN,
                 target: dep.targetType === "module" && !external ? PathUtils.toGraphPath(dep.fqn) : dep.fqn,
                 depProps: {
                     cardinality: dep.cardinality,

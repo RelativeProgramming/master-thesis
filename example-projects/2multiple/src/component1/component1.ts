@@ -1,3 +1,4 @@
+import { DepC } from '../component2/component2';
 import { component } from '../framework';
 import { Model1 } from './component1.model';
 
@@ -20,3 +21,6 @@ export interface ImplementMe {
     implProp: number;
     implMethod(a: number): void;
 }
+
+const c = new DepC();
+const c1 = c.b.a;

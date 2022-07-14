@@ -140,4 +140,16 @@ let a10 = class A {};
 let a11 = new Date(), a12 = 12;
 let a13 = [1, 2, 3, ...[4, 5, 6]]
 
+export class DepA {
+    x: number = 5;
+}
+
+export class DepB {
+    a: DepA = new DepA();
+}
+
+export class DepC {
+    b: DepB = new DepB();
+}
+
 type TestType = TestInterface | number;
