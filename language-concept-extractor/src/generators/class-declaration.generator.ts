@@ -39,8 +39,7 @@ export class ClassDeclarationGenerator extends Generator {
 
             // create class decorator nodes and connections
             for(let deco of classDecl.decorators) {
-                const decoratorNodeId = await createDecoratorNode(deco, neo4jSession);
-                connectionIndex.connectionsToCreate.push([classNodeId, decoratorNodeId, {name: ":DECORATED_BY", props: {}}]);
+                await createDecoratorNode(deco, neo4jSession, connectionIndex, classNodeId, {name: ":DECORATED_BY", props: {}});
             }
 
             // create type parameter nodes and connections

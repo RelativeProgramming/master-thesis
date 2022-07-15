@@ -31,16 +31,7 @@ export async function createPropertyNode(
     
     // create property decorator nodes and connections
     for(let deco of propertyDecl.decorators) {
-        const decoNodeId = await createDecoratorNode(deco, neo4jSession);
-        await neo4jSession.run(
-            `
-            MATCH (prop:TS:Property)
-            MATCH (deco:TS:Decorator)
-            WHERE id(prop) = $propNodeId AND id(deco) = $decoNodeId
-            CREATE (prop)-[:DECORATED_BY]->(deco)
-            RETURN deco
-            `, {propNodeId: propNodeId, decoNodeId: decoNodeId}
-        )
+        await createDecoratorNode(deco, neo4jSession, connectionIndex, propNodeId, {name: ":DECORATED_BY", props: {}});
     }
 
     // create property type nodes

@@ -32,7 +32,7 @@ import { createTypeNode } from './type.generator.utils';
     connectionIndex: ConnectionIndex, 
     parentNode: Integer,
     connectionProps: ConnectionProperties
-): Promise<void> {
+): Promise<Integer | undefined> {
     // NOTE: every newly created value node must be registered at the connectionIndex for a connection
 
     let valueNodeId: Integer | undefined;
@@ -159,4 +159,6 @@ import { createTypeNode } from './type.generator.utils';
             );
         }
     }
+
+    return valueNodeId;
 }

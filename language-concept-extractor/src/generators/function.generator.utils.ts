@@ -60,16 +60,7 @@ export async function createFunctionParameterNode(
     
     // create parameter decorator nodes and connections
     for(let deco of parameterDecl.decorators) {
-        const decoNodeId = await createDecoratorNode(deco, neo4jSession);
-        await neo4jSession.run(
-            `
-            MATCH (param:TS:Parameter)
-            MATCH (deco:TS:Decorator)
-            WHERE id(param) = $parameterNodeId AND id(deco) = $decoNodeId
-            CREATE (param)-[:DECORATED_BY]->(deco)
-            RETURN deco
-            `, {parameterNodeId: parameterNodeId, decoNodeId: decoNodeId}
-        )
+        await createDecoratorNode(deco, neo4jSession, connectionIndex, parameterNodeId, {name: ":DECORATED_BY", props: {}});
     }
 
     // create parameter type nodes

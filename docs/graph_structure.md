@@ -182,7 +182,7 @@ Relations:
 
 ## Decorator
 → all decorators decorating either classes, methods or properties
-- [x]  Label: `:TS:Decorator`
+→ they are generally represented by Value nodes, that are referred to with the `DECORATED_BY` relation
 
 Properties:
 - [x]  `name`: name of the decorator

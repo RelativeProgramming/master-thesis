@@ -31,7 +31,7 @@ export async function createMethodNode(
     ));
     
     // create method decorator nodes and connections
-    await createMethodDecorators(methodNodeId, neo4jSession, methodDecl.decorators);
+    await createMethodDecorators(methodNodeId, neo4jSession, connectionIndex, methodDecl.decorators);
 
     // create method type parameter nodes and connections
     if(methodDecl.methodName === "myFuncTest") {
@@ -138,7 +138,7 @@ export async function createGetterNode(
     ));
 
     // create getter decorator nodes and connections
-    await createMethodDecorators(getterNodeId, neo4jSession, getterDecl.decorators);
+    await createMethodDecorators(getterNodeId, neo4jSession, connectionIndex, getterDecl.decorators);
     
     // create getter return type nodes
     const typeNodeId = await createTypeNode(
@@ -174,7 +174,7 @@ export async function createSetterNode(
     ));
 
     // create setter decorator nodes and connections
-    await createMethodDecorators(setterNodeId, neo4jSession, setterDecl.decorators);
+    await createMethodDecorators(setterNodeId, neo4jSession, connectionIndex, setterDecl.decorators);
     
     // create setter parameter nodes and connections
     await createFunctionParameterNodes(
@@ -190,19 +190,11 @@ export async function createSetterNode(
 
 async function createMethodDecorators(
     methodNodeId: Integer, 
-    neo4jSession: Session, 
+    neo4jSession: Session,
+    connectionIndex: ConnectionIndex,
     decorators: LCEDecorator[]
 ): Promise<void> {
     for(let deco of decorators) {
-        const decoNodeId = await createDecoratorNode(deco, neo4jSession);
-        await neo4jSession.run(
-            `
-            MATCH (method)
-            MATCH (deco)
-            WHERE id(method) = $methodNodeId AND id(deco) = $decoNodeId
-            CREATE (method)-[:DECORATED_BY]->(deco)
-            RETURN deco
-            `, {methodNodeId: methodNodeId, decoNodeId: decoNodeId}
-        )
+        await createDecoratorNode(deco, neo4jSession, connectionIndex, methodNodeId, {name: ":DECORATED_BY", props: {}});
     }
 }
