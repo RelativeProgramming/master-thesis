@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import { auth as neo4jAuth, driver as neo4jDriver } from 'neo4j-driver';
 import { TypeChecker } from 'typescript';
 
-import { ConceptMap, singleEntryConceptMap, LCEConcept, mergeConceptMaps, unifyConceptMap } from './concept';
+import { ConceptMap, LCEConcept, mergeConceptMaps, singleEntryConceptMap, unifyConceptMap } from './concept';
 import { LCETypeScriptProject } from './concepts/typescript-project.concept';
 import { ConnectionIndex } from './connection-index';
 import { GlobalContext } from './context';
@@ -78,4 +78,5 @@ async function generateGraphs(concepts: Map<string, LCEConcept[]>) {
 
 processProject("/home/sebastian/dev/master-thesis/example-projects/2multiple");
 //processProject("/home/sebastian/dev/master-thesis/example-projects/devhub");
+//processProject("/home/sebastian/dev/master-thesis/example-projects/shlink-web-client");
 //processProject("/home/sebastian/dev/master-thesis/language-concept-extractor");

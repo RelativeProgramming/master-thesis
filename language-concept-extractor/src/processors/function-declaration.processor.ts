@@ -21,7 +21,6 @@ export class FunctionDeclarationProcessor extends Processor {
     public executionCondition: ExecutionCondition = new ExecutionCondition(
         [AST_NODE_TYPES.FunctionDeclaration, AST_NODE_TYPES.TSDeclareFunction],
         ({node}) => {
-            // TODO: process function declarations in nested contexts
             return !!node.parent && (
                 node.parent.type === AST_NODE_TYPES.ExportNamedDeclaration || 
                 node.parent.type === AST_NODE_TYPES.ExportDefaultDeclaration ||
@@ -31,27 +30,28 @@ export class FunctionDeclarationProcessor extends Processor {
     );
 
     public override preChildrenProcessing({node, localContexts, globalContext}: ProcessingContext): void {
-        if(node.type === AST_NODE_TYPES.FunctionDeclaration) {
-            if(node.id) {
-                DependencyResolutionProcessor.addScopeContext(localContexts, node.id.name);
-                DependencyResolutionProcessor.createDependencyIndex(localContexts);
-            }
-
+        if(node.type === AST_NODE_TYPES.FunctionDeclaration || node.type === AST_NODE_TYPES.TSDeclareFunction) {
+            DependencyResolutionProcessor.createDependencyIndex(localContexts);
+            
             const functionType = parseFunctionType({globalContext, localContexts, node}, node);
             if(functionType) {
                 localContexts.currentContexts.set(FunctionParameterProcessor.FUNCTION_TYPE_CONTEXT_ID, functionType);
+                if(node.id) {
+                    const fqn = DependencyResolutionProcessor.constructScopeFQN(localContexts);
+                    DependencyResolutionProcessor.registerDeclaration(localContexts, node.id.name, fqn, localContexts.currentContexts.has(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT));
+                }
+                
             }
         }
     }
 
     public override postChildrenProcessing({node, localContexts, globalContext}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
-        if(node.type === AST_NODE_TYPES.FunctionDeclaration) {
+        if(node.type === AST_NODE_TYPES.FunctionDeclaration || node.type === AST_NODE_TYPES.TSDeclareFunction) {
             // TODO: handle overloads
             const functionType: LCETypeFunction | undefined = localContexts.currentContexts.get(FunctionParameterProcessor.FUNCTION_TYPE_CONTEXT_ID);
             if(functionType) {
                 const functionName = node.id?.name ?? "";
                 const fqn = DependencyResolutionProcessor.constructScopeFQN(localContexts);
-                DependencyResolutionProcessor.registerDeclaration(localContexts, functionName, fqn, true);
                 const typeParameters: LCETypeParameterDeclaration[] = functionType.typeParameters;
                 const returnType = functionType.returnType;
                 return mergeConceptMaps(singleEntryConceptMap(LCEFunctionDeclaration.conceptId, new LCEFunctionDeclaration(

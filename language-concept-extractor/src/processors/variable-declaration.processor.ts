@@ -1,13 +1,12 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 
-import { ConceptMap, LCEConcept, singleEntryConceptMap } from '../concept';
-import { LCETypeNotIdentified } from '../concepts/type.concept';
-import { LCEValue, LCEValueArray, LCEValueCall, LCEValueComplex, LCEValueDeclared, LCEValueLiteral, LCEValueMember, LCEValueNull, LCEValueObject } from '../concepts/value.concept';
+import { ConceptMap, mergeConceptMaps, singleEntryConceptMap } from '../concept';
+import { LCEValue, LCEValueComplex } from '../concepts/value.concept';
 import { LCEVariableDeclaration } from '../concepts/variable-declaration.concept';
 import { ProcessingContext } from '../context';
 import { ExecutionCondition } from '../execution-condition';
 import { Processor } from '../processor';
-import { getAndDeleteAllValueChildConcepts, getAndDeleteChildConcepts } from '../processor.utils';
+import { getAndDeleteAllValueChildConcepts } from '../processor.utils';
 import { VariableDeclaratorTraverser } from '../traversers/variable-declaration.traverser';
 import { DependencyResolutionProcessor } from './dependency-resolution.processor';
 import { parseESNodeType } from './type.utils';
@@ -48,9 +47,12 @@ export class VariableDeclaratorProcessor extends Processor {
     );
 
     public override preChildrenProcessing({localContexts, node}: ProcessingContext): void {
-        if(node.type === AST_NODE_TYPES.VariableDeclarator && node.init && node.id.type === AST_NODE_TYPES.Identifier) {
-            localContexts.currentContexts.set(VALUE_PROCESSING_FLAG, true);
+        if(node.type === AST_NODE_TYPES.VariableDeclarator && node.id.type === AST_NODE_TYPES.Identifier) {
+            if(node.init)
+                localContexts.currentContexts.set(VALUE_PROCESSING_FLAG, true);
             localContexts.currentContexts.set(VariableDeclaratorProcessor.VARIABLE_DECLARATOR_FQN_CONTEXT, DependencyResolutionProcessor.constructFQNPrefix(localContexts) + node.id.name);
+            DependencyResolutionProcessor.addScopeContext(localContexts, node.id.name);
+            DependencyResolutionProcessor.createDependencyIndex(localContexts);
         }
     }
 
@@ -85,7 +87,10 @@ export class VariableDeclaratorProcessor extends Processor {
                 globalContext.sourceFilePath
             );
 
-            return singleEntryConceptMap(LCEVariableDeclaration.conceptId, varDecl);
+            return mergeConceptMaps(
+                singleEntryConceptMap(LCEVariableDeclaration.conceptId, varDecl), 
+                DependencyResolutionProcessor.getRegisteredDependencies(localContexts)
+            );
             
         }
         return new Map();

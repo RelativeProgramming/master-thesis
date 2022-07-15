@@ -1,5 +1,18 @@
 import { Integer, Session } from 'neo4j-driver';
-import { LCEValue, LCEValueArray, LCEValueCall, LCEValueClass, LCEValueComplex, LCEValueDeclared, LCEValueFunction, LCEValueLiteral, LCEValueMember, LCEValueNull, LCEValueObject } from '../concepts/value.concept';
+
+import {
+    LCEValue,
+    LCEValueArray,
+    LCEValueCall,
+    LCEValueClass,
+    LCEValueComplex,
+    LCEValueDeclared,
+    LCEValueFunction,
+    LCEValueLiteral,
+    LCEValueMember,
+    LCEValueNull,
+    LCEValueObject,
+} from '../concepts/value.concept';
 import { ConnectionIndex, ConnectionProperties } from '../connection-index';
 import { PathUtils } from '../path.utils';
 import { Utils } from '../utils';
@@ -103,11 +116,14 @@ import { createTypeNode } from './type.generator.utils';
             await createTypeNode(typeArg, neo4jSession, connectionIndex, valueNodeId, {name: ":HAS_TYPE_ARGUMENT", props:{index: i}});
         }
     } else if(value instanceof LCEValueFunction) {
+        const valueNodeProps = {
+            arrowFunction: value.arrowFunction,
+        }
         valueNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
             `
-            CREATE (val:TS:Value:Function)
+            CREATE (val:TS:Value:Function $valueNodeProps)
             RETURN id(val)
-            `
+            `, {valueNodeProps}
         ));
     } else if(value instanceof LCEValueClass) {
         valueNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(

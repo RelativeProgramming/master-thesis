@@ -1,7 +1,6 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 
 import { ConceptMap, singleEntryConceptMap } from '../concept';
-import { LCETypeNotIdentified } from '../concepts/type.concept';
 import {
     LCEValue,
     LCEValueArray,
@@ -235,17 +234,16 @@ export class CallValueProcessor extends Processor {
 export class FunctionValueProcessor extends Processor {
 
     public executionCondition: ExecutionCondition = new ExecutionCondition(
-        [AST_NODE_TYPES.FunctionExpression],
+        [AST_NODE_TYPES.FunctionExpression, AST_NODE_TYPES.ArrowFunctionExpression],
         ({localContexts}) => {
             return !!localContexts.parentContexts?.has(VALUE_PROCESSING_FLAG);
         },
     );
 
     public override postChildrenProcessing({node, localContexts, globalContext}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
-        if(node.type === AST_NODE_TYPES.FunctionExpression) {
-            // TODO: add proper function value
+        if(node.type === AST_NODE_TYPES.FunctionExpression || node.type === AST_NODE_TYPES.ArrowFunctionExpression) {
             return singleEntryConceptMap(LCEValueFunction.conceptId, new LCEValueFunction(
-                new LCETypeNotIdentified("function expression"), 
+                node.type === AST_NODE_TYPES.ArrowFunctionExpression, 
             ));
         }
         return new Map();
@@ -264,9 +262,7 @@ export class ClassValueProcessor extends Processor {
     public override postChildrenProcessing({node, localContexts, globalContext}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
         if(node.type === AST_NODE_TYPES.ClassExpression) {
             // TODO: add proper class value
-            return singleEntryConceptMap(LCEValueClass.conceptId, new LCEValueClass(
-                new LCETypeNotIdentified("class expression"), 
-            ));
+            return singleEntryConceptMap(LCEValueClass.conceptId, new LCEValueClass());
         }
         return new Map();
     }
@@ -278,7 +274,6 @@ export class ComplexValueProcessor extends Processor {
         [
             AST_NODE_TYPES.SpreadElement,
             AST_NODE_TYPES.ArrayPattern,
-            AST_NODE_TYPES.ArrowFunctionExpression,
             AST_NODE_TYPES.AssignmentExpression,
             AST_NODE_TYPES.AwaitExpression,
             AST_NODE_TYPES.BinaryExpression,

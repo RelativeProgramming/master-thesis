@@ -96,8 +96,8 @@ Relations:
 - [x]  `RETURNS`: return type of the function
 - [x]  `HAS`: references to parameters
 - [x]  `DECLARES`: all declared type parameters
-- [ ]  `DEPENDS_ON`: all internal and external declarations that are used within the function
-  - [ ]  attribute `cardinality` indicates the number of references made (added up transitively)
+- [x]  `DEPENDS_ON`: all internal and external declarations that are used within the function
+  - [x]  attribute `cardinality` indicates the number of references made (added up transitively)
 
 ## Variable Declaration
 → all variable declarations made on file level
@@ -111,6 +111,8 @@ Properties:
 Relations:
 - [x]  `OF_TYPE`: type of the declared variable
 - [x]  `INITIALIZED_WITH`: initial value of the declared variable
+- [x]  `DEPENDS_ON`: all internal and external declarations that are used by the property
+  - [x]  attribute `cardinality` indicates the number of references made
 
 ## Property Declaration
 → all property declarations inside classes, interfaces or type aliases
@@ -128,8 +130,8 @@ Properties:
 Relations:
 - [x]  `OF_TYPE`: type of the property
 - [x]  `DECORATED_BY`: all decorators of the property
-- [ ]  `DEPENDS_ON`: all internal and external declarations that are used by the property
-  - [ ]  attribute `cardinality` indicates the number of references made
+- [x]  `DEPENDS_ON`: all internal and external declarations that are used by the property
+  - [x]  attribute `cardinality` indicates the number of references made
 
 ## Method Declaration
 → all method declarations inside classes, interfaces or types
@@ -147,8 +149,8 @@ Relations:
 - [x]  `HAS`: references to parameters
 - [x]  `DECORATED_BY`: all decorators of the method
 - [x]  `DECLARES`: references to declared type parameters
-- [ ]  `DEPENDS_ON`: all internal and external declarations that are used within the method
-  - [ ]  attribute `cardinality` indicates the number of references made
+- [x]  `DEPENDS_ON`: all internal and external declarations that are used within the method
+  - [x]  attribute `cardinality` indicates the number of references made
 
 Sub-Types:
 - Constructor
@@ -184,8 +186,6 @@ Relations:
 
 Properties:
 - [x]  `name`: name of the decorator
-
-## Instructional Code (TODO)
 
 ## Type
 → represents a type (e.g. return type, property type, etc.)
@@ -231,6 +231,9 @@ Relations:
 
 ### Function Types
 - [x]  Label: `:TS:Type:Function`
+
+Properties:
+- [ ]  `arrowFunction`: indicates whether the value is an arrow function
 
 Relations:
 - [x]  `RETURNS`: reference to return type
@@ -335,7 +338,7 @@ Relations:
   - [x]  attribute `index`: index of the type argument
 
 ### Function Value
-→ any values representing a function (e.g. `function(x: string) { return x.trim(); }`)
+→ any values representing a function (e.g. `function(x: string) { return x.trim(); }` or `(x: number) => x + 1`)
 - [x]  Label: `:TS:Value:Function`
 
 ### Class Value

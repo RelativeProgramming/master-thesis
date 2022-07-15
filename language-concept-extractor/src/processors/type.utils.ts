@@ -1,17 +1,18 @@
 import {
+    ArrowFunctionExpression,
     ClassDeclaration,
     ClassPropertyNameNonComputed,
-    Expression,
-    Node as ESNode,
     FunctionDeclaration,
+    FunctionExpression,
     Identifier,
     MethodDefinitionNonComputedName,
+    Node as ESNode,
     TSClassImplements,
+    TSDeclareFunction,
     TSInterfaceDeclaration,
     TSInterfaceHeritage,
     TSMethodSignatureNonComputedName,
     TypeNode,
-    VariableDeclarator,
 } from '@typescript-eslint/types/dist/generated/ast-spec';
 import { isTypeParameterDeclaration, Node, PseudoBigInt, Signature, SignatureKind, Symbol, Type, TypeReference } from 'typescript';
 
@@ -150,7 +151,7 @@ export function parseMethodType(
 /** 
  * Returns the function type for a given function declaration
  */
-export function parseFunctionType(processingContext: ProcessingContext, esFunctionDecl: FunctionDeclaration): LCETypeFunction {
+export function parseFunctionType(processingContext: ProcessingContext, esFunctionDecl: FunctionDeclaration | TSDeclareFunction | FunctionExpression | ArrowFunctionExpression): LCETypeFunction {
     const globalContext = processingContext.globalContext;
     const tc = globalContext.typeChecker;
     const methodNode = globalContext.services.esTreeNodeToTSNodeMap.get(esFunctionDecl);

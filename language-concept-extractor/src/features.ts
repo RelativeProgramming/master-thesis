@@ -16,7 +16,7 @@ import { DependencyResolutionProcessor } from './processors/dependency-resolutio
 import { ExportDeclarationProcessor } from './processors/export-declaration.processor';
 import { FunctionDeclarationProcessor, FunctionParameterProcessor } from './processors/function-declaration.processor';
 import { ImportDeclarationProcessor } from './processors/import-declaration.processor';
-import { IdentifierDependencyProcessor, MemberExpressionDependencyProcessor, ScopeProcessor } from './processors/instructional-code.processor';
+import { DeclarationScopeProcessor, IdentifierDependencyProcessor, MemberExpressionDependencyProcessor, ScopeProcessor } from './processors/instructional-code.processor';
 import { InterfaceDeclarationProcessor, SuperInterfaceDeclarationProcessor } from './processors/interface-declaration.processor';
 import {
     ArrayValueProcessor,
@@ -172,6 +172,7 @@ export const PROCESSORS: Processor[] = [
     new ClassDeclarationProcessor(),
     new ClassValueProcessor(),
     new ComplexValueProcessor(),
+    new DeclarationScopeProcessor(),
     new DecoratorProcessor(),
     new DependencyResolutionProcessor(),
     new ExportDeclarationProcessor(),

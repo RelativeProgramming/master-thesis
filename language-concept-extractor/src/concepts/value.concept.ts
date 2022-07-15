@@ -171,6 +171,15 @@ export class LCEValueArray extends LCEValue {
  */
 export class LCEValueFunction extends LCEValue {
     public static override conceptId = "function-value";
+
+    /**
+     * @param arrowFunction indicates whether the function is an arrow function
+     */
+    constructor(
+        public arrowFunction: boolean,
+    ) {
+        super(new LCETypeNotIdentified("function expression"));
+    }
 }
 
 /**
@@ -178,6 +187,10 @@ export class LCEValueFunction extends LCEValue {
  */
  export class LCEValueClass extends LCEValue {
     public static override conceptId = "class-value";
+
+    constructor() {
+        super(new LCETypeNotIdentified("class expression"));
+    }
  }
 
 /**

@@ -30,18 +30,15 @@ export class ClassDeclarationProcessor extends Processor {
         },
     );
 
-    public override preChildrenProcessing({localContexts, node}: ProcessingContext): void {
-        if(node.type === AST_NODE_TYPES.ClassDeclaration && node.id) {
-            DependencyResolutionProcessor.addScopeContext(localContexts, node.id.name);
-            DependencyResolutionProcessor.createDependencyIndex(localContexts);
-        }
+    public override preChildrenProcessing({localContexts}: ProcessingContext): void {
+        DependencyResolutionProcessor.createDependencyIndex(localContexts);
     }
 
     public override postChildrenProcessing({globalContext, localContexts, node}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
         if(node.type === AST_NODE_TYPES.ClassDeclaration) {
             const className = node.id?.name ?? "";
             const fqn = DependencyResolutionProcessor.constructScopeFQN(localContexts);
-            DependencyResolutionProcessor.registerDeclaration(localContexts, className, fqn, true);
+            DependencyResolutionProcessor.registerDeclaration(localContexts, className, fqn, localContexts.currentContexts.has(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT));
             const classDecl = new LCEClassDeclaration(
                 className,
                 fqn,

@@ -1,6 +1,6 @@
 import { AST_NODE_TYPES } from '@typescript-eslint/types';
 
-import { ConceptMap, singleEntryConceptMap, mergeConceptMaps } from '../concept';
+import { ConceptMap, mergeConceptMaps, singleEntryConceptMap } from '../concept';
 import { LCEDependency } from '../concepts/dependency.concept';
 import { LCEInterfaceDeclaration } from '../concepts/interface-declaration.concept';
 import { LCEGetterDeclaration, LCEMethodDeclaration, LCESetterDeclaration } from '../concepts/method-declaration.concept';
@@ -29,18 +29,15 @@ export class InterfaceDeclarationProcessor extends Processor {
         },
     );
 
-    public override preChildrenProcessing({localContexts, node}: ProcessingContext): void {
-        if(node.type === AST_NODE_TYPES.TSInterfaceDeclaration) {
-            DependencyResolutionProcessor.addScopeContext(localContexts, node.id.name);
-            DependencyResolutionProcessor.createDependencyIndex(localContexts);
-        }
+    public override preChildrenProcessing({localContexts}: ProcessingContext): void {
+        DependencyResolutionProcessor.createDependencyIndex(localContexts);
     }
 
     public override postChildrenProcessing({globalContext, localContexts, node}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
         if(node.type === AST_NODE_TYPES.TSInterfaceDeclaration) {
             const interfaceName = node.id.name;
             const fqn = DependencyResolutionProcessor.constructScopeFQN(localContexts);
-            DependencyResolutionProcessor.registerDeclaration(localContexts, interfaceName, fqn, true);
+            DependencyResolutionProcessor.registerDeclaration(localContexts, interfaceName, fqn, localContexts.currentContexts.has(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT));
             const classDecl = new LCEInterfaceDeclaration(
                 interfaceName,
                 fqn,

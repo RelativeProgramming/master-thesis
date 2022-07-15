@@ -164,8 +164,6 @@ export class PropertyProcessor extends Processor {
             let [propertyName, _] = processMemberName(node.key);
             DependencyResolutionProcessor.addScopeContext(localContexts, propertyName);
             DependencyResolutionProcessor.createDependencyIndex(localContexts);
-            if(propertyName === "newExtensionProp")
-                propertyName
         }
     }
 

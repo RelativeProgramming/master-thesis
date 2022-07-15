@@ -126,9 +126,6 @@ let aI: TestInterface = {
     y: 6,
 }
 let aI_2 = aI.x;
-let a3 = function(a: string): string {
- return a; 
-}
 let a4 = console.log(4);
 let a4_2 = [1].concat([2]).concat([3]);
 let a5: string | undefined = undefined;
@@ -139,6 +136,13 @@ let a9 = !a8;
 let a10 = class A {};
 let a11 = new Date(), a12 = 12;
 let a13 = [1, 2, 3, ...[4, 5, 6]]
+
+let aFunc = function<T extends {x: string}>(a: string, b: T): string {
+    let c = new Model2();
+    return a + b.x; 
+}
+
+let aArrFunc = <T extends {a: string}>(x: number, y: T, z: Model2): number => x + 1;
 
 export class DepA {
     x: number = 5;
