@@ -125,11 +125,13 @@ export class LCETypeFunction extends LCEType {
     /**
      * @param index position of the parameter in the parameter list
      * @param name name of the parameter
+     * @param optional indicates whether the parameter is optional
      * @param type type of the parameter
      */
     constructor(
         public index: number,
         public name: string,
+        public optional: boolean,
         public type: LCEType
     ) {
         super();

@@ -82,7 +82,9 @@ class Class1<T> {
 }
 
 class Class2 extends Class1<string> {
-
+    constructor(a?: number) {
+        super();
+    }
 }
 
 function myGlobalFunc<T>(x: number, y: T[]): string[] {
@@ -137,9 +139,9 @@ let a10 = class A {};
 let a11 = new Date(), a12 = 12;
 let a13 = [1, 2, 3, ...[4, 5, 6]]
 
-let aFunc = function<T extends {x: string}>(a: string, b: T): string {
+let aFunc = function<T extends {x: string}>(a: string, b?: T): string {
     let c = new Model2();
-    return a + b.x; 
+    return a + b!.x; 
 }
 
 let aArrFunc = <T extends {a: string}>(x: number, y: T, z: Model2): number => x + 1;

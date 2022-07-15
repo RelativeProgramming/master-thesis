@@ -49,7 +49,8 @@ export async function createFunctionParameterNode(
     // create parameter node
     const parameterNodeProps = {
         index: parameterDecl.index,
-        name: parameterDecl.name
+        name: parameterDecl.name,
+        optional: parameterDecl.optional,
     }
     const parameterNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
         `

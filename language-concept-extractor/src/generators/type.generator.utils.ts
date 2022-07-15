@@ -149,7 +149,7 @@ export async function createTypeNode(
                     index: param.index,
                     name: param.name,
                     type: param.type,
-                    optional: false, // TODO: determine optional for function type parameter
+                    optional: param.optional,
                     decorators: []
                 },
                 neo4jSession,

@@ -14,7 +14,7 @@ import {
     TSMethodSignatureNonComputedName,
     TypeNode,
 } from '@typescript-eslint/types/dist/generated/ast-spec';
-import { isTypeParameterDeclaration, Node, PseudoBigInt, Signature, SignatureKind, Symbol, Type, TypeReference } from 'typescript';
+import { isTypeParameterDeclaration, Node, ParameterDeclaration, PseudoBigInt, Signature, SignatureKind, Symbol, Type, TypeReference } from 'typescript';
 
 import { LCETypeParameterDeclaration } from '../concepts/type-parameter.concept';
 import {
@@ -101,6 +101,7 @@ export function parseMethodType(
                     new LCETypeFunctionParameter(
                         i, 
                         (esParam as Identifier).name, 
+                        esParam.optional ?? false,
                         parseType(processingContext, paramType, paramNode)
                     )
                 );
@@ -126,7 +127,7 @@ export function parseMethodType(
             const paramType = tc.getTypeAtLocation(paramNode);
             return new LCETypeFunction(
                 new LCETypeNotIdentified("setter"),
-                [new LCETypeFunctionParameter(0, paramName, parseType(processingContext, paramType, methodNode))],
+                [new LCETypeFunctionParameter(0, paramName, false, parseType(processingContext, paramType, methodNode))],
                 []
             );
         }
@@ -344,10 +345,13 @@ function parseAnonymousType(processingContext: ProcessingContext, type: Type, no
         for(let i = 0; i < paramSyms.length; i++) {
             let parameterSym = paramSyms[i];
             const paramType = tc.getTypeOfSymbolAtLocation(parameterSym, node);
+            const paramNode = parameterSym.getDeclarations();
+            const optional = paramNode ? tc.isOptionalParameter(paramNode[0] as ParameterDeclaration) : false;
             parameters.push(
                 new LCETypeFunctionParameter(
                     i, 
                     parameterSym.name, 
+                    optional,
                     parseType(processingContext, paramType, node, excludedFQN, ignoreDependencies)
                 )
             );
@@ -445,10 +449,13 @@ function parseFunctionParameters(processingContext: ProcessingContext, signature
         // TODO: process rest parameter arguments
         // TODO: process `this` parameter (necessary?)
         // TODO: process default parameters
+        const paramNode = paraSym.getDeclarations();
+        const optional = paramNode ? tc.isOptionalParameter(paramNode[0] as ParameterDeclaration) : false;
         parameters.push(
             new LCETypeFunctionParameter(
                 i, 
                 paraSym.name, 
+                optional,
                 parseType(processingContext, parameterType, node)
             )
         );
