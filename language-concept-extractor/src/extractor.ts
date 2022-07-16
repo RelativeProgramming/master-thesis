@@ -50,9 +50,7 @@ export function processProject(projectRoot: string) {
 
   const endTime = process.hrtime();
   console.log("Finished analyzing project files. Runtime: " + (endTime[0] - startTime[0]) + "s");
-  // const debug1 = concepts.get('./src/component2/component2.ts')!;
-  // const debug2 = debug1.get("variable-declaration")!;
-  // debug1
+
   generateGraphs(unifyConceptMap(concepts, "").get("")!);
 }
 

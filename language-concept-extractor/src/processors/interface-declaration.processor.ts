@@ -20,7 +20,6 @@ export class InterfaceDeclarationProcessor extends Processor {
     public executionCondition: ExecutionCondition = new ExecutionCondition(
         [AST_NODE_TYPES.TSInterfaceDeclaration],
         ({node}) => {
-            // TODO: process interface declarations in nested contexts
             return !!node.parent && (
                 node.parent.type === AST_NODE_TYPES.ExportNamedDeclaration ||
                 node.parent.type === AST_NODE_TYPES.ExportDefaultDeclaration || 
@@ -38,7 +37,7 @@ export class InterfaceDeclarationProcessor extends Processor {
             const interfaceName = node.id.name;
             const fqn = DependencyResolutionProcessor.constructScopeFQN(localContexts);
             DependencyResolutionProcessor.registerDeclaration(localContexts, interfaceName, fqn, localContexts.currentContexts.has(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT));
-            const classDecl = new LCEInterfaceDeclaration(
+            const interfaceDecl = new LCEInterfaceDeclaration(
                 interfaceName,
                 fqn,
                 parseClassLikeTypeParameters({globalContext, localContexts, node}, node),
@@ -49,7 +48,7 @@ export class InterfaceDeclarationProcessor extends Processor {
                 getAndDeleteChildConcepts(ClassTraverser.MEMBERS_PROP, LCESetterDeclaration.conceptId, childConcepts),
                 globalContext.sourceFilePath
             );
-            return mergeConceptMaps(singleEntryConceptMap(LCEInterfaceDeclaration.conceptId, classDecl),
+            return mergeConceptMaps(singleEntryConceptMap(LCEInterfaceDeclaration.conceptId, interfaceDecl),
                 DependencyResolutionProcessor.getRegisteredDependencies(localContexts));
         }
         return new Map();

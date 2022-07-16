@@ -82,7 +82,17 @@ Relations:
 - [x]  `DEPENDS_ON`: all internal and external declarations that are used within the interface
   - [x]  attribute `cardinality` indicates the number of references made (added up transitively)
 
-## Type Alias Declaration (TODO)
+## Type Alias Declaration
+→ all `type` declarations inside TS files
+- [x]  Label: `:TS:TypeAlias`
+
+Properties:
+- [x]  `fqn`: fully qualified name (e.g. `"./src/main.ts".MyType`)
+- [x]  `name`: local name of the type alias
+
+Relations:
+- [x]  `DECLARES`: all declared type parameters
+- [x]  `OF_TYPE`: type the alias refers to
 
 ## Function Declaration
 → all function declarations made on file level

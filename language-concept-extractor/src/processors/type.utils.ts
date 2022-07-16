@@ -1,3 +1,4 @@
+import { AST_NODE_TYPES } from '@typescript-eslint/types';
 import {
     ArrowFunctionExpression,
     ClassDeclaration,
@@ -6,13 +7,14 @@ import {
     FunctionExpression,
     Identifier,
     MethodDefinitionNonComputedName,
-    TSAbstractMethodDefinitionNonComputedName,
     Node as ESNode,
+    TSAbstractMethodDefinitionNonComputedName,
     TSClassImplements,
     TSDeclareFunction,
     TSInterfaceDeclaration,
     TSInterfaceHeritage,
     TSMethodSignatureNonComputedName,
+    TSTypeAliasDeclaration,
     TypeNode,
 } from '@typescript-eslint/types/dist/generated/ast-spec';
 import { isTypeParameterDeclaration, Node, ParameterDeclaration, PseudoBigInt, Signature, SignatureKind, Symbol, Type, TypeReference } from 'typescript';
@@ -210,6 +212,39 @@ export function parseFunctionType(processingContext: ProcessingContext, esFuncti
 }
 
 /**
+ * Returns the type parameters declared for a given type alias
+ * @param esElement declaration node provided in ESTree
+ * @returns Array of LCEGenericsTypeVariable with encoded type parameter information
+ */
+ export function parseTypeAliasTypeParameters(processingContext: ProcessingContext, esElement: TSTypeAliasDeclaration): LCETypeParameterDeclaration[] {
+    const globalContext = processingContext.globalContext;
+    const tc = globalContext.typeChecker;
+    const result: LCETypeParameterDeclaration[] = [];
+
+    for(let esTypeParam of esElement.typeParameters?.params ?? []) {
+        const typeParam = tc.getTypeAtLocation(globalContext.services.esTreeNodeToTSNodeMap.get(esTypeParam));
+        const name = typeParam.symbol.name;
+        let constraintType: LCEType;
+
+        const typeParamDecl = typeParam.symbol.declarations![0];
+        if(isTypeParameterDeclaration(typeParamDecl) && typeParamDecl.constraint) {
+            constraintType = parseType(
+                processingContext, 
+                tc.getTypeAtLocation(typeParamDecl.constraint), 
+                typeParamDecl
+            );
+        } else {
+            // if no constraint is found, return empty object type (unconstrained)
+            constraintType = new LCETypeObject(new Map());
+        }
+
+        result.push(new LCETypeParameterDeclaration(name, constraintType));
+    }
+
+    return result;
+}
+
+/**
  * Returns declared type for a given super type specified after `extends` or `implements`
  * @param esTypeIdentifier ESTree identifier of the super type
  * @param esTypeArguments type arguments of the super type
@@ -257,7 +292,11 @@ function parseType(processingContext: ProcessingContext, type: Type, node: Node,
             undefined
     const fqn = symbol ? tc.getFullyQualifiedName(symbol) : undefined;
 
-    if((!fqn || fqn === "__type" || fqn === excludedFQN) && !isPrimitiveType(tc.typeToString(type))) {
+    if((!fqn || fqn.startsWith("__type") || fqn === excludedFQN) && !isPrimitiveType(tc.typeToString(type))) {
+        // TODO: handle recursive types like `_DeepPartialObject`
+        if(type.aliasSymbol?.getName() === "_DeepPartialObject")
+            return new LCETypeNotIdentified("DeepPartialObject is not supported");
+
         // anonymous type
         return parseAnonymousType(processingContext, type, node, symbol, excludedFQN, ignoreDependencies);
     }
@@ -279,10 +318,12 @@ function parseType(processingContext: ProcessingContext, type: Type, node: Node,
 
         // normalize TypeChecker FQN and determine if type is part of the project
         // TODO: further testing needed
-        const sourceFile = symbol?.getDeclarations()?.[0]?.getSourceFile();
+        const sourceFile = symbol?.valueDeclaration?.getSourceFile();
         const hasSource = !!sourceFile;
         const isStandardLibrary = hasSource && globalContext.services.program.isSourceFileDefaultLibrary(sourceFile!)
-        const isExternal = hasSource && globalContext.services.program.isSourceFileFromExternalLibrary(sourceFile!);
+        const isExternal = hasSource && globalContext.services.program.isSourceFileFromExternalLibrary(sourceFile!)
+        // const isExternal = hasSource ? globalContext.services.program.isSourceFileFromExternalLibrary(sourceFile!) :
+        //     !!symbol?.declarations && symbol.declarations[0] && globalContext.services.program.isSourceFileFromExternalLibrary(symbol.declarations[0].getSourceFile());
 
 
         let normalizedFQN = "";
@@ -324,8 +365,6 @@ function parseType(processingContext: ProcessingContext, type: Type, node: Node,
             typeArguments
         );
     }
-
-    
 }
 
 function parseAnonymousType(processingContext: ProcessingContext, type: Type, node: Node, symbol?: Symbol, excludedFQN?: string, ignoreDependencies = false): LCEType {
@@ -338,6 +377,8 @@ function parseAnonymousType(processingContext: ProcessingContext, type: Type, no
         return new LCETypeUnion(type.types.map((t) => parseType(processingContext, t, node, excludedFQN, ignoreDependencies)));
     } else if(type.isIntersection()) {
         // intersection type
+        const globalContext = processingContext.globalContext;
+        const myNode = processingContext.node;
         return new LCETypeIntersection(type.types.map((t) => parseType(processingContext, t, node, excludedFQN, ignoreDependencies)));
     } else if(type.getCallSignatures().length > 0) {
         if(type.getCallSignatures().length > 1)

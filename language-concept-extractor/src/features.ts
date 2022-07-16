@@ -6,6 +6,7 @@ import { ConnectionGenerator } from './generators/connection.generator';
 import { DependencyGenerator } from './generators/dependency.generator';
 import { FunctionDeclarationGenerator } from './generators/function-declaration.generator';
 import { InterfaceDeclarationGenerator } from './generators/interface-declaration.generator';
+import { TypeAliasDeclarationGenerator } from './generators/type-alias-declaration.generator';
 import { TypeScriptProjectFilesGenerator } from './generators/typescript-project-files.generator';
 import { VariableDeclarationGenerator } from './generators/variable-declaration.generator';
 import { Processor } from './processor';
@@ -18,6 +19,7 @@ import { FunctionDeclarationProcessor, FunctionParameterProcessor } from './proc
 import { ImportDeclarationProcessor } from './processors/import-declaration.processor';
 import { DeclarationScopeProcessor, IdentifierDependencyProcessor, MemberExpressionDependencyProcessor, ScopeProcessor } from './processors/instructional-code.processor';
 import { InterfaceDeclarationProcessor, SuperInterfaceDeclarationProcessor } from './processors/interface-declaration.processor';
+import { TypeAliasDeclarationProcessor } from './processors/type-alias-declaration.processor';
 import {
     ArrayValueProcessor,
     CallValueProcessor,
@@ -85,6 +87,7 @@ import {
     WhileStatementTraverser,
     WithStatementTraverser,
 } from './traversers/statement.traverser';
+import { TypeAliasDeclarationTraverser } from './traversers/type-alias-declaration.traverser';
 import { TypeParameterDeclarationTraverser, TypeParameterInstantiationTraverser, TypeParameterTraverser } from './traversers/type-parameter.traverser';
 import { VariableDeclarationTraverser, VariableDeclaratorTraverser } from './traversers/variable-declaration.traverser';
 
@@ -153,6 +156,7 @@ export const TRAVERSERS: Map<AST_NODE_TYPES, Traverser> = new Map([
     [AST_NODE_TYPES.TSNonNullExpression, new NonNullExpressionTraverser()],
     [AST_NODE_TYPES.TSParameterProperty, new ParameterPropertyTraverser()],
     [AST_NODE_TYPES.TSPropertySignature, new PropertyTraverser()],
+    [AST_NODE_TYPES.TSTypeAliasDeclaration, new TypeAliasDeclarationTraverser()],
     [AST_NODE_TYPES.TSTypeAssertion, new TypeAssertionTraverser()],
     [AST_NODE_TYPES.TSTypeParameter, new TypeParameterTraverser()],
     [AST_NODE_TYPES.TSTypeParameterDeclaration, new TypeParameterDeclarationTraverser()],
@@ -198,6 +202,7 @@ export const PROCESSORS: Processor[] = [
     new ScopeProcessor(),
     new SuperClassDeclarationProcessor(),
     new SuperInterfaceDeclarationProcessor(),
+    new TypeAliasDeclarationProcessor(),
     new VariableDeclarationProcessor(),
     new VariableDeclaratorProcessor(),
 ]
@@ -209,6 +214,7 @@ export const GENERATORS: Generator[] = [
     new TypeScriptProjectFilesGenerator(),
     new ClassDeclarationGenerator(), 
     new InterfaceDeclarationGenerator(),
+    new TypeAliasDeclarationGenerator(),
     new FunctionDeclarationGenerator(),
     new VariableDeclarationGenerator(),
     new ConnectionGenerator(),

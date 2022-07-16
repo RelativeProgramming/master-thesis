@@ -1,8 +1,7 @@
-import { ImplementMe, myConst as myC} from '../component1/component1';
+import { TestClass } from '../../../1simple/example-program1';
+import { ImplementMe, myConst as myC } from '../component1/component1';
 import { component, required } from '../framework';
 import { Model2 } from './component2.model';
-import { TestClass } from '../../../1simple/example-program1'; 
-import * as path from "path";
 
 export { Component2 as C2}
 export * as fs from "fs";
@@ -167,3 +166,17 @@ export class DepC {
 }
 
 type TestType = TestInterface | number;
+
+type TestType2<T> = {
+    x: number;
+    y: TestType;
+    readonly z: number;
+    w: T[];
+
+    a(x: number): number
+    b(x: DepC): DepB
+} | string;
+
+type TestType3<T> = TestType2<{x: T}>;
+
+type TestType4 = Map<string, string>;

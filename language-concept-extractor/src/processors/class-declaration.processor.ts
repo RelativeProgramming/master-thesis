@@ -21,7 +21,6 @@ export class ClassDeclarationProcessor extends Processor {
     public executionCondition: ExecutionCondition = new ExecutionCondition(
         [AST_NODE_TYPES.ClassDeclaration],
         ({node}) => {
-            // TODO: process class declarations in nested contexts
             return !!node.parent && (
                 node.parent.type === AST_NODE_TYPES.ExportNamedDeclaration || 
                 node.parent.type === AST_NODE_TYPES.ExportDefaultDeclaration ||
