@@ -278,23 +278,27 @@ function parseType(processingContext: ProcessingContext, type: Type, node: Node,
 
         // normalize TypeChecker FQN and determine if type is part of the project
         // TODO: further testing needed
-        // TODO: standard library (e.g. console: Console) should not be part of the project
-        const sourceFile = symbol?.valueDeclaration?.getSourceFile();
+        const sourceFile = symbol?.getDeclarations()?.[0]?.getSourceFile();
         const hasSource = !!sourceFile;
         const isStandardLibrary = hasSource && globalContext.services.program.isSourceFileDefaultLibrary(sourceFile!)
         const isExternal = hasSource && globalContext.services.program.isSourceFileFromExternalLibrary(sourceFile!);
-        const keepName = isStandardLibrary || isExternal;
+
 
         let normalizedFQN = "";
-        if(keepName) {
-            // Standard Library name (e.g. 'Array') -> keep name
+        if(isStandardLibrary) {
+            // Standard Library fqn (e.g. 'Array') -> keep name
             normalizedFQN = fqn;
+        } else if(isExternal) {
+            // Node fqn -> set node path in quotes
+            if(fqn.includes(".")) {
+                // node reference (e.g. "path.ParsedPath") -> set node path in quotes
+                normalizedFQN = PathUtils.toFQN(fqn.slice(0, fqn.lastIndexOf("."))) + fqn.slice(fqn.lastIndexOf("."))
+            } else {
+                normalizedFQN = PathUtils.toFQN(fqn);
+            }
         } else if(fqn.startsWith('"')) {
             // FQN with specified module path (e.g. '"/home/../src/MyModule".MyClass') -> normalize module path
             normalizedFQN = PathUtils.normalizeTypeCheckerFQN(globalContext.projectRootPath, fqn, globalContext.sourceFilePath);
-        } else if(fqn.includes(".")) {
-            // node reference (e.g. "path.ParsedPath") -> set node path in quotes
-            normalizedFQN = PathUtils.toFQN(fqn.slice(0, fqn.lastIndexOf("."))) + fqn.slice(fqn.lastIndexOf("."))
         } else {
             // internal name (e.g. "InternalClass") -> add current module path
             normalizedFQN = PathUtils.toFQN(globalContext.sourceFilePath) + "." + fqn;
@@ -305,13 +309,13 @@ function parseType(processingContext: ProcessingContext, type: Type, node: Node,
             return parseAnonymousType(processingContext, type, node, symbol, excludedFQN, ignoreDependencies);
         }
 
-        const inProject = !keepName && !PathUtils.isExternal(PathUtils.extractFQNPath(normalizedFQN));
+        const inProject = !isStandardLibrary && !isExternal && !PathUtils.isExternal(PathUtils.extractFQNPath(normalizedFQN));
         
         const typeArguments: LCEType[] = tc.getTypeArguments(type as TypeReference).map((t) => parseType(processingContext, t, node, excludedFQN, ignoreDependencies));
         
         // TODO: handle locally defined (non-)anonymous types (e.g. with class expressios)
 
-        if(!ignoreDependencies) 
+        if(!ignoreDependencies && !isStandardLibrary) 
             DependencyResolutionProcessor.registerDependency(processingContext.localContexts, normalizedFQN, false);
         return new LCETypeDeclared(
             normalizedFQN,
@@ -394,7 +398,7 @@ function parseAnonymousType(processingContext: ProcessingContext, type: Type, no
     }
 
     // TODO: Detect Callable Types
-    // TODO: Detect Index
+    // TODO: Detect Index Types
 
     // if nothing matches return placeholder
      return new LCETypeNotIdentified(tc.typeToString(type));
