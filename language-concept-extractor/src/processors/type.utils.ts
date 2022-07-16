@@ -6,6 +6,7 @@ import {
     FunctionExpression,
     Identifier,
     MethodDefinitionNonComputedName,
+    TSAbstractMethodDefinitionNonComputedName,
     Node as ESNode,
     TSClassImplements,
     TSDeclareFunction,
@@ -60,7 +61,7 @@ export function parseClassPropertyType(processingContext: ProcessingContext, esP
 export function parseMethodType(
     processingContext: ProcessingContext,
     esClassLikeDecl: ClassDeclaration | TSInterfaceDeclaration, 
-    esMethodDecl: MethodDefinitionNonComputedName | TSMethodSignatureNonComputedName, 
+    esMethodDecl: MethodDefinitionNonComputedName | TSAbstractMethodDefinitionNonComputedName | TSMethodSignatureNonComputedName, 
     methodName: string, 
     jsPrivate: boolean
 ): LCETypeFunction | undefined {

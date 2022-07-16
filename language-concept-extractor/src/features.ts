@@ -32,7 +32,7 @@ import {
 } from './processors/value.processor';
 import { VariableDeclarationProcessor, VariableDeclaratorProcessor } from './processors/variable-declaration.processor';
 import { SimpleTraverser, Traverser } from './traverser';
-import { ClassTraverser } from './traversers/class.traverser';
+import { ClassTraverser, StaticBlockTraverser } from './traversers/class.traverser';
 import { DecoratorTraverser } from './traversers/decorator.traverser';
 import { ExportAssignmentTraverser, ExportDefaultDeclarationTraverser, ExportNamedDeclarationTraverser } from './traversers/export-declaration.traverser';
 import {
@@ -134,12 +134,15 @@ export const TRAVERSERS: Map<AST_NODE_TYPES, Traverser> = new Map([
     [AST_NODE_TYPES.ReturnStatement, new ReturnStatementTraverser()],
     [AST_NODE_TYPES.SequenceExpression, new SequenceExpressionTraverser()],
     [AST_NODE_TYPES.SpreadElement, new SpreadElementTraverser()],
+    [AST_NODE_TYPES.StaticBlock, new StaticBlockTraverser()],
     [AST_NODE_TYPES.SwitchCase, new SwitchCaseTraverser()],
     [AST_NODE_TYPES.SwitchStatement, new SwitchStatementTraverser()],
     [AST_NODE_TYPES.TaggedTemplateExpression, new TaggedTemplateExpressionTraverser()],
     [AST_NODE_TYPES.TemplateLiteral, new TemplateLiteralTraverser()],
     [AST_NODE_TYPES.ThrowStatement, new ThrowStatementTraverser()],
     [AST_NODE_TYPES.TryStatement, new TryStatementTraverser()],
+    [AST_NODE_TYPES.TSAbstractMethodDefinition, new MethodTraverser()],
+    [AST_NODE_TYPES.TSAbstractPropertyDefinition, new PropertyTraverser()],
     [AST_NODE_TYPES.TSAsExpression, new AsExpressionTraverser()],
     [AST_NODE_TYPES.TSClassImplements, new SimpleTraverser()],
     [AST_NODE_TYPES.TSDeclareFunction, new FunctionTraverser()],

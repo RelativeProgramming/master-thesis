@@ -58,7 +58,7 @@ Properties:
 Properties:
 - [x]  `fqn`: fully qualified name (e.g. `"./src/main.ts".MyComponent`)
 - [x]  `name`: local name of the class
-- [ ]  `abstract` is class abstact (`abstract`)
+- [x]  `abstract` is class abstact (`abstract`)
 
 Relations:
 - [x]  `DECLARES`: all declared methods, properties and type parameters
@@ -123,8 +123,8 @@ Properties:
 - [x]  `optional`: is property optional (`?`)
 - [x]  `readonly`: is property read-only (`readonly`)
 - [x]  `visibility`: specified visibility (`public`, `protected` or `private` or `js_private` for `#`)
-- [ ]  `static` is property static (`static`)
-- [ ]  `abstract` is property abstact (`abstract`)
+- [x]  `static` is property static (`static`)
+- [x]  `abstract` is property abstact (`abstract`)
 - [x]  `override`: is property overridden from super class (using `override` keyword)
 
 Relations:
@@ -140,8 +140,8 @@ Relations:
 Properties:
 - [x]  `name`: name of the method
 - [x]  `visibility`: specified visibility (`public`, `protected` or `private` or `js_private` for `#`)
-- [ ]  `static` is method static (`static`)
-- [ ]  `abstract` is method abstact (`abstract`)
+- [x]  `static` is method static (`static`)
+- [x]  `abstract` is method abstact (`abstract`)
 - [x]  `override`: is method overridden from super class (using `override` keyword)
 
 Relations:
@@ -233,7 +233,7 @@ Relations:
 - [x]  Label: `:TS:Type:Function`
 
 Properties:
-- [ ]  `arrowFunction`: indicates whether the value is an arrow function
+- [x]  `arrowFunction`: indicates whether the value is an arrow function
 
 Relations:
 - [x]  `RETURNS`: reference to return type

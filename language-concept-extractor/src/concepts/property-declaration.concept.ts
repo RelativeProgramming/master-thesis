@@ -15,7 +15,9 @@ export class LCEPropertyDeclaration extends LCENamedConcept {
         public decorators: LCEDecorator[],
         public visibility: Visibility,
         public readonly: boolean,
-        public override?: boolean
+        public override?: boolean,
+        public abstract?: boolean,
+        public isStatic?: boolean,
     ) {
         super(fqn);
     }

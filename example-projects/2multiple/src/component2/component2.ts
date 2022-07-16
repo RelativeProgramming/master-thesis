@@ -81,10 +81,18 @@ class Class1<T> {
 
 }
 
-class Class2 extends Class1<string> {
-    constructor(a?: number) {
+abstract class Class2 extends Class1<string> {
+
+    static readonly staticProp: number = 42;
+
+    constructor(public x: number) {
         super();
     }
+
+    abstract myAbstractMethod(x: number): number;
+
+    abstract myAbstractProp: number;
+
 }
 
 function myGlobalFunc<T>(x: number, y: T[]): string[] {

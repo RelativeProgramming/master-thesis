@@ -21,7 +21,9 @@ export async function createMethodNode(
         name: methodDecl.methodName,
         fqn: methodDecl.fqn,
         visibility: methodDecl.visibility,
-        override: methodDecl.override
+        override: methodDecl.override,
+        abstract: methodDecl.abstract,
+        static: methodDecl.isStatic,
     }
     const methodNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
         `
@@ -128,7 +130,9 @@ export async function createGetterNode(
         name: getterDecl.methodName,
         fqn: getterDecl.fqn,
         visibility: getterDecl.visibility,
-        override: getterDecl.override
+        override: getterDecl.override,
+        abstract: getterDecl.abstract,
+        static: getterDecl.isStatic,
     }
     const getterNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
         `
@@ -164,7 +168,9 @@ export async function createSetterNode(
         name: setterDecl.methodName,
         fqn: setterDecl.fqn,
         visibility: setterDecl.visibility,
-        override: setterDecl.override
+        override: setterDecl.override,
+        abstract: setterDecl.abstract,
+        static: setterDecl.isStatic,
     }
     const setterNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
         `

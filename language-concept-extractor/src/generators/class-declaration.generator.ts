@@ -27,7 +27,8 @@ export class ClassDeclarationGenerator extends Generator {
             // create class node
             const classNodeProps = {
                 fqn: classDecl.fqn,
-                name: classDecl.className
+                name: classDecl.className,
+                abstract: classDecl.abstract,
             }
             const classNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(
                 `

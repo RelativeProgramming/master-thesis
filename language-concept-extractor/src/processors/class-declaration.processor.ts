@@ -42,6 +42,7 @@ export class ClassDeclarationProcessor extends Processor {
             const classDecl = new LCEClassDeclaration(
                 className,
                 fqn,
+                node.abstract ?? false,
                 parseClassLikeTypeParameters({globalContext, localContexts, node}, node),
                 getAndDeleteChildConcepts<LCETypeDeclared>(ClassTraverser.EXTENDS_PROP, LCETypeDeclared.conceptId, childConcepts)[0],
                 getAndDeleteChildConcepts(ClassTraverser.IMPLEMENTS_PROP, LCETypeDeclared.conceptId, childConcepts),

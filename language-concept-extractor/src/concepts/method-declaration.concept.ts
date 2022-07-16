@@ -18,7 +18,9 @@ export class LCEMethodDeclaration extends LCENamedConcept {
         public typeParameters: LCETypeParameterDeclaration[],
         public decorators: LCEDecorator[],
         public visibility: Visibility,
-        public override?: boolean
+        public override?: boolean,
+        public abstract?: boolean,
+        public isStatic?: boolean,
     ) {
         super(fqn);
     }
@@ -61,7 +63,9 @@ export class LCEParameterPropertyDeclaration extends LCEPropertyDeclaration {
             decorators,
             visibility,
             readonly,
-            override
+            override,
+            false,
+            false,
         );
     }
 }
@@ -92,7 +96,9 @@ export class LCEGetterDeclaration extends LCENamedConcept {
         public returnType: LCEType,
         public decorators: LCEDecorator[],
         public visibility: Visibility,
-        public override?: boolean
+        public override?: boolean,
+        public abstract?: boolean,
+        public isStatic?: boolean,
     ) {
         super(fqn);
     }
@@ -108,7 +114,9 @@ export class LCESetterDeclaration extends LCENamedConcept {
         public parameters: LCEParameterDeclaration[],
         public decorators: LCEDecorator[],
         public visibility: Visibility,
-        public override?: boolean
+        public override?: boolean,
+        public abstract?: boolean,
+        public isStatic?: boolean,
     ) {
         super(fqn);
     }

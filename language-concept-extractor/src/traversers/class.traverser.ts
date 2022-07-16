@@ -41,3 +41,19 @@ export class ClassTraverser extends Traverser {
         return mergeConceptMaps(...conceptMaps);
     }
 }
+
+export class StaticBlockTraverser extends Traverser {
+
+    public static readonly BODY_PROP = "body";
+
+    public traverseChildren(processingContext: ProcessingContext, processors: ProcessorMap): ConceptMap {
+        const {node} = processingContext;
+        const conceptMaps: ConceptMap[] = [];
+
+        if(node.type === AST_NODE_TYPES.StaticBlock) {
+            runTraverserForNodes(node.body, {parentPropName: StaticBlockTraverser.BODY_PROP}, processingContext, processors, conceptMaps);
+        }
+
+        return mergeConceptMaps(...conceptMaps);
+    }
+}
