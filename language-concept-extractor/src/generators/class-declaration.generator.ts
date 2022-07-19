@@ -18,7 +18,6 @@ import { createTypeNode } from './type.generator.utils';
 export class ClassDeclarationGenerator extends Generator {
 
     async run(neo4jSession: Session, concepts: Map<string, LCEConcept[]>, connectionIndex: ConnectionIndex): Promise<void> {
-        const project = getAndCastConcepts<LCETypeScriptProject>(LCETypeScriptProject.conceptId, concepts)[0];
         const classDecls: LCEClassDeclaration[] = getAndCastConcepts(LCEClassDeclaration.conceptId, concepts);
 
         console.log("Generating graph structures for " + classDecls.length + " class declarations...")

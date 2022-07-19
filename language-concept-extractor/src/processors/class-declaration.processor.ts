@@ -53,6 +53,9 @@ export class ClassDeclarationProcessor extends Processor {
                 getAndDeleteChildConcepts(ClassTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts),
                 globalContext.sourceFilePath
             );
+            if(localContexts.currentContexts.has(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT)) {
+                DependencyResolutionProcessor.scheduleFqnResolution(localContexts, className, classDecl);
+            }
             return mergeConceptMaps(singleEntryConceptMap(LCEClassDeclaration.conceptId, classDecl),
                 DependencyResolutionProcessor.getRegisteredDependencies(localContexts));
         }

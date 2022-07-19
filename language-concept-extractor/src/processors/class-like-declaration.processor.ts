@@ -176,7 +176,6 @@ export class PropertyProcessor extends Processor {
     public override postChildrenProcessing({node, localContexts, globalContext}: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
 
         if((node.type === AST_NODE_TYPES.PropertyDefinition || node.type === AST_NODE_TYPES.TSPropertySignature || node.type === AST_NODE_TYPES.TSAbstractPropertyDefinition) && !node.computed) {
-            // TODO: handle static properties
             const [propertyName, jsPrivate] = processMemberName(node.key);
             const fqn = DependencyResolutionProcessor.constructScopeFQN(localContexts);
             DependencyResolutionProcessor.registerDeclaration(localContexts, propertyName, fqn, true);

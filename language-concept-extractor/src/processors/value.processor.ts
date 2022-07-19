@@ -74,7 +74,7 @@ export class IdentifierValueProcessor extends Processor {
                 if(resolve === undefined || (resolve === 0 && getParentPropName(localContexts) === MemberExpressionTraverser.OBJECT_PROP)) {
                     DependencyResolutionProcessor.scheduleFqnResolution(localContexts, node.name, declaredValue);
                 }
-                
+
                 return singleEntryConceptMap(LCEValueDeclared.conceptId, declaredValue);
             }
             
@@ -109,6 +109,10 @@ export class MemberValueProcessor extends Processor {
         ) {
             const objects = getAndDeleteAllValueChildConcepts(MemberExpressionTraverser.OBJECT_PROP, childConcepts);
             const properties = getAndDeleteAllValueChildConcepts(MemberExpressionTraverser.PROPERTY_PROP, childConcepts);
+            if(node.computed) {
+                // TDDO: handled computed member expressions
+                return singleEntryConceptMap(LCEValueComplex.conceptId, new LCEValueComplex("computed member expression"));
+            }
             if(objects.length === 1 && properties.length === 1) {
                 return singleEntryConceptMap(LCEValueMember.conceptId, new LCEValueMember(
                     properties[0].type,

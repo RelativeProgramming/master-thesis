@@ -59,7 +59,7 @@ import { createTypeNode } from './type.generator.utils';
         ));
     } else if(value instanceof LCEValueDeclared) {
         const valueNodeProps = {
-            fqn: value.fqn,
+            referencedFqn: value.fqn,
             internal: PathUtils.isExternal(PathUtils.extractFQNPath(value.fqn))
         }
         valueNodeId = Utils.getNodeIdFromQueryResult(await neo4jSession.run(

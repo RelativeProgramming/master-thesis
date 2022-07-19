@@ -17,7 +17,6 @@ import { createTypeNode } from './type.generator.utils';
 export class InterfaceDeclarationGenerator extends Generator {
 
     async run(neo4jSession: Session, concepts: Map<string, LCEConcept[]>, connectionIndex: ConnectionIndex): Promise<void> {
-        const project = getAndCastConcepts<LCETypeScriptProject>(LCETypeScriptProject.conceptId, concepts)[0];
         const interfaceDecls = getAndCastConcepts<LCEInterfaceDeclaration>(LCEInterfaceDeclaration.conceptId, concepts);
 
         console.log("Generating graph structures for " + interfaceDecls.length + " interface declarations...")

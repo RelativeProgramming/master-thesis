@@ -39,6 +39,7 @@ export class DeclarationScopeProcessor extends Processor {
             AST_NODE_TYPES.TSDeclareFunction,
             AST_NODE_TYPES.TSInterfaceDeclaration,
             AST_NODE_TYPES.TSTypeAliasDeclaration,
+            AST_NODE_TYPES.TSEnumDeclaration,
         ],
         () => true
     );
@@ -48,7 +49,8 @@ export class DeclarationScopeProcessor extends Processor {
                 node.type === AST_NODE_TYPES.FunctionDeclaration ||
                 node.type === AST_NODE_TYPES.TSDeclareFunction ||
                 node.type === AST_NODE_TYPES.TSInterfaceDeclaration ||
-                node.type === AST_NODE_TYPES.TSTypeAliasDeclaration) && node.id) {
+                node.type === AST_NODE_TYPES.TSTypeAliasDeclaration ||
+                node.type === AST_NODE_TYPES.TSEnumDeclaration) && node.id) {
             DependencyResolutionProcessor.addScopeContext(localContexts, node.id.name);
         } else {
             DependencyResolutionProcessor.addScopeContext(localContexts);

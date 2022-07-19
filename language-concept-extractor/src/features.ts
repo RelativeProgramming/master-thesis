@@ -4,6 +4,7 @@ import { Generator } from './generator';
 import { ClassDeclarationGenerator } from './generators/class-declaration.generator';
 import { ConnectionGenerator } from './generators/connection.generator';
 import { DependencyGenerator } from './generators/dependency.generator';
+import { EnumDeclarationGenerator } from './generators/enum-declaration.generator';
 import { FunctionDeclarationGenerator } from './generators/function-declaration.generator';
 import { InterfaceDeclarationGenerator } from './generators/interface-declaration.generator';
 import { TypeAliasDeclarationGenerator } from './generators/type-alias-declaration.generator';
@@ -14,6 +15,7 @@ import { ClassDeclarationProcessor, ImplementsDeclarationProcessor, SuperClassDe
 import { MethodParameterProcessor, MethodProcessor, PropertyProcessor } from './processors/class-like-declaration.processor';
 import { DecoratorProcessor } from './processors/decorator.processor';
 import { DependencyResolutionProcessor } from './processors/dependency-resolution.processor';
+import { EnumDeclarationProcessor, EnumMemberProcessor } from './processors/enum-declaration.processor';
 import { ExportDeclarationProcessor } from './processors/export-declaration.processor';
 import { FunctionDeclarationProcessor, FunctionParameterProcessor } from './processors/function-declaration.processor';
 import { ImportDeclarationProcessor } from './processors/import-declaration.processor';
@@ -36,6 +38,7 @@ import { VariableDeclarationProcessor, VariableDeclaratorProcessor } from './pro
 import { SimpleTraverser, Traverser } from './traverser';
 import { ClassTraverser, StaticBlockTraverser } from './traversers/class.traverser';
 import { DecoratorTraverser } from './traversers/decorator.traverser';
+import { EnumDeclarationTraverser, EnumMemberTraverser } from './traversers/enum.traverser';
 import { ExportAssignmentTraverser, ExportDefaultDeclarationTraverser, ExportNamedDeclarationTraverser } from './traversers/export-declaration.traverser';
 import {
     ArrayExpressionTraverser,
@@ -149,6 +152,8 @@ export const TRAVERSERS: Map<AST_NODE_TYPES, Traverser> = new Map([
     [AST_NODE_TYPES.TSAsExpression, new AsExpressionTraverser()],
     [AST_NODE_TYPES.TSClassImplements, new SimpleTraverser()],
     [AST_NODE_TYPES.TSDeclareFunction, new FunctionTraverser()],
+    [AST_NODE_TYPES.TSEnumDeclaration, new EnumDeclarationTraverser()],
+    [AST_NODE_TYPES.TSEnumMember, new EnumMemberTraverser()],
     [AST_NODE_TYPES.TSExportAssignment, new ExportAssignmentTraverser()],
     [AST_NODE_TYPES.TSInterfaceDeclaration, new InterfaceDeclarationTraverser()],
     [AST_NODE_TYPES.TSInterfaceHeritage, new InterfaceHeritageTraverser()],
@@ -182,6 +187,8 @@ export const PROCESSORS: Processor[] = [
     new DeclarationScopeProcessor(),
     new DecoratorProcessor(),
     new DependencyResolutionProcessor(),
+    new EnumDeclarationProcessor(),
+    new EnumMemberProcessor(),
     new ExportDeclarationProcessor(),
     new FunctionDeclarationProcessor(),
     new FunctionParameterProcessor(),
@@ -215,6 +222,7 @@ export const GENERATORS: Generator[] = [
     new ClassDeclarationGenerator(), 
     new InterfaceDeclarationGenerator(),
     new TypeAliasDeclarationGenerator(),
+    new EnumDeclarationGenerator(),
     new FunctionDeclarationGenerator(),
     new VariableDeclarationGenerator(),
     new ConnectionGenerator(),

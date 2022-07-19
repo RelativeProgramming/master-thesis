@@ -93,21 +93,35 @@ Properties:
 Relations:
 - [x]  `DECLARES`: all declared type parameters
 - [x]  `OF_TYPE`: type the alias refers to
+- [x]  `DEPENDS_ON`: all internal and external declarations that are used within the type alias
+  - [x]  attribute `cardinality` indicates the number of references made (added up transitively)
 
-## Function Declaration
-→ all function declarations made on file level
-- [x]  Label: `:TS:Function`
+## Enum Declaration
+→ all `enum` declarations inside TS files
+- [x]  Label: `:TS:Enum`
 
 Properties:
-- [x]  `fqn`: fully qualified name (e.g. `"./src/main.ts".doSth`)
-- [x]  `name`: local name of the function
+- [x]  `fqn`: fully qualified name (e.g. `"./src/main.ts".MyEnum`)
+- [x]  `name`: local name of the enum
+- [x]  `constant`: indicates if the enum is constant
+- [x]  `declared`: indicates if the enum is ambient
 
 Relations:
-- [x]  `RETURNS`: return type of the function
-- [x]  `HAS`: references to parameters
-- [x]  `DECLARES`: all declared type parameters
-- [x]  `DEPENDS_ON`: all internal and external declarations that are used within the function
+- [x]  `DECLARES`: all declared enum members
+  - [x]  attribute `index` indicates position of the enum member declaration
+- [x]  `DEPENDS_ON`: all internal and external declarations that are used within the enum declaration
   - [x]  attribute `cardinality` indicates the number of references made (added up transitively)
+
+## Enum Member
+→ all members declared inside an `enum`
+- [x]  Label: `:TS:EnumMember`
+
+Properties:
+- [x]  `fqn`: fully qualified name (e.g. `"./src/main.ts".MyEnum.MEMBER`)
+- [x]  `name`: local name of the enum
+
+Relations:
+- [x]  `INITIALIZED_WITH`: initial value of the member (if explicitly specified)
 
 ## Variable Declaration
 → all variable declarations made on file level
@@ -124,12 +138,28 @@ Relations:
 - [x]  `DEPENDS_ON`: all internal and external declarations that are used by the property
   - [x]  attribute `cardinality` indicates the number of references made
 
+## Function Declaration
+→ all function declarations made on file level
+- [x]  Label: `:TS:Function`
+
+Properties:
+- [x]  `fqn`: fully qualified name (e.g. `"./src/main.ts".doSth`)
+- [x]  `name`: local name of the function
+
+Relations:
+- [x]  `RETURNS`: return type of the function
+- [x]  `HAS`: references to parameters
+- [x]  `DECLARES`: all declared type parameters
+- [x]  `DEPENDS_ON`: all internal and external declarations that are used within the function
+  - [x]  attribute `cardinality` indicates the number of references made (added up transitively)
+
 ## Property Declaration
 → all property declarations inside classes, interfaces or type aliases
 - [x]  Label: `:TS:Property`
 
 Properties:
 - [x]  `name`: name of the property
+- [x]  `fqn`: fully qualified name (e.g. `"./src/main.ts".MyClass.myProp`)
 - [x]  `optional`: is property optional (`?`)
 - [x]  `readonly`: is property read-only (`readonly`)
 - [x]  `visibility`: specified visibility (`public`, `protected` or `private` or `js_private` for `#`)
@@ -149,6 +179,7 @@ Relations:
 
 Properties:
 - [x]  `name`: name of the method
+- [x]  `fqn`: fully qualified name (e.g. `"./src/main.ts".MyClass.myMethod`)
 - [x]  `visibility`: specified visibility (`public`, `protected` or `private` or `js_private` for `#`)
 - [x]  `static` is method static (`static`)
 - [x]  `abstract` is method abstact (`abstract`)
@@ -193,9 +224,6 @@ Relations:
 ## Decorator
 → all decorators decorating either classes, methods or properties
 → they are generally represented by Value nodes, that are referred to with the `DECORATED_BY` relation
-
-Properties:
-- [x]  `name`: name of the decorator
 
 ## Type
 → represents a type (e.g. return type, property type, etc.)
@@ -306,7 +334,7 @@ Properties:
 - [x]  Label: `:TS:Value:Declared`
 
 Properties:
-- [x]  `fqn`: fully qualified name of the variable/function/class referenced
+- [x]  `referencedFqn`: fully qualified name of the variable/function/class referenced
 - [x]  `internal`: indicates whether reference is declared inside project
 
 Relations:
