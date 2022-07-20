@@ -1,17 +1,16 @@
-import { LCENamedConcept } from '../concept';
+import { LCENamedConcept } from "../concept";
 
-export type FQNType =  "declaration" | "module";
+export type FQNType = "declaration" | "module";
 
 export class LCEDependency extends LCENamedConcept {
-
-    public static override conceptId: string = "dependency";
+    public static override conceptId = "dependency";
 
     constructor(
         fqn: string, // target fqn
         public targetType: FQNType,
         public sourceFQN: string,
         public sourceType: FQNType,
-        public cardinality: number,
+        public cardinality: number
     ) {
         super(fqn);
     }

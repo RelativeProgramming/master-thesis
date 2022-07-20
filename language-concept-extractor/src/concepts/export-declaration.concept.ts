@@ -1,7 +1,6 @@
-import { LCEConcept } from '../concept';
+import { LCEConcept } from "../concept";
 
 export class LCEExportDeclaration extends LCEConcept {
-
     public static override conceptId = "export-declaration";
 
     constructor(

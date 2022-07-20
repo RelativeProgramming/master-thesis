@@ -1,10 +1,9 @@
-import { LCEConcept, LCENamedConcept } from '../concept';
-import { LCEDecorator } from './decorator.concept';
-import { LCEType } from './type.concept';
-import { Visibility } from './visibility.concept';
+import { LCENamedConcept } from "../concept";
+import { LCEDecorator } from "./decorator.concept";
+import { LCEType } from "./type.concept";
+import { Visibility } from "./visibility.concept";
 
 export class LCEPropertyDeclaration extends LCENamedConcept {
-
     public static override conceptId = "property-declaration";
 
     constructor(
@@ -17,7 +16,7 @@ export class LCEPropertyDeclaration extends LCENamedConcept {
         public readonly: boolean,
         public override?: boolean,
         public abstract?: boolean,
-        public isStatic?: boolean,
+        public isStatic?: boolean
     ) {
         super(fqn);
     }

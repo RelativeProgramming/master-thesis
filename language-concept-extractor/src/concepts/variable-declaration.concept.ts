@@ -1,11 +1,10 @@
-import { LCENamedConcept } from '../concept';
-import { LCEType } from './type.concept';
-import { LCEValue } from './value.concept';
+import { LCENamedConcept } from "../concept";
+import { LCEType } from "./type.concept";
+import { LCEValue } from "./value.concept";
 
 export class LCEVariableDeclaration extends LCENamedConcept {
-
     public static override conceptId = "variable-declaration";
-    
+
     constructor(
         public variableName: string,
         fqn: string,

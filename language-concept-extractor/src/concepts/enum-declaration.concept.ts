@@ -1,8 +1,7 @@
-import { LCENamedConcept } from '../concept';
-import { LCEValue } from './value.concept';
+import { LCENamedConcept } from "../concept";
+import { LCEValue } from "./value.concept";
 
 export class LCEEnumDeclaration extends LCENamedConcept {
-
     public static override conceptId = "enum-declaration";
 
     constructor(
@@ -18,14 +17,9 @@ export class LCEEnumDeclaration extends LCENamedConcept {
 }
 
 export class LCEEnumMember extends LCENamedConcept {
-
     public static override conceptId = "enum-member";
 
-    constructor(
-        public enumMemberName: string,
-        fqn: string,
-        public init?: LCEValue,
-    ) {
+    constructor(public enumMemberName: string, fqn: string, public init?: LCEValue) {
         super(fqn);
     }
 }

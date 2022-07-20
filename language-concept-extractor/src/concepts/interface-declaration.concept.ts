@@ -1,11 +1,10 @@
-import { LCENamedConcept } from '../concept';
-import { LCEGetterDeclaration, LCEMethodDeclaration, LCESetterDeclaration } from './method-declaration.concept';
-import { LCEPropertyDeclaration } from './property-declaration.concept';
-import { LCETypeParameterDeclaration } from './type-parameter.concept';
-import { LCETypeDeclared } from './type.concept';
+import { LCENamedConcept } from "../concept";
+import { LCEGetterDeclaration, LCEMethodDeclaration, LCESetterDeclaration } from "./method-declaration.concept";
+import { LCEPropertyDeclaration } from "./property-declaration.concept";
+import { LCETypeParameterDeclaration } from "./type-parameter.concept";
+import { LCETypeDeclared } from "./type.concept";
 
 export class LCEInterfaceDeclaration extends LCENamedConcept {
-
     public static override conceptId = "interface-declaration";
 
     constructor(
@@ -22,4 +21,3 @@ export class LCEInterfaceDeclaration extends LCENamedConcept {
         super(fqn);
     }
 }
-  

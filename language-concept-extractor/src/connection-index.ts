@@ -1,15 +1,13 @@
-import { Integer } from "neo4j-driver"
+import { Integer } from "neo4j-driver";
 
 export class ConnectionIndex {
-
-    /** 
-     * Used for registering connection to be made between nodes. 
-     * Used when both nodes of a connection are known. 
-     * 
+    /**
+     * Used for registering connection to be made between nodes.
+     * Used when both nodes of a connection are known.
+     *
      * Pattern: `[from, to, connectionProperties]`
      * */
-    public connectionsToCreate: [Integer, Integer, ConnectionProperties][] = []
-
+    public connectionsToCreate: [Integer, Integer, ConnectionProperties][] = [];
 
     /**
      * Used for registering nodes that can be conncected to via a FQN
@@ -17,14 +15,13 @@ export class ConnectionIndex {
     public providerNodes: Map<string, Integer> = new Map();
 
     /**
-     * Used for registering a connection to be made between nodes. 
-     * Used when only from-node of a connection is known. 
-     * 
+     * Used for registering a connection to be made between nodes.
+     * Used when only from-node of a connection is known.
+     *
      * Value is FQN of target and potential properties of connection.
      */
     public referenceNodes: Map<Integer, [string, ConnectionProperties]> = new Map();
 
-    
     /**
      * Resolves all connections that were not created yet and adds the to `connectionsToCreate`
      */
@@ -37,13 +34,10 @@ export class ConnectionIndex {
      * Adds resolved connections to `connectionsToCreate` and removes them from `requireTypes`
      */
     private resolveRequireTypes(): void {
-        for(let [from, [fqn, props]] of this.referenceNodes.entries()) {
-            if(this.providerNodes.has(fqn)) {
-                this.connectionsToCreate.push([
-                    from,
-                    this.providerNodes.get(fqn)!,
-                    props
-                ]);
+        for (const [from, [fqn, props]] of this.referenceNodes.entries()) {
+            const provider = this.providerNodes.get(fqn);
+            if (provider) {
+                this.connectionsToCreate.push([from, provider, props]);
                 this.referenceNodes.delete(from);
             }
         }
@@ -51,6 +45,6 @@ export class ConnectionIndex {
 }
 
 export interface ConnectionProperties {
-    name: string,
-    props: object
+    name: string;
+    props: object;
 }

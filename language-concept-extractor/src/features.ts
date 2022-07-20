@@ -1,27 +1,32 @@
-import { AST_NODE_TYPES } from '@typescript-eslint/types';
+import { AST_NODE_TYPES } from "@typescript-eslint/types";
 
-import { Generator } from './generator';
-import { ClassDeclarationGenerator } from './generators/class-declaration.generator';
-import { ConnectionGenerator } from './generators/connection.generator';
-import { DependencyGenerator } from './generators/dependency.generator';
-import { EnumDeclarationGenerator } from './generators/enum-declaration.generator';
-import { FunctionDeclarationGenerator } from './generators/function-declaration.generator';
-import { InterfaceDeclarationGenerator } from './generators/interface-declaration.generator';
-import { TypeAliasDeclarationGenerator } from './generators/type-alias-declaration.generator';
-import { TypeScriptProjectFilesGenerator } from './generators/typescript-project-files.generator';
-import { VariableDeclarationGenerator } from './generators/variable-declaration.generator';
-import { Processor } from './processor';
-import { ClassDeclarationProcessor, ImplementsDeclarationProcessor, SuperClassDeclarationProcessor } from './processors/class-declaration.processor';
-import { MethodParameterProcessor, MethodProcessor, PropertyProcessor } from './processors/class-like-declaration.processor';
-import { DecoratorProcessor } from './processors/decorator.processor';
-import { DependencyResolutionProcessor } from './processors/dependency-resolution.processor';
-import { EnumDeclarationProcessor, EnumMemberProcessor } from './processors/enum-declaration.processor';
-import { ExportDeclarationProcessor } from './processors/export-declaration.processor';
-import { FunctionDeclarationProcessor, FunctionParameterProcessor } from './processors/function-declaration.processor';
-import { ImportDeclarationProcessor } from './processors/import-declaration.processor';
-import { DeclarationScopeProcessor, IdentifierDependencyProcessor, MemberExpressionDependencyProcessor, ScopeProcessor } from './processors/instructional-code.processor';
-import { InterfaceDeclarationProcessor, SuperInterfaceDeclarationProcessor } from './processors/interface-declaration.processor';
-import { TypeAliasDeclarationProcessor } from './processors/type-alias-declaration.processor';
+import { Generator } from "./generator";
+import { ClassDeclarationGenerator } from "./generators/class-declaration.generator";
+import { ConnectionGenerator } from "./generators/connection.generator";
+import { DependencyGenerator } from "./generators/dependency.generator";
+import { EnumDeclarationGenerator } from "./generators/enum-declaration.generator";
+import { FunctionDeclarationGenerator } from "./generators/function-declaration.generator";
+import { InterfaceDeclarationGenerator } from "./generators/interface-declaration.generator";
+import { TypeAliasDeclarationGenerator } from "./generators/type-alias-declaration.generator";
+import { TypeScriptProjectFilesGenerator } from "./generators/typescript-project-files.generator";
+import { VariableDeclarationGenerator } from "./generators/variable-declaration.generator";
+import { Processor } from "./processor";
+import { ClassDeclarationProcessor, ImplementsDeclarationProcessor, SuperClassDeclarationProcessor } from "./processors/class-declaration.processor";
+import { MethodParameterProcessor, MethodProcessor, PropertyProcessor } from "./processors/class-like-declaration.processor";
+import { DecoratorProcessor } from "./processors/decorator.processor";
+import { DependencyResolutionProcessor } from "./processors/dependency-resolution.processor";
+import { EnumDeclarationProcessor, EnumMemberProcessor } from "./processors/enum-declaration.processor";
+import { ExportDeclarationProcessor } from "./processors/export-declaration.processor";
+import { FunctionDeclarationProcessor, FunctionParameterProcessor } from "./processors/function-declaration.processor";
+import { ImportDeclarationProcessor } from "./processors/import-declaration.processor";
+import {
+    DeclarationScopeProcessor,
+    IdentifierDependencyProcessor,
+    MemberExpressionDependencyProcessor,
+    ScopeProcessor,
+} from "./processors/instructional-code.processor";
+import { InterfaceDeclarationProcessor, SuperInterfaceDeclarationProcessor } from "./processors/interface-declaration.processor";
+import { TypeAliasDeclarationProcessor } from "./processors/type-alias-declaration.processor";
 import {
     ArrayValueProcessor,
     CallValueProcessor,
@@ -33,13 +38,17 @@ import {
     MemberValueProcessor,
     ObjectValueProcessor,
     ObjectValuePropertyProcessor,
-} from './processors/value.processor';
-import { VariableDeclarationProcessor, VariableDeclaratorProcessor } from './processors/variable-declaration.processor';
-import { SimpleTraverser, Traverser } from './traverser';
-import { ClassTraverser, StaticBlockTraverser } from './traversers/class.traverser';
-import { DecoratorTraverser } from './traversers/decorator.traverser';
-import { EnumDeclarationTraverser, EnumMemberTraverser } from './traversers/enum.traverser';
-import { ExportAssignmentTraverser, ExportDefaultDeclarationTraverser, ExportNamedDeclarationTraverser } from './traversers/export-declaration.traverser';
+} from "./processors/value.processor";
+import { VariableDeclarationProcessor, VariableDeclaratorProcessor } from "./processors/variable-declaration.processor";
+import { SimpleTraverser, Traverser } from "./traverser";
+import { ClassTraverser, StaticBlockTraverser } from "./traversers/class.traverser";
+import { DecoratorTraverser } from "./traversers/decorator.traverser";
+import { EnumDeclarationTraverser, EnumMemberTraverser } from "./traversers/enum.traverser";
+import {
+    ExportAssignmentTraverser,
+    ExportDefaultDeclarationTraverser,
+    ExportNamedDeclarationTraverser,
+} from "./traversers/export-declaration.traverser";
 import {
     ArrayExpressionTraverser,
     ArrayPatternTraverser,
@@ -67,12 +76,12 @@ import {
     UnaryExpressionTraverser,
     UpdateExpressionTraverser,
     YieldExpressionTraverser,
-} from './traversers/expression.traverser';
-import { FunctionTraverser } from './traversers/function.traverser';
-import { InterfaceDeclarationTraverser, InterfaceHeritageTraverser } from './traversers/interface-declaration.traverser';
-import { MethodTraverser, ParameterPropertyTraverser } from './traversers/method.traverser';
-import { ProgramTraverser } from './traversers/program.traverser';
-import { PropertyTraverser } from './traversers/property.traverser';
+} from "./traversers/expression.traverser";
+import { FunctionTraverser } from "./traversers/function.traverser";
+import { InterfaceDeclarationTraverser, InterfaceHeritageTraverser } from "./traversers/interface-declaration.traverser";
+import { MethodTraverser, ParameterPropertyTraverser } from "./traversers/method.traverser";
+import { ProgramTraverser } from "./traversers/program.traverser";
+import { PropertyTraverser } from "./traversers/property.traverser";
 import {
     BlockStatementTraverser,
     DoWhileStatementTraverser,
@@ -89,10 +98,14 @@ import {
     TryStatementTraverser,
     WhileStatementTraverser,
     WithStatementTraverser,
-} from './traversers/statement.traverser';
-import { TypeAliasDeclarationTraverser } from './traversers/type-alias-declaration.traverser';
-import { TypeParameterDeclarationTraverser, TypeParameterInstantiationTraverser, TypeParameterTraverser } from './traversers/type-parameter.traverser';
-import { VariableDeclarationTraverser, VariableDeclaratorTraverser } from './traversers/variable-declaration.traverser';
+} from "./traversers/statement.traverser";
+import { TypeAliasDeclarationTraverser } from "./traversers/type-alias-declaration.traverser";
+import {
+    TypeParameterDeclarationTraverser,
+    TypeParameterInstantiationTraverser,
+    TypeParameterTraverser,
+} from "./traversers/type-parameter.traverser";
+import { VariableDeclarationTraverser, VariableDeclaratorTraverser } from "./traversers/variable-declaration.traverser";
 
 /**
  * Central index of all traversers natively supported by the LCE.
@@ -212,14 +225,14 @@ export const PROCESSORS: Processor[] = [
     new TypeAliasDeclarationProcessor(),
     new VariableDeclarationProcessor(),
     new VariableDeclaratorProcessor(),
-]
+];
 
 /**
  * Central index of all generators used by the LCE.
  */
 export const GENERATORS: Generator[] = [
     new TypeScriptProjectFilesGenerator(),
-    new ClassDeclarationGenerator(), 
+    new ClassDeclarationGenerator(),
     new InterfaceDeclarationGenerator(),
     new TypeAliasDeclarationGenerator(),
     new EnumDeclarationGenerator(),

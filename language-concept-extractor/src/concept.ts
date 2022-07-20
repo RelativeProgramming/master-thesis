@@ -1,11 +1,10 @@
-
 /**
  * Base class for all language concepts.
  */
 export abstract class LCEConcept {
-    /** 
-     * Unique identifier for a concept class. 
-     * Should be set by subclasses. 
+    /**
+     * Unique identifier for a concept class.
+     * Should be set by subclasses.
      */
     public static conceptId: string;
 }
@@ -23,29 +22,28 @@ export function isNamedConcept(concept: LCEConcept): concept is LCENamedConcept 
     return "fqn" in concept;
 }
 
-/** 
+/**
  * Represents a set of language concepts identified by their child concept id, given by their parent and their concept id representing their type.
- * 
- * Key Structure: conceptMap.get(parentPropName).get(conceptId) 
+ *
+ * Key Structure: conceptMap.get(parentPropName).get(conceptId)
  * */
 export type ConceptMap = Map<string, Map<string, LCEConcept[]>>;
-
 
 /**
  * Merges the given ConceptMaps. Array values of the same keys are concatenated.
  */
 export function mergeConceptMaps(...maps: ConceptMap[]): ConceptMap {
     const result: ConceptMap = new Map();
-    for(let map of maps) {
-        for(let [kO, vMap] of map.entries()) {
-            let outerRes = result.get(kO);
-            if(!outerRes) {
-                result.set(kO, vMap)
+    for (const map of maps) {
+        for (const [kO, vMap] of map.entries()) {
+            const outerRes = result.get(kO);
+            if (!outerRes) {
+                result.set(kO, vMap);
                 continue;
             }
-            for(let [kI, vArr] of vMap.entries()) {
+            for (const [kI, vArr] of vMap.entries()) {
                 const innerRes = outerRes.get(kI);
-                if(innerRes) {
+                if (innerRes) {
                     outerRes.set(kI, innerRes.concat(vArr));
                 } else {
                     outerRes.set(kI, vArr);
@@ -63,11 +61,11 @@ export function mergeConceptMaps(...maps: ConceptMap[]): ConceptMap {
 export function unifyConceptMap(conceptMap: ConceptMap, commonKey: string): ConceptMap {
     const result: ConceptMap = new Map();
     let innerMap = result.get(commonKey);
-    for(let [k, vMap] of conceptMap.entries()) {
-        if(innerMap) {
-            for(let [kI, vArr] of vMap.entries()) {
+    for (const [, vMap] of conceptMap.entries()) {
+        if (innerMap) {
+            for (const [kI, vArr] of vMap.entries()) {
                 const innerRes = innerMap.get(kI);
-                if(innerRes) {
+                if (innerRes) {
                     innerMap.set(kI, innerRes.concat(vArr));
                 } else {
                     innerMap.set(kI, vArr);
@@ -85,17 +83,15 @@ export function unifyConceptMap(conceptMap: ConceptMap, commonKey: string): Conc
 /**
  * creates a ConceptMap containing a single concept
  */
-export function singleEntryConceptMap(conceptId: string, concept: LCEConcept, parentPropName: string = ""): ConceptMap {
+export function singleEntryConceptMap(conceptId: string, concept: LCEConcept, parentPropName = ""): ConceptMap {
     return createConceptMap(conceptId, [concept], parentPropName);
 }
 
 /**
  * creates a ConceptMap containing a list of concepts of one concept type for a single parent property
  */
-export function createConceptMap(conceptId: string, concepts: LCEConcept[], parentPropName: string = ""): ConceptMap {
-    return new Map([[parentPropName, 
-        new Map([[conceptId, concepts]])
-    ]]);
+export function createConceptMap(conceptId: string, concepts: LCEConcept[], parentPropName = ""): ConceptMap {
+    return new Map([[parentPropName, new Map([[conceptId, concepts]])]]);
 }
 
 /**
