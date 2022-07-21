@@ -73,8 +73,3 @@ async function generateGraphs(concepts: Map<string, LCEConcept[]>) {
     const endTime = process.hrtime();
     console.log("Finished generating graph. Runtime: " + (endTime[0] - startTime[0]) + "s");
 }
-
-processProject("/home/sebastian/dev/master-thesis/example-projects/2multiple");
-//processProject("/home/sebastian/dev/master-thesis/example-projects/devhub");
-//processProject("/home/sebastian/dev/master-thesis/example-projects/shlink-web-client");
-//processProject("/home/sebastian/dev/master-thesis/language-concept-extractor");
