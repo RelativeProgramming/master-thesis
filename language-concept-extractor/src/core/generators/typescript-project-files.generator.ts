@@ -10,7 +10,7 @@ export class TypeScriptProjectFilesGenerator extends Generator {
         await neo4jSession.run(
             `
             MATCH (root:Directory {fileName: $projectRoot})-[:CONTAINS]->(sourceFile:File)
-            WHERE NOT (sourceFile:Directory) AND sourceFile.fileName ENDS WITH '.ts'
+            WHERE NOT (sourceFile:Directory) AND (sourceFile.fileName ENDS WITH '.ts' OR sourceFile.fileName ENDS WITH '.tsx')
             SET root:TS:Project
             SET sourceFile:TS:Module
             RETURN root

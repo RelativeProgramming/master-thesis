@@ -1,4 +1,5 @@
 jqassistant:
   scan:
     properties:
-      file.exclude: "/node_modules/**"
+      file.exclude: 
+        - "/node_modules/**"

@@ -279,7 +279,7 @@ function parseType(processingContext: ProcessingContext, type: Type, node: Node,
     const globalContext = processingContext.globalContext;
     const tc = globalContext.typeChecker;
 
-    const symbol = type.symbol ? type.symbol : type.aliasSymbol ? type.aliasSymbol : undefined;
+    const symbol = type.aliasSymbol ? type.aliasSymbol : type.symbol ? type.symbol : undefined;
     const fqn = symbol ? tc.getFullyQualifiedName(symbol) : undefined;
 
     if ((!fqn || fqn.startsWith("__type") || fqn === excludedFQN) && !isPrimitiveType(tc.typeToString(type))) {
@@ -306,12 +306,13 @@ function parseType(processingContext: ProcessingContext, type: Type, node: Node,
         // normalize TypeChecker FQN and determine if type is part of the project
         // TODO: further testing needed
         const sourceFile = symbol?.valueDeclaration?.getSourceFile();
-        const isStandardLibrary = sourceFile && globalContext.services.program.isSourceFileDefaultLibrary(sourceFile);
-        const isExternal = sourceFile && globalContext.services.program.isSourceFileFromExternalLibrary(sourceFile);
+        const isStandardLibrary = !!sourceFile && globalContext.services.program.isSourceFileDefaultLibrary(sourceFile);
+        const isExternal = !!sourceFile && globalContext.services.program.isSourceFileFromExternalLibrary(sourceFile);
         // const isExternal = hasSource ? globalContext.services.program.isSourceFileFromExternalLibrary(sourceFile!) :
         //     !!symbol?.declarations && symbol.declarations[0] && globalContext.services.program.isSourceFileFromExternalLibrary(symbol.declarations[0].getSourceFile());
 
         let normalizedFQN = "";
+        let scheduleFqnResolution = false;
         if (isStandardLibrary) {
             // Standard Library fqn (e.g. 'Array') -> keep name
             normalizedFQN = fqn;
@@ -327,16 +328,15 @@ function parseType(processingContext: ProcessingContext, type: Type, node: Node,
             // FQN with specified module path (e.g. '"/home/../src/MyModule".MyClass') -> normalize module path
             normalizedFQN = PathUtils.normalizeTypeCheckerFQN(globalContext.projectRootPath, fqn, globalContext.sourceFilePath);
         } else {
-            // internal name (e.g. "InternalClass") -> add current module path
-            normalizedFQN = PathUtils.toFQN(globalContext.sourceFilePath) + "." + fqn;
+            // internal name (e.g. "InternalClass") -> resolve later
+            normalizedFQN = fqn;
+            scheduleFqnResolution = true;
         }
 
         if (normalizedFQN === excludedFQN) {
             // if declared type would reference excluded fqn (e.g. variable name), treat as anonymous type
             return parseAnonymousType(processingContext, type, node, symbol, excludedFQN, ignoreDependencies);
         }
-
-        const inProject = !isStandardLibrary && !isExternal && !PathUtils.isExternal(PathUtils.extractFQNPath(normalizedFQN));
 
         const typeArguments: LCEType[] = tc
             .getTypeArguments(type as TypeReference)
@@ -346,7 +346,12 @@ function parseType(processingContext: ProcessingContext, type: Type, node: Node,
 
         if (!ignoreDependencies && !isStandardLibrary)
             DependencyResolutionProcessor.registerDependency(processingContext.localContexts, normalizedFQN, false);
-        return new LCETypeDeclared(normalizedFQN, inProject, typeArguments);
+
+        const result = new LCETypeDeclared(normalizedFQN, typeArguments);
+        if (scheduleFqnResolution) {
+            DependencyResolutionProcessor.scheduleFqnResolution(processingContext.localContexts, fqn, result);
+        }
+        return result;
     }
 }
 

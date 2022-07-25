@@ -1,4 +1,4 @@
-import { Integer, Session } from "neo4j-driver";
+import { Integer, Path, Session } from "neo4j-driver";
 
 import { LCETypeParameterDeclaration } from "../concepts/type-parameter.concept";
 import {
@@ -15,6 +15,7 @@ import {
     LCETypeUnion,
 } from "../concepts/type.concept";
 import { ConnectionIndex, ConnectionProperties } from "../connection-index";
+import { PathUtils } from '../path.utils';
 import { Utils } from "../utils";
 import { createFunctionParameterNode } from "./function.generator.utils";
 
@@ -55,7 +56,7 @@ export async function createTypeNode(
     } else if (type instanceof LCETypeDeclared) {
         const typeNodeProps = {
             referencedFqn: type.fqn,
-            internal: type.inProject,
+            internal: !PathUtils.isExternal(PathUtils.extractFQNPath(type.fqn)),
         };
         const typeNodeId = Utils.getNodeIdFromQueryResult(
             await neo4jSession.run(

@@ -37,7 +37,7 @@ export class LCEValueLiteral extends LCEValue {
      * @param value the value of the literal
      */
     constructor(public value: string | number | bigint | boolean | RegExp) {
-        super(typeof value === "object" ? new LCETypeDeclared("RegExp", false, []) : new LCETypePrimitive(typeof value));
+        super(typeof value === "object" ? new LCETypeDeclared("RegExp", []) : new LCETypePrimitive(typeof value));
     }
 }
 

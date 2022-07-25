@@ -3,6 +3,7 @@ import { Integer, Session } from "neo4j-driver";
 import { getAndCastConcepts, LCEConcept } from "../concept";
 import { LCEDependency } from "../concepts/dependency.concept";
 import { LCEExportDeclaration } from "../concepts/export-declaration.concept";
+import { ConnectionIndex } from "../connection-index";
 import { Generator } from "../generator";
 import { PathUtils } from "../path.utils";
 import { Utils } from "../utils";
@@ -11,7 +12,7 @@ import { Utils } from "../utils";
  * Generates all graph structures related to dependencies between files in the form of imports and exports.
  */
 export class DependencyGenerator extends Generator {
-    async run(neo4jSession: Session, concepts: Map<string, LCEConcept[]>): Promise<void> {
+    async run(neo4jSession: Session, concepts: Map<string, LCEConcept[]>, connectionIndex: ConnectionIndex): Promise<void> {
         // Create export relations
         const exports: LCEExportDeclaration[] = getAndCastConcepts(LCEExportDeclaration.conceptId, concepts);
         console.log("Generating graph structures for " + exports.length + " exports...");
@@ -52,42 +53,38 @@ export class DependencyGenerator extends Generator {
                 if (dep.targetType === "declaration") {
                     const modulePath = PathUtils.extractFQNPath(dep.fqn);
                     if (!externalModules.has(modulePath)) {
-                        externalModules.set(
-                            modulePath,
-                            Utils.getNodeIdFromQueryResult(
-                                await neo4jSession.run(
-                                    `
-                            CREATE (mod:TS:Module:External $modProps)
-                            RETURN id(mod)
-                            `,
-                                    {
-                                        modProps: { fileName: modulePath },
-                                    }
-                                )
+                        const moduleId = Utils.getNodeIdFromQueryResult(
+                            await neo4jSession.run(
+                                `
+                                CREATE (mod:TS:Module:External $modProps)
+                                RETURN id(mod)
+                                `,
+                                { modProps: { fileName: modulePath } }
                             )
                         );
+                        externalModules.set(modulePath, moduleId);
+                        connectionIndex.providerNodes.set(dep.fqn, moduleId);
                     }
                     if (!externalDeclarations.has(dep.fqn)) {
-                        externalDeclarations.set(
-                            dep.fqn,
-                            Utils.getNodeIdFromQueryResult(
-                                await neo4jSession.run(
-                                    `
-                            MATCH (mod:TS)
-                            WHERE id(mod) = $modId
-                            CREATE (mod)-[:DECLARES]->(decl:TS:ExternalDeclaration $declProps)
-                            RETURN id(decl)
-                            `,
-                                    {
-                                        modId: externalModules.get(modulePath),
-                                        declProps: {
-                                            fqn: dep.fqn,
-                                            name: PathUtils.extractFQNIdentifier(dep.fqn),
-                                        },
-                                    }
-                                )
+                        const extDepId = Utils.getNodeIdFromQueryResult(
+                            await neo4jSession.run(
+                                `
+                                MATCH (mod:TS)
+                                WHERE id(mod) = $modId
+                                CREATE (mod)-[:DECLARES]->(decl:TS:ExternalDeclaration $declProps)
+                                RETURN id(decl)
+                                `,
+                                {
+                                    modId: externalModules.get(modulePath),
+                                    declProps: {
+                                        fqn: dep.fqn,
+                                        name: PathUtils.extractFQNIdentifier(dep.fqn),
+                                    },
+                                }
                             )
                         );
+                        externalDeclarations.set(dep.fqn, extDepId);
+                        connectionIndex.providerNodes.set(dep.fqn, extDepId);
                     }
                 } else if (!externalModules.has(dep.fqn)) {
                     externalModules.set(

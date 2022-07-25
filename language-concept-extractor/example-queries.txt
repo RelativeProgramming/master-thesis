@@ -22,3 +22,6 @@ WHERE n.fileName STARTS WITH "/src" AND m.fileName STARTS WITH "/src"
 WITH m as dir, sum(r.cardinality) as s 
 WHERE s > 20 
 RETURN dir.fileName as Directory, s as Dependencies
+
+// Show directory hierarchy with of all modules containing React Function Components
+MATCH (m)-[:CONTAINS*]->(n:Module)-[:DECLARES]->(:React:FunctionComponent) WHERE NOT (m:Project) RETURN *

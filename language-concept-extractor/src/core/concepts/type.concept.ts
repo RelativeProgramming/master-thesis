@@ -28,10 +28,9 @@ export class LCETypeDeclared extends LCEType {
 
     /**
      * @param fqn fully qualified name of a class/interface/type alias
-     * @param inProject indicates whether the type has a declaration inside the project
      * @param typeArguments list of type arguments provided for generics
      */
-    constructor(public fqn: string, public inProject: boolean, public typeArguments: LCEType[]) {
+    constructor(public fqn: string, public typeArguments: LCEType[]) {
         super();
     }
 }

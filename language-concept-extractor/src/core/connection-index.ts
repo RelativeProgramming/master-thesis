@@ -26,14 +26,15 @@ export class ConnectionIndex {
      * Resolves all connections that were not created yet and adds the to `connectionsToCreate`
      */
     public resolve(): void {
-        this.resolveRequireTypes();
+        this.resolveReferencedNodes();
     }
 
     /**
-     * Resolves all entries in requireTypes, where a provider type can be found.
-     * Adds resolved connections to `connectionsToCreate` and removes them from `requireTypes`
+     * Resolves all entries in `referenceNodes`, where a provider node can be found.
+     * Adds resolved connections to `connectionsToCreate` and removes them from `referenceNodes`
      */
-    private resolveRequireTypes(): void {
+    private resolveReferencedNodes(): void {
+        console.log("Resolving referenced nodes...");
         for (const [from, [fqn, props]] of this.referenceNodes.entries()) {
             const provider = this.providerNodes.get(fqn);
             if (provider) {
@@ -41,6 +42,13 @@ export class ConnectionIndex {
                 this.referenceNodes.delete(from);
             }
         }
+        console.log("Resolved references. (unresolved: " + this.referenceNodes.size + ")");
+        // Log (non-anonymous) unresolved references
+        // for (const node of this.referenceNodes) {
+        //     if (!node[1][0].startsWith("(")) {
+        //         console.log("Unresolved reference: " + node[1][0]);
+        //     }
+        // }
     }
 }
 

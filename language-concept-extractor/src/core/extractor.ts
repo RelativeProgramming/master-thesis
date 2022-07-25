@@ -1,10 +1,12 @@
 import { parseAndGenerateServices } from "@typescript-eslint/typescript-estree";
 import * as fs from "fs";
 import { auth as neo4jAuth, driver as neo4jDriver } from "neo4j-driver";
+import path from "path";
 import { TypeChecker } from "typescript";
 
 import { ConceptMap, LCEConcept, mergeConceptMaps, singleEntryConceptMap, unifyConceptMap } from "./concept";
 import { LCETypeScriptProject } from "./concepts/typescript-project.concept";
+import { LCEVariableDeclaration } from "./concepts/variable-declaration.concept";
 import { ConnectionIndex } from "./connection-index";
 import { GlobalContext } from "./context";
 import { GENERATORS } from "./features";
@@ -16,6 +18,7 @@ export function processProject(projectRoot: string) {
     // TODO: take tsconfig.json into consideration (assumes projectRoot = path that contains tsconfig.json)
     // see https://www.typescriptlang.org/docs/handbook/project-references.html#what-is-a-project-reference
 
+    projectRoot = path.resolve(projectRoot);
     const fileList = Utils.getFileList(projectRoot, [".ts", ".tsx"], [".git", "node_modules"]);
 
     // maps filenames to the extracted concepts from these files

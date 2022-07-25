@@ -64,12 +64,32 @@ export class DependencyResolutionProcessor extends Processor {
 
         // resolve FQNs
         for (const [namespaces, identifier, concept] of resolutionList) {
-            for (let i = namespaces.length; i > 0; i--) {
-                const testNamespace = namespaces.slice(0, i).join(".");
-                if (declIndex.has(testNamespace) && declIndex.get(testNamespace)?.has(identifier)) {
-                    concept.fqn = declIndex.get(testNamespace)?.get(identifier) as string;
-                    break;
+            if (identifier.includes(".")) {
+                // complex identifier: multiple tries
+                const identifiers = identifier.split(".");
+                let resultFound = false;
+
+                // test full identifier names from bottom to top (e.g. "a.b.c" => "a.b.c", "a.b", "a")
+                for (let i = identifiers.length; i > 0; i--) {
+                    const testIdentifier = identifiers.slice(0, i).join(".");
+                    if (this.resolveFQN(declIndex, namespaces, testIdentifier, concept)) {
+                        resultFound = true;
+                        break;
+                    }
                 }
+                if (resultFound) continue;
+
+                // test partial identifier names from bottom to top (e.g. "a.b.c" => "c", "b.c", "a.b.c")
+                for (let i = identifiers.length - 1; i > 0; i--) {
+                    const testIdentifier = identifiers.slice(i).join(".");
+                    if (this.resolveFQN(declIndex, namespaces, testIdentifier, concept)) {
+                        resultFound = true;
+                        break;
+                    }
+                }
+            } else {
+                // simple identifier: resolve it
+                this.resolveFQN(declIndex, namespaces, identifier, concept);
             }
         }
 
@@ -104,6 +124,17 @@ export class DependencyResolutionProcessor extends Processor {
         });
 
         return mergeConceptMaps(...concepts);
+    }
+
+    private resolveFQN(declIndex: DeclarationIndex, namespaces: string[], identifier: string, concept: LCENamedConcept): boolean {
+        for (let i = namespaces.length; i > 0; i--) {
+            const testNamespace = namespaces.slice(0, i).join(".");
+            if (declIndex.has(testNamespace) && declIndex.get(testNamespace)?.has(identifier)) {
+                concept.fqn = declIndex.get(testNamespace)?.get(identifier) as string;
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

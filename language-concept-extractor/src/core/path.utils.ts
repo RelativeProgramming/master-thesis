@@ -81,7 +81,7 @@ export class PathUtils {
         } else if (fs.existsSync(absoluteFilePath + ".ts")) {
             return absoluteFilePath + ".ts";
         } else if (fs.existsSync(absoluteFilePath + ".tsx")) {
-            return absoluteFilePath + ".ts";
+            return absoluteFilePath + ".tsx";
         } else if (fs.existsSync(absoluteFilePath + ".js")) {
             return absoluteFilePath + ".js";
         } else if (fs.existsSync(absoluteFilePath + ".jsx")) {
