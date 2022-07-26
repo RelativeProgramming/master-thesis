@@ -63,7 +63,7 @@ Properties:
 Relations:
 - [x]  `DECLARES`: all declared methods, properties and type parameters
 - [x]  `DECORATED_BY`: all decorators on class level
-- [x]  `EXTENDS`: super class
+- [x]  `EXTENDS`: super class type
 - [x]  `IMPLEMENTS`: all interfaces that are implemented by class
 - [x]  `DEPENDS_ON`: all internal and external declarations that are used within the class
   - [x]  attribute `cardinality` indicates the number of references made (added up transitively)

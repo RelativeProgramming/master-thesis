@@ -13,5 +13,10 @@ export class ReactComponentGenerator extends Generator {
             MATCH (c:TS:Variable)-[:OF_TYPE]->(:TS:Type:Declared {referencedFqn:'"react".FC'}) 
             SET c:React:FunctionComponent
         `);
+
+        await neo4jSession.run(`
+            MATCH (c:TS:Class)-[:EXTENDS]->(:TS:Type:Declared {referencedFqn:'"React".Component'}) 
+            SET c:React:ClassComponent
+        `);
     }
 }

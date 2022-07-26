@@ -6,7 +6,6 @@ import { TypeChecker } from "typescript";
 
 import { ConceptMap, LCEConcept, mergeConceptMaps, singleEntryConceptMap, unifyConceptMap } from "./concept";
 import { LCETypeScriptProject } from "./concepts/typescript-project.concept";
-import { LCEVariableDeclaration } from "./concepts/variable-declaration.concept";
 import { ConnectionIndex } from "./connection-index";
 import { GlobalContext } from "./context";
 import { GENERATORS } from "./features";
@@ -19,7 +18,7 @@ export function processProject(projectRoot: string) {
     // see https://www.typescriptlang.org/docs/handbook/project-references.html#what-is-a-project-reference
 
     projectRoot = path.resolve(projectRoot);
-    const fileList = Utils.getFileList(projectRoot, [".ts", ".tsx"], [".git", "node_modules"]);
+    const fileList = Utils.getProjectSourceFileList(projectRoot);
 
     // maps filenames to the extracted concepts from these files
     let concepts: ConceptMap = singleEntryConceptMap(LCETypeScriptProject.conceptId, new LCETypeScriptProject(projectRoot));

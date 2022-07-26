@@ -1,0 +1,55 @@
+{
+  "devDependencies": {
+    "@leanup/cli": "1.3.23",
+    "@leanup/cli-react": "1.3.23",
+    "@leanup/git-hooks": "1.3.23",
+    "@leanup/stack": "1.3.23",
+    "@leanup/stack-vite": "1.3.23",
+    "@leanup/stack-webpack": "1.3.23",
+    "@unocss/preset-mini": "0.43.2",
+    "@unocss/vite": "0.43.2",
+    "@unocss/webpack": "0.43.2",
+    "chromedriver": "97.0.4",
+    "npm-check-updates": "12.5.12",
+    "postcss-windicss": "1.0.0",
+    "selenium-server": "3.141.59",
+    "typescript": "4.5.5",
+    "@leanup/stack-react": "1.3.23",
+    "@types/react": "17.0.47",
+    "@types/react-dom": "17.0.17"
+  },
+  "name": "leanup-test",
+  "version": "1.3.23",
+  "description": "",
+  "scripts": {
+    "coverage": "cross-env NODE_ENV=test nyc mocha",
+    "cucumber": "cross-env NIGHTWATCH_ENV=chrome cucumber-js tests/cucumber/features/**/*.feature --require cucumber.conf.js --require tests/cucumber/step-definitions --format @cucumber/pretty-formatter --format json:.reports/cucumber/report.json",
+    "e2e": "nightwatch",
+    "format": "prettier --check \"{src,tests}/**\" --ignore-unknown",
+    "lint": "eslint \"{src,tests}/**/*.{html,js,json,jsx,ts,tsx,gql,graphql}\"",
+    "reinstall": "npm run remove && npm install",
+    "remove": "rm -rf node_modules package-lock.json",
+    "update": "ncu -t minor -u && npm install && ncu",
+    "build": "cross-env NODE_ENV=production webpack",
+    "start": "npm run serve -- --open",
+    "serve": "cross-env NODE_ENV=development webpack serve --devtool=source-map --no-hot",
+    "preview": "vite preview",
+    "test": "cross-env NODE_ENV=test mocha",
+    "prepare:husky": "husky install",
+    "commit-msg": "commitlint",
+    "pre-commit": "lint-staged"
+  },
+  "lint-staged": {
+    "{src,tests}/**/*.{html,js,json,jsx,ts,tsx,gql,graphql}": ["eslint"],
+    "{src,tests}/**": ["prettier --check"]
+  },
+  "dependencies": {
+    "@leanup/form": "1.3.23",
+    "@leanup/lib": "1.3.23",
+    "@leanup/openapi-demo": "1.3.20",
+    "navigo": "8.11.1",
+    "rxjs": "7.5.5",
+    "react": "17.0.2",
+    "react-dom": "17.0.2"
+  }
+}

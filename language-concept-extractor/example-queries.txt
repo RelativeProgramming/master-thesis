@@ -1,3 +1,9 @@
+// delete all node_modules directories
+MATCH (n:Directory) WHERE n.fileName STARTS WITH "/node_modules" DETACH DELETE n
+
+// delete all depends-on relations
+MATCH ()-[r:DEPENDS_ON]->() DELETE r
+
 // transitive dependency propagation
 MATCH (decl:TS:Module)-[r:DEPENDS_ON]->(trgt:TS:Module)<-[:CONTAINS*]-(trgtParent:Directory)
 WHERE NOT (trgtParent)-[:CONTAINS*]->(decl)

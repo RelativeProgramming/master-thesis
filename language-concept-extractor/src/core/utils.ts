@@ -1,26 +1,56 @@
 import * as fs from "fs";
 import { Integer, QueryResult } from "neo4j-driver";
 import * as path from "path";
+import { match } from "minimatch";
 
 export class Utils {
     /**
-     * Returns the paths for all files with a given ending inside a directory. (scans recursively)
+     * Returns the paths for all project source files with a given ending inside a directory. (scans recursively)
      * @param path path to the directory that shall be scanned
      * @param endings whitelist of endings of files that should
      * @param ignoredDirs directories that should not be scanned
      * @returns
      */
-    static getFileList(path: string, endings: string[] = [], ignoredDirs: string[] = []): string[] {
+    static getProjectSourceFileList(path: string): string[] {
+        const tsconfig: { include?: string[]; exclude?: string[] } = JSON.parse(fs.readFileSync(path + "/tsconfig.json", "utf8"));
+        const endings = [".ts", ".tsx"];
+
+        const ignoredDirs = [".git", "node_modules"];
+
+        // TODO: ignore node_modules, unless explicitly included in tsconfig.json
+        // if (!tsconfig.include?.find((dirPattern) => dirPattern.includes("node_modules") || match(["node_modules"], dirPattern).length > 0)) {
+        //     ignoredDirs.push("node_modules");
+        // }
+
+        if (tsconfig.include) tsconfig.include = tsconfig.include.map((dirPattern) => path + "/" + dirPattern);
+        if (tsconfig.exclude) tsconfig.exclude = tsconfig.exclude.map((dirPattern) => path + "/" + dirPattern);
+
         const allFiles = Utils.getAllFiles(path, [], ignoredDirs);
-        return allFiles.filter((val) => {
-            let match = false;
-            for (const e of endings) {
-                if (val.endsWith(e)) {
-                    match = true;
-                    break;
+        return allFiles.filter((file) => {
+            let matched = false;
+            let included = true;
+            if (tsconfig.include) {
+                if (tsconfig.include.find((dirPattern) => match([file], dirPattern).length > 0)) {
+                    if (tsconfig.exclude && tsconfig.exclude.find((dirPattern) => match([file], dirPattern).length > 0)) {
+                        included = false;
+                    }
+                } else {
+                    included = false;
                 }
             }
-            return match;
+
+            if (included) {
+                for (const e of endings) {
+                    if (file.endsWith(e)) {
+                        matched = true;
+                        break;
+                    }
+                }
+            } else {
+                return false;
+            }
+
+            return matched;
         });
     }
 

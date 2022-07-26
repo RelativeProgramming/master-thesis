@@ -92,7 +92,10 @@ export function parseMethodType(
 
     const methodNode = propertySym.valueDeclaration;
     if (!methodNode) throw new Error("Method node not found");
-    const methodType = tc.getTypeOfSymbolAtLocation(propertySym, methodNode);
+    let methodType = tc.getTypeOfSymbolAtLocation(propertySym, methodNode);
+    if (esMethodDecl.optional && methodType.isUnion()) {
+        methodType = methodType.types[1];
+    }
     const methodSignature = tc.getSignaturesOfType(methodType, SignatureKind.Call)[0];
     if (methodSignature === undefined) {
         if (esMethodDecl.kind === "constructor") {
