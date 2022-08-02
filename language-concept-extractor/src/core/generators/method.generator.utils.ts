@@ -38,9 +38,6 @@ export async function createMethodNode(
     await createMethodDecorators(methodNodeId, neo4jSession, connectionIndex, methodDecl.decorators);
 
     // create method type parameter nodes and connections
-    if (methodDecl.methodName === "myFuncTest") {
-        methodDecl;
-    }
     const methodTypeParamNodes = await createTypeParameterNodes(methodDecl.typeParameters, neo4jSession, connectionIndex, parentTypeParamNodes);
     for (const typeParamNodeId of methodTypeParamNodes.values()) {
         connectionIndex.connectionsToCreate.push([methodNodeId, typeParamNodeId, { name: ":DECLARES", props: {} }]);

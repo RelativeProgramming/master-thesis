@@ -68,6 +68,78 @@ Relations:
 - [x]  `DEPENDS_ON`: all internal and external declarations that are used within the class
   - [x]  attribute `cardinality` indicates the number of references made (added up transitively)
 
+## Property Declaration
+→ all property declarations inside classes, interfaces or type aliases
+- [x]  Label: `:TS:Property`
+
+Properties:
+- [x]  `name`: name of the property
+- [x]  `fqn`: fully qualified name (e.g. `"./src/main.ts".MyClass.myProp`)
+- [x]  `optional`: is property optional (`?`)
+- [x]  `readonly`: is property read-only (`readonly`)
+- [x]  `visibility`: specified visibility (`public`, `protected` or `private` or `js_private` for `#`)
+- [x]  `static` is property static (`static`)
+- [x]  `abstract` is property abstact (`abstract`)
+- [x]  `override`: is property overridden from super class (using `override` keyword)
+
+Relations:
+- [x]  `OF_TYPE`: type of the property
+- [x]  `DECORATED_BY`: all decorators of the property
+- [x]  `DEPENDS_ON`: all internal and external declarations that are used by the property
+  - [x]  attribute `cardinality` indicates the number of references made
+
+## Method Declaration
+→ all method declarations inside classes, interfaces or types
+- [x]  Label: `:TS:Method`
+
+Properties:
+- [x]  `name`: name of the method
+- [x]  `fqn`: fully qualified name (e.g. `"./src/main.ts".MyClass.myMethod`)
+- [x]  `visibility`: specified visibility (`public`, `protected` or `private` or `js_private` for `#`)
+- [x]  `static` is method static (`static`)
+- [x]  `abstract` is method abstact (`abstract`)
+- [x]  `override`: is method overridden from super class (using `override` keyword)
+
+Relations:
+- [x]  `RETURNS`: return type of the method
+- [x]  `HAS`: references to parameters
+- [x]  `DECORATED_BY`: all decorators of the method
+- [x]  `DECLARES`: references to declared type parameters
+- [x]  `DEPENDS_ON`: all internal and external declarations that are used within the method
+  - [x]  attribute `cardinality` indicates the number of references made
+
+Sub-Types:
+- Constructor
+  - [x]  Label: `:TS:Method:Constructor`
+  - has no `name` and `override` attribute and has only `HAS` and `DEPENDS_ON` relations
+  - can not be `js_private`
+  - can declare parameter properties
+    
+- Getter
+  - [x]  Label: `:TS:Method:Getter`
+  - has no `HAS` relation
+    
+- Setter
+  - [x]  Label: `:TS:Method:Setter`
+  - has no `RETURNS` relation
+
+## Parameter Declaration
+→ all parameters declared by function or methods
+- [x]  Label: `:TS:Parameter`
+
+Properties:
+- [x]  `index`: index of the parameter
+- [x]  `name`: name of the parameter
+
+Relations:
+- [x]  `OF_TYPE`: reference to type of the parameter
+- [x]  `DECORATED_BY`: all decorators decorating the parameter
+- [x]  `DECLARES`: parameter property references (only for constructors)
+
+## Decorator
+→ all decorators decorating either classes, methods or properties
+→ they are generally represented by Value nodes, that are referred to with the `DECORATED_BY` relation
+
 ## Interface Declaration
 → all `interface` declarations inside TS files
 - [x]  Label: `:TS:Interface`
@@ -152,78 +224,6 @@ Relations:
 - [x]  `DECLARES`: all declared type parameters
 - [x]  `DEPENDS_ON`: all internal and external declarations that are used within the function
   - [x]  attribute `cardinality` indicates the number of references made (added up transitively)
-
-## Property Declaration
-→ all property declarations inside classes, interfaces or type aliases
-- [x]  Label: `:TS:Property`
-
-Properties:
-- [x]  `name`: name of the property
-- [x]  `fqn`: fully qualified name (e.g. `"./src/main.ts".MyClass.myProp`)
-- [x]  `optional`: is property optional (`?`)
-- [x]  `readonly`: is property read-only (`readonly`)
-- [x]  `visibility`: specified visibility (`public`, `protected` or `private` or `js_private` for `#`)
-- [x]  `static` is property static (`static`)
-- [x]  `abstract` is property abstact (`abstract`)
-- [x]  `override`: is property overridden from super class (using `override` keyword)
-
-Relations:
-- [x]  `OF_TYPE`: type of the property
-- [x]  `DECORATED_BY`: all decorators of the property
-- [x]  `DEPENDS_ON`: all internal and external declarations that are used by the property
-  - [x]  attribute `cardinality` indicates the number of references made
-
-## Method Declaration
-→ all method declarations inside classes, interfaces or types
-- [x]  Label: `:TS:Method`
-
-Properties:
-- [x]  `name`: name of the method
-- [x]  `fqn`: fully qualified name (e.g. `"./src/main.ts".MyClass.myMethod`)
-- [x]  `visibility`: specified visibility (`public`, `protected` or `private` or `js_private` for `#`)
-- [x]  `static` is method static (`static`)
-- [x]  `abstract` is method abstact (`abstract`)
-- [x]  `override`: is method overridden from super class (using `override` keyword)
-
-Relations:
-- [x]  `RETURNS`: return type of the method
-- [x]  `HAS`: references to parameters
-- [x]  `DECORATED_BY`: all decorators of the method
-- [x]  `DECLARES`: references to declared type parameters
-- [x]  `DEPENDS_ON`: all internal and external declarations that are used within the method
-  - [x]  attribute `cardinality` indicates the number of references made
-
-Sub-Types:
-- Constructor
-  - [x]  Label: `:TS:Method:Constructor`
-  - has no `name` and `override` attribute and has only `HAS` and `DEPENDS_ON` relations
-  - can not be `js_private`
-  - can declare parameter properties
-    
-- Getter
-  - [x]  Label: `:TS:Method:Getter`
-  - has no `HAS` relation
-    
-- Setter
-  - [x]  Label: `:TS:Method:Setter`
-  - has no `RETURNS` relation
-
-## Parameter Declaration
-→ all parameters declared by function or methods
-- [x]  Label: `:TS:Parameter`
-
-Properties:
-- [x]  `index`: index of the parameter
-- [x]  `name`: name of the parameter
-
-Relations:
-- [x]  `OF_TYPE`: reference to type of the parameter
-- [x]  `DECORATED_BY`: all decorators decorating the parameter
-- [x]  `DECLARES`: parameter property references (only for constructors)
-
-## Decorator
-→ all decorators decorating either classes, methods or properties
-→ they are generally represented by Value nodes, that are referred to with the `DECORATED_BY` relation
 
 ## Type
 → represents a type (e.g. return type, property type, etc.)

@@ -2,6 +2,7 @@ import * as fs from "fs";
 import { Integer, QueryResult } from "neo4j-driver";
 import * as path from "path";
 import { match } from "minimatch";
+import json5 from "json5";
 
 export class Utils {
     /**
@@ -12,7 +13,7 @@ export class Utils {
      * @returns
      */
     static getProjectSourceFileList(path: string): string[] {
-        const tsconfig: { include?: string[]; exclude?: string[] } = JSON.parse(fs.readFileSync(path + "/tsconfig.json", "utf8"));
+        const tsconfig: { include?: string[]; exclude?: string[] } = json5.parse(fs.readFileSync(path + "/tsconfig.json", "utf8"));
         const endings = [".ts", ".tsx"];
 
         const ignoredDirs = [".git", "node_modules"];

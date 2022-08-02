@@ -5,10 +5,6 @@ import { GenericComponent } from '@leanup/lib';
 import { EditorSerieComponent } from '../editor/component.react';
 import { CreateSerieController } from './controller';
 
-export class TestCompi extends Component {
-
-}
-
 export class CreateSerieComponent extends Component<unknown, unknown> implements GenericComponent {
   public readonly ctrl: CreateSerieController;
 
