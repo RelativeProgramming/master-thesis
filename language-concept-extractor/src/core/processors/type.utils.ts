@@ -308,7 +308,7 @@ function parseType(processingContext: ProcessingContext, type: Type, node: Node,
 
         // normalize TypeChecker FQN and determine if type is part of the project
         // TODO: further testing needed
-        const sourceFile = symbol?.valueDeclaration?.getSourceFile();
+        const sourceFile = symbol?.valueDeclaration?.getSourceFile() ?? symbol?.declarations?.find(d => !!d.getSourceFile())?.getSourceFile();
         const isStandardLibrary = !!sourceFile && globalContext.services.program.isSourceFileDefaultLibrary(sourceFile);
         const isExternal = !!sourceFile && globalContext.services.program.isSourceFileFromExternalLibrary(sourceFile);
         // const isExternal = hasSource ? globalContext.services.program.isSourceFileFromExternalLibrary(sourceFile!) :

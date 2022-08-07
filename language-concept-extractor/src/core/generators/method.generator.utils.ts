@@ -78,7 +78,6 @@ export async function createConstructorNode(
 ): Promise<Integer> {
     // create constructor node
     const constructorProps = {
-        name: "constructor",
         fqn: constructorDecl.fqn,
     };
     const constructorNodeId = Utils.getNodeIdFromQueryResult(

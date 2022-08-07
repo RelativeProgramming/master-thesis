@@ -111,7 +111,7 @@ Relations:
 Sub-Types:
 - Constructor
   - [x]  Label: `:TS:Method:Constructor`
-  - has no `name` and `override` attribute and has only `HAS` and `DEPENDS_ON` relations
+  - has no `name`, `override`, `static`, `abstract` or `override` attribute and has only `HAS` and `DEPENDS_ON` relations
   - can not be `js_private`
   - can declare parameter properties
     
@@ -130,6 +130,7 @@ Sub-Types:
 Properties:
 - [x]  `index`: index of the parameter
 - [x]  `name`: name of the parameter
+- [x]  `optional`: indicates whether the parameter is optional
 
 Relations:
 - [x]  `OF_TYPE`: reference to type of the parameter
@@ -282,7 +283,7 @@ Relations:
 - [x]  Label: `:TS:Type:Literal`
 
 Properties:
-- [x]  `value`: value of the Literal (either int or string)
+- [x]  `value`: value of the Literal (either boolean, number or string)
 
 ### Tuple Types
 - [x]  Label: `:TS:Type:Tuple`
@@ -365,11 +366,11 @@ Relations:
     - [x]  attribute `index`: index of the item
 
 ### Call Value
-→ any values represented by a function call (e.g. `myArr.concat([4, 5])`)
+→ any values represented by a function call (e.g. `sum(1, 2)`)
 - [x]  Label: `:TS:Value:Call`
 
 Relations:
-- [x]  `CALLS`: value that is called (e.g. `myArr.concat`)
+- [x]  `CALLS`: value that is called (e.g. `sum`)
 - [x]  `HAS_ARGUMENT`: values of the arguments
   - [x]  attribute `index`: index of the argument
 - [x]  `HAS_TYPE_ARGUMENT`: type arguments specified for call
