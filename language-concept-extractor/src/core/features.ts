@@ -238,7 +238,5 @@ export const GENERATORS: Generator[] = [
     new EnumDeclarationGenerator(),
     new FunctionDeclarationGenerator(),
     new VariableDeclarationGenerator(),
-    new ConnectionGenerator(),
     new DependencyGenerator(),
-    new ConnectionGenerator(),
 ];

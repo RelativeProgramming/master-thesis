@@ -9,6 +9,7 @@ import { LCETypeScriptProject } from "./concepts/typescript-project.concept";
 import { ConnectionIndex } from "./connection-index";
 import { GlobalContext } from "./context";
 import { GENERATORS } from "./features";
+import { ConnectionGenerator } from './generators/connection.generator';
 import { PathUtils } from "./path.utils";
 import { AstTraverser } from "./traversers/ast.traverser";
 import { Utils } from "./utils";
@@ -64,9 +65,11 @@ async function generateGraphs(concepts: Map<string, LCEConcept[]>) {
     const session = driver.session();
     const connectionIndex = new ConnectionIndex();
 
+    const connectionGenerator = new ConnectionGenerator();
     try {
         for (const generator of GENERATORS) {
             await generator.run(session, concepts, connectionIndex);
+            await connectionGenerator.run(session, concepts, connectionIndex);
         }
     } finally {
         await session.close();

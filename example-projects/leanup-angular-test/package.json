@@ -1,0 +1,61 @@
+{
+  "devDependencies": {
+    "@leanup/cli": "1.3.26",
+    "@leanup/cli-angular": "1.3.27",
+    "@leanup/git-hooks": "1.3.26",
+    "@leanup/stack": "1.3.26",
+    "@leanup/stack-vite": "1.3.26",
+    "@leanup/stack-webpack": "1.3.26",
+    "@unocss/preset-mini": "0.45.1",
+    "@unocss/vite": "0.45.1",
+    "@unocss/webpack": "0.45.1",
+    "chromedriver": "97.0.4",
+    "npm-check-updates": "12.5.12",
+    "postcss-windicss": "1.0.0",
+    "selenium-server": "3.141.59",
+    "typescript": "4.5.5",
+    "@leanup/stack-angular": "1.3.27",
+    "@ngtools/webpack": "13.3.9"
+  },
+  "name": "leanup-angular-test",
+  "version": "1.3.27",
+  "description": "",
+  "scripts": {
+    "coverage": "cross-env NODE_ENV=test nyc mocha",
+    "cucumber": "cross-env NIGHTWATCH_ENV=chrome cucumber-js tests/cucumber/features/**/*.feature --require cucumber.conf.js --require tests/cucumber/step-definitions --format @cucumber/pretty-formatter --format json:.reports/cucumber/report.json",
+    "e2e": "nightwatch",
+    "format": "prettier --check \"{src,tests}/**\" --ignore-unknown",
+    "lint": "eslint \"{src,tests}/**/*.{html,js,json,jsx,ts,tsx,gql,graphql}\"",
+    "reinstall": "npm run remove && npm install",
+    "remove": "rm -rf node_modules package-lock.json",
+    "update": "ncu -t minor -u && npm install && ncu",
+    "build": "cross-env NODE_ENV=production webpack",
+    "start": "npm run serve -- --open",
+    "serve": "cross-env NODE_ENV=development webpack serve --devtool=source-map --no-hot",
+    "preview": "vite preview",
+    "test": "cross-env NODE_ENV=test mocha",
+    "prepare:husky": "husky install",
+    "commit-msg": "commitlint",
+    "pre-commit": "lint-staged"
+  },
+  "lint-staged": {
+    "{src,tests}/**/*.{html,js,json,jsx,ts,tsx,gql,graphql}": ["eslint"],
+    "{src,tests}/**": ["prettier --check"]
+  },
+  "dependencies": {
+    "@leanup/form": "1.3.26",
+    "@leanup/lib": "1.3.26",
+    "@leanup/openapi-demo": "1.3.26",
+    "navigo": "8.11.1",
+    "rxjs": "7.5.6",
+    "@angular/common": "13.3.11",
+    "@angular/compiler": "13.3.11",
+    "@angular/compiler-cli": "13.3.11",
+    "@angular/core": "13.3.11",
+    "@angular/forms": "13.3.11",
+    "@angular/platform-browser": "13.3.11",
+    "@angular/platform-browser-dynamic": "13.3.11",
+    "core-js": "3.24.1",
+    "zone.js": "0.11.7"
+  }
+}

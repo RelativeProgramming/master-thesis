@@ -271,9 +271,6 @@ Relations:
 ### Function Types
 - [x]  Label: `:TS:Type:Function`
 
-Properties:
-- [x]  `arrowFunction`: indicates whether the value is an arrow function
-
 Relations:
 - [x]  `RETURNS`: reference to return type
 - [x]  `HAS`: references to parameters (same node type as method parameters)
@@ -379,6 +376,9 @@ Relations:
 ### Function Value
 → any values representing a function (e.g. `function(x: string) { return x.trim(); }` or `(x: number) => x + 1`)
 - [x]  Label: `:TS:Value:Function`
+
+Properties:
+- [x]  `arrowFunction`: indicates whether the value is an arrow function
 
 ### Class Value
 → any values represented by a class expression (e.g. `class A {}`)
