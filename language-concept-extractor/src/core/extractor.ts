@@ -5,11 +5,12 @@ import path from "path";
 import { TypeChecker } from "typescript";
 
 import { ConceptMap, LCEConcept, mergeConceptMaps, singleEntryConceptMap, unifyConceptMap } from "./concept";
+import { LCEDependency } from "./concepts/dependency.concept";
 import { LCETypeScriptProject } from "./concepts/typescript-project.concept";
 import { ConnectionIndex } from "./connection-index";
 import { GlobalContext } from "./context";
 import { GENERATORS } from "./features";
-import { ConnectionGenerator } from './generators/connection.generator';
+import { ConnectionGenerator } from "./generators/connection.generator";
 import { PathUtils } from "./path.utils";
 import { AstTraverser } from "./traversers/ast.traverser";
 import { Utils } from "./utils";

@@ -15,7 +15,7 @@ import {
     LCETypeUnion,
 } from "../concepts/type.concept";
 import { ConnectionIndex, ConnectionProperties } from "../connection-index";
-import { PathUtils } from '../path.utils';
+import { PathUtils } from "../path.utils";
 import { Utils } from "../utils";
 import { createFunctionParameterNode } from "./function.generator.utils";
 
@@ -40,16 +40,13 @@ export async function createTypeNode(
     // NOTE: every newly created type node must be registered at the connectionIndex for a connection
 
     if (type instanceof LCETypePrimitive) {
-        const typeNodeProps = {
-            name: type.name,
-        };
         const typeNodeId = Utils.getNodeIdFromQueryResult(
             await neo4jSession.run(
                 `
-            CREATE (type:TS:Type:Primitive $typeNodeProps)
+            MERGE (type:TS:Type:Primitive {name: $name})
             RETURN id(type)
             `,
-                { typeNodeProps: typeNodeProps }
+                { name: type.name }
             )
         );
         connectionIndex.connectionsToCreate.push([parentNode, typeNodeId, connectionProps]);

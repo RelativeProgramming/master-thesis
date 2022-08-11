@@ -24,8 +24,11 @@ export class ClassDeclarationProcessor extends Processor {
         );
     });
 
-    public override preChildrenProcessing({ localContexts }: ProcessingContext): void {
-        DependencyResolutionProcessor.createDependencyIndex(localContexts);
+    public override preChildrenProcessing({ node, localContexts }: ProcessingContext): void {
+        if (node.type === AST_NODE_TYPES.ClassDeclaration && node.id) {
+            DependencyResolutionProcessor.addScopeContext(localContexts, node.id.name);
+            DependencyResolutionProcessor.createDependencyIndex(localContexts);
+        }
     }
 
     public override postChildrenProcessing({ globalContext, localContexts, node }: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
@@ -35,8 +38,7 @@ export class ClassDeclarationProcessor extends Processor {
             DependencyResolutionProcessor.registerDeclaration(
                 localContexts,
                 className,
-                fqn,
-                localContexts.currentContexts.has(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT)
+                fqn
             );
             const classDecl = new LCEClassDeclaration(
                 className,
@@ -57,9 +59,8 @@ export class ClassDeclarationProcessor extends Processor {
                 getAndDeleteChildConcepts(ClassTraverser.DECORATORS_PROP, LCEDecorator.conceptId, childConcepts),
                 globalContext.sourceFilePath
             );
-            if (localContexts.currentContexts.has(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT)) {
-                DependencyResolutionProcessor.scheduleFqnResolution(localContexts, className, classDecl);
-            }
+            DependencyResolutionProcessor.scheduleFqnResolution(localContexts, className, classDecl);
+            
             return mergeConceptMaps(
                 singleEntryConceptMap(LCEClassDeclaration.conceptId, classDecl),
                 DependencyResolutionProcessor.getRegisteredDependencies(localContexts)

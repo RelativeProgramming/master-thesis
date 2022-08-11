@@ -201,6 +201,11 @@ export class DependencyResolutionProcessor extends Processor {
      * if undefined the scope will be identified by a unique number
      */
     public static addScopeContext(localContexts: LocalContexts, scopeIdentifier?: string): void {
+        if (localContexts.currentContexts.has(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT)) {
+            // if scope context is already present, ignore this call
+            return;
+        }
+
         if (!scopeIdentifier) {
             scopeIdentifier = (
                 localContexts.getNextContext(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT) as FQNScope[]

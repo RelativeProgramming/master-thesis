@@ -25,8 +25,11 @@ export class InterfaceDeclarationProcessor extends Processor {
         );
     });
 
-    public override preChildrenProcessing({ localContexts }: ProcessingContext): void {
-        DependencyResolutionProcessor.createDependencyIndex(localContexts);
+    public override preChildrenProcessing({ node, localContexts }: ProcessingContext): void {
+        if (node.type === AST_NODE_TYPES.TSInterfaceDeclaration && node.id) {
+            DependencyResolutionProcessor.addScopeContext(localContexts, node.id.name);
+            DependencyResolutionProcessor.createDependencyIndex(localContexts);
+        }
     }
 
     public override postChildrenProcessing({ globalContext, localContexts, node }: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
@@ -37,7 +40,6 @@ export class InterfaceDeclarationProcessor extends Processor {
                 localContexts,
                 interfaceName,
                 fqn,
-                localContexts.currentContexts.has(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT)
             );
             const interfaceDecl = new LCEInterfaceDeclaration(
                 interfaceName,

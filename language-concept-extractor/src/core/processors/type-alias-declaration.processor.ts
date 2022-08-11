@@ -18,8 +18,11 @@ export class TypeAliasDeclarationProcessor extends Processor {
         );
     });
 
-    public override preChildrenProcessing({ localContexts }: ProcessingContext): void {
-        DependencyResolutionProcessor.createDependencyIndex(localContexts);
+    public override preChildrenProcessing({ node, localContexts }: ProcessingContext): void {
+        if (node.type === AST_NODE_TYPES.TSTypeAliasDeclaration && node.id) {
+            DependencyResolutionProcessor.addScopeContext(localContexts, node.id.name);
+            DependencyResolutionProcessor.createDependencyIndex(localContexts);
+        }
     }
 
     public override postChildrenProcessing({ globalContext, localContexts, node }: ProcessingContext): ConceptMap {
@@ -30,7 +33,6 @@ export class TypeAliasDeclarationProcessor extends Processor {
                 localContexts,
                 typeAliasName,
                 fqn,
-                localContexts.currentContexts.has(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT)
             );
             const typeAliasDecl = new LCETypeAliasDeclaration(
                 typeAliasName,

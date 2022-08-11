@@ -22,9 +22,12 @@ export class EnumDeclarationProcessor extends Processor {
         );
     });
 
-    public override preChildrenProcessing({ localContexts }: ProcessingContext): void {
+    public override preChildrenProcessing({ node, localContexts }: ProcessingContext): void {
         localContexts.currentContexts.set(EnumDeclarationProcessor.PARSE_ENUM_MEMBERS_CONTEXT, true);
-        DependencyResolutionProcessor.createDependencyIndex(localContexts);
+        if (node.type === AST_NODE_TYPES.TSEnumDeclaration && node.id) {
+            DependencyResolutionProcessor.addScopeContext(localContexts, node.id.name);
+            DependencyResolutionProcessor.createDependencyIndex(localContexts);
+        }
     }
 
     public override postChildrenProcessing({ node, localContexts, globalContext }: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
@@ -34,8 +37,7 @@ export class EnumDeclarationProcessor extends Processor {
             DependencyResolutionProcessor.registerDeclaration(
                 localContexts,
                 enumName,
-                fqn,
-                localContexts.currentContexts.has(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT)
+                fqn
             );
 
             const members: LCEEnumMember[] = getAndDeleteChildConcepts(EnumDeclarationTraverser.MEMBERS_PROP, LCEEnumMember.conceptId, childConcepts);
@@ -48,9 +50,7 @@ export class EnumDeclarationProcessor extends Processor {
                 node.declare ?? false,
                 globalContext.sourceFilePath
             );
-            if (localContexts.currentContexts.has(DependencyResolutionProcessor.FQN_SCOPE_CONTEXT)) {
-                DependencyResolutionProcessor.scheduleFqnResolution(localContexts, node.id.name, enumeration);
-            }
+            
             return singleEntryConceptMap(LCEEnumDeclaration.conceptId, enumeration);
         }
         return new Map();
