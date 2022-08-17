@@ -1,6 +1,7 @@
 import { AST_NODE_TYPES } from "@typescript-eslint/types";
 
 import { ConceptMap, singleEntryConceptMap } from "../concept";
+import { LCEType } from "../concepts/type.concept";
 import {
     LCEValue,
     LCEValueArray,
@@ -221,9 +222,18 @@ export class FunctionValueProcessor extends Processor {
         }
     );
 
-    public override postChildrenProcessing({ node }: ProcessingContext): ConceptMap {
+    public override postChildrenProcessing({ node, globalContext, localContexts }: ProcessingContext): ConceptMap {
         if (node.type === AST_NODE_TYPES.FunctionExpression || node.type === AST_NODE_TYPES.ArrowFunctionExpression) {
-            return singleEntryConceptMap(LCEValueFunction.conceptId, new LCEValueFunction(node.type === AST_NODE_TYPES.ArrowFunctionExpression));
+            let type: LCEType;
+            if (node.parent && node.parent.type === AST_NODE_TYPES.VariableDeclarator && node.parent.id.type === AST_NODE_TYPES.Identifier) {
+                type = parseESNodeType({ node, localContexts, globalContext }, node, node.parent.id.name);
+            } else {
+                type = parseESNodeType({ node, localContexts, globalContext }, node);
+            }
+            return singleEntryConceptMap(
+                LCEValueFunction.conceptId,
+                new LCEValueFunction(type, node.type === AST_NODE_TYPES.ArrowFunctionExpression)
+            );
         }
         return new Map();
     }

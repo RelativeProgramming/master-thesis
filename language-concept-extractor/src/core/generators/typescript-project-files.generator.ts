@@ -6,6 +6,8 @@ import { Generator } from "../generator";
 
 export class TypeScriptProjectFilesGenerator extends Generator {
     async run(neo4jSession: Session, concepts: Map<string, LCEConcept[]>): Promise<void> {
+        console.log("Marking TypeScript project files in graph...");
+
         const project = getAndCastConcepts<LCETypeScriptProject>(LCETypeScriptProject.conceptId, concepts)[0];
         await neo4jSession.run(
             `

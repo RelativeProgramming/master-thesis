@@ -8,7 +8,7 @@ export class ConnectionGenerator extends Generator {
     async run(neo4jSession: Session, concepts: Map<string, LCEConcept[]>, connectionIndex: ConnectionIndex): Promise<void> {
         connectionIndex.resolve();
 
-        console.log("Generating " + connectionIndex.connectionsToCreate.length + " outstanding connections...");
+        console.log(" - Generating " + connectionIndex.connectionsToCreate.length + " outstanding connections...");
 
         for (const [from, to, props] of connectionIndex.connectionsToCreate) {
             await neo4jSession.run(

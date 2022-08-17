@@ -34,7 +34,7 @@ export class ConnectionIndex {
      * Adds resolved connections to `connectionsToCreate` and removes them from `referenceNodes`
      */
     private resolveReferencedNodes(): void {
-        console.log("Resolving referenced nodes...");
+        console.log(" - Resolving referenced nodes...");
         for (const [from, [fqn, props]] of this.referenceNodes.entries()) {
             const provider = this.providerNodes.get(fqn);
             if (provider) {
@@ -42,7 +42,7 @@ export class ConnectionIndex {
                 this.referenceNodes.delete(from);
             }
         }
-        console.log("Resolved references. (unresolved: " + this.referenceNodes.size + ")");
+        console.log(" - Resolved references. (unresolved: " + this.referenceNodes.size + ")");
         // Log (non-anonymous) unresolved references
         // for (const node of this.referenceNodes) {
         //     if (!node[1][0].startsWith("(")) {

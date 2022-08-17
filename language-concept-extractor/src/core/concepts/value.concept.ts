@@ -138,10 +138,11 @@ export class LCEValueFunction extends LCEValue {
     public static override conceptId = "function-value";
 
     /**
+     * @param type return type of the function
      * @param arrowFunction indicates whether the function is an arrow function
      */
-    constructor(public arrowFunction: boolean) {
-        super(new LCETypeNotIdentified("function expression"));
+    constructor(type: LCEType, public arrowFunction: boolean) {
+        super(type);
     }
 }
 

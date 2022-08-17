@@ -285,7 +285,7 @@ function parseType(processingContext: ProcessingContext, type: Type, node: Node,
     const symbol = type.aliasSymbol ? type.aliasSymbol : type.symbol ? type.symbol : undefined;
     const fqn = symbol ? tc.getFullyQualifiedName(symbol) : undefined;
 
-    if ((!fqn || fqn.startsWith("__type") || fqn === excludedFQN) && !isPrimitiveType(tc.typeToString(type))) {
+    if ((!fqn || fqn === "(Anonymous function)" || fqn.startsWith("__type") || fqn === excludedFQN) && !isPrimitiveType(tc.typeToString(type))) {
         // TODO: handle recursive types like `_DeepPartialObject`
         if (type.aliasSymbol?.getName() === "_DeepPartialObject") return new LCETypeNotIdentified("DeepPartialObject is not supported");
 
@@ -308,7 +308,7 @@ function parseType(processingContext: ProcessingContext, type: Type, node: Node,
 
         // normalize TypeChecker FQN and determine if type is part of the project
         // TODO: further testing needed
-        const sourceFile = symbol?.valueDeclaration?.getSourceFile() ?? symbol?.declarations?.find(d => !!d.getSourceFile())?.getSourceFile();
+        const sourceFile = symbol?.valueDeclaration?.getSourceFile() ?? symbol?.declarations?.find((d) => !!d.getSourceFile())?.getSourceFile();
         const isStandardLibrary = !!sourceFile && globalContext.services.program.isSourceFileDefaultLibrary(sourceFile);
         const isExternal = !!sourceFile && globalContext.services.program.isSourceFileFromExternalLibrary(sourceFile);
         // const isExternal = hasSource ? globalContext.services.program.isSourceFileFromExternalLibrary(sourceFile!) :
