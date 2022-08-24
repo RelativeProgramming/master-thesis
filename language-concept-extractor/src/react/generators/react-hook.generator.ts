@@ -36,8 +36,8 @@ export class ReactHookGenerator extends Generator {
                 const hookNodeId = Utils.getNodeIdFromQueryResult(
                     await neo4jSession.run(
                         `
-                    CREATE (enum:TS:React:StateHook $hookNodeProps) 
-                    RETURN id(enum)
+                    CREATE (hook:TS:React:StateHook $hookNodeProps) 
+                    RETURN id(hook)
                     `,
                         { hookNodeProps }
                     )

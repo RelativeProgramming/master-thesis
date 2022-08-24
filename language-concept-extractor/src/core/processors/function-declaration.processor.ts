@@ -90,7 +90,7 @@ export class FunctionParameterProcessor extends Processor {
             const functionType = localContexts.parentContexts.get(FunctionParameterProcessor.FUNCTION_TYPE_CONTEXT_ID) as LCETypeFunction;
             if (functionType) {
                 const paramIndex = getParentPropIndex(localContexts);
-                if (paramIndex) {
+                if (paramIndex !== undefined) {
                     const funcTypeParam = functionType.parameters[paramIndex];
 
                     // TODO: handle function overloads: funcTypeParam must always be defined!

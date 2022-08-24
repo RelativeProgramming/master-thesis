@@ -153,7 +153,7 @@ export class MethodParameterProcessor extends Processor {
             const functionType = localContexts.parentContexts.get(MethodParameterProcessor.METHOD_TYPE_CONTEXT_ID) as LCETypeFunction;
             if (functionType) {
                 const paramIndex = getParentPropIndex(localContexts);
-                if (paramIndex && functionType.parameters[paramIndex]) {
+                if (paramIndex !== undefined && functionType.parameters[paramIndex]) {
                     const funcTypeParam = functionType.parameters[paramIndex];
 
                     if (node.type === AST_NODE_TYPES.Identifier) {
