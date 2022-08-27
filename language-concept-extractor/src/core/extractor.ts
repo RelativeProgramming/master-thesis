@@ -14,7 +14,8 @@ import { PathUtils } from "./path.utils";
 import { AstTraverser } from "./traversers/ast.traverser";
 import { Utils } from "./utils";
 
-export function processProject(projectRoot: string) {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export async function processProject(projectRoot: string, readFile: Function = fs.readFileSync) {
     // TODO: take tsconfig.json into consideration (assumes projectRoot = path that contains tsconfig.json)
     // see https://www.typescriptlang.org/docs/handbook/project-references.html#what-is-a-project-reference
 
@@ -30,7 +31,7 @@ export function processProject(projectRoot: string) {
     const traverser = new AstTraverser();
 
     for (const file of fileList) {
-        const code = fs.readFileSync(file, "utf8");
+        const code: string = readFile(file, "utf8");
         const { ast, services } = parseAndGenerateServices(code, {
             loc: true,
             range: true,
@@ -55,13 +56,13 @@ export function processProject(projectRoot: string) {
     console.log("Finished analyzing project files. Runtime: " + (endTime[0] - startTime[0]) + "s");
 
     const normalizedConcepts = unifyConceptMap(concepts, "").get("");
-    if (normalizedConcepts) generateGraphs(normalizedConcepts);
+    if (normalizedConcepts) await generateGraphs(normalizedConcepts);
 }
 
 async function generateGraphs(concepts: Map<string, LCEConcept[]>) {
     console.log("Generating graph...");
     const startTime = process.hrtime();
-    const driver = neo4jDriver("bolt://localhost:7687", neo4jAuth.basic("", ""));
+    const driver = neo4jDriver("bolt://localhost:7687", neo4jAuth.basic("neo4j", "neo"));
     const session = driver.session();
     const connectionIndex = new ConnectionIndex();
 

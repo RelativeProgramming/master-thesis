@@ -7,8 +7,9 @@ If not already installed, install the [`ts-node`](https://www.npmjs.com/package/
 
 To run the LCE execute the following commands in the project root directory:
 
-1. Start jQA using `sh run-jqa.sh example-projects/2multiple` (do not close terminal instance!)
-2. Execute LCE using `ts-node "./language-concept-extractor/src/main.ts" "./example-projects/2multiple"`
+1. Setup local Neo4j server with user `neo4j` and password `neo` (add APOC plugin)
+2. Start jQA using `sh run-jqa.sh example-projects/2multiple`
+3. Execute LCE using `ts-node "./language-concept-extractor/src/main.ts" "./example-projects/2multiple"`
 
 To reset the graph simply stop the jQA server and perform the steps above again.
 
