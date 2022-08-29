@@ -34,11 +34,7 @@ export class EnumDeclarationProcessor extends Processor {
         if (node.type === AST_NODE_TYPES.TSEnumDeclaration) {
             const enumName = node.id.name;
             const fqn = DependencyResolutionProcessor.constructScopeFQN(localContexts);
-            DependencyResolutionProcessor.registerDeclaration(
-                localContexts,
-                enumName,
-                fqn
-            );
+            DependencyResolutionProcessor.registerDeclaration(localContexts, enumName, fqn, true);
 
             const members: LCEEnumMember[] = getAndDeleteChildConcepts(EnumDeclarationTraverser.MEMBERS_PROP, LCEEnumMember.conceptId, childConcepts);
 
@@ -50,7 +46,7 @@ export class EnumDeclarationProcessor extends Processor {
                 node.declare ?? false,
                 globalContext.sourceFilePath
             );
-            
+
             return singleEntryConceptMap(LCEEnumDeclaration.conceptId, enumeration);
         }
         return new Map();

@@ -31,8 +31,11 @@ export class Utils {
             let matched = false;
             let included = true;
             if (tsconfig.include) {
-                if (tsconfig.include.find((dirPattern) => match([file], dirPattern).length > 0)) {
-                    if (tsconfig.exclude && tsconfig.exclude.find((dirPattern) => match([file], dirPattern).length > 0)) {
+                if (tsconfig.include.find((dirPattern) => match([file], dirPattern).length > 0 || file.startsWith(dirPattern))) {
+                    if (
+                        tsconfig.exclude &&
+                        tsconfig.exclude.find((dirPattern) => match([file], dirPattern).length > 0 || file.startsWith(dirPattern))
+                    ) {
                         included = false;
                     }
                 } else {

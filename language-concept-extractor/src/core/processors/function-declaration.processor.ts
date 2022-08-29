@@ -40,7 +40,7 @@ export class FunctionDeclarationProcessor extends Processor {
                 localContexts.currentContexts.set(FunctionParameterProcessor.FUNCTION_TYPE_CONTEXT_ID, functionType);
                 if (node.id) {
                     const fqn = DependencyResolutionProcessor.constructScopeFQN(localContexts);
-                    DependencyResolutionProcessor.registerDeclaration(localContexts, node.id.name, fqn);
+                    DependencyResolutionProcessor.registerDeclaration(localContexts, node.id.name, fqn, true);
                 }
             }
         }

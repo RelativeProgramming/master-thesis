@@ -20,3 +20,10 @@ The Neo4j browser can be reached under http://localhost:7474/browser/
 ## Graph Structure
 
 see [Graph Structure Documentation](docs/graph_structure.md)
+
+
+# Tests
+
+To run the tests execute the following command in the main repository directory:
+
+`yarn --cwd ./language-concept-extractor test`

@@ -63,9 +63,11 @@ export async function createValueNode(
             )
         );
     } else if (value instanceof LCEValueDeclared) {
+        if(value.fqn === '"./src/a.ts".vNumber')
+            value
         const valueNodeProps = {
             referencedFqn: value.fqn,
-            internal: PathUtils.isExternal(PathUtils.extractFQNPath(value.fqn)),
+            internal: !PathUtils.isExternal(PathUtils.extractFQNPath(value.fqn)),
         };
         valueNodeId = Utils.getNodeIdFromQueryResult(
             await neo4jSession.run(
@@ -178,7 +180,7 @@ export async function createValueNode(
         // conncect to parent node
         connectionIndex.connectionsToCreate.push([parentNode, valueNodeId, connectionProps]);
 
-        // create type node
+        // create type node (skip object values to reduce redundancy)
         if (!(value instanceof LCEValueObject)) {
             await createTypeNode(value.type, neo4jSession, connectionIndex, valueNodeId, { name: ":OF_TYPE", props: {} });
         }

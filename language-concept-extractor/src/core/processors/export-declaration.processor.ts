@@ -2,9 +2,12 @@ import { AST_NODE_TYPES } from "@typescript-eslint/types";
 
 import { ConceptMap, getAndCastConcepts, LCEConcept, mergeConceptMaps, singleEntryConceptMap } from "../concept";
 import { LCEClassDeclaration } from "../concepts/class-declaration.concept";
+import { LCEEnumDeclaration } from "../concepts/enum-declaration.concept";
 import { LCEExportDeclaration } from "../concepts/export-declaration.concept";
 import { LCEFunctionDeclaration } from "../concepts/function-declaration.concept";
 import { LCEInterfaceDeclaration } from "../concepts/interface-declaration.concept";
+import { LCETypeAliasDeclaration } from "../concepts/type-alias-declaration.concept";
+import { LCEVariableDeclaration } from "../concepts/variable-declaration.concept";
 import { ProcessingContext } from "../context";
 import { ExecutionCondition } from "../execution-condition";
 import { PathUtils } from "../path.utils";
@@ -112,6 +115,12 @@ export class ExportDeclarationProcessor extends Processor {
                 identifier = getAndCastConcepts<LCEInterfaceDeclaration>(LCEInterfaceDeclaration.conceptId, exportedConcept)[0].interfaceName;
             } else if (exportedConcept.has(LCEFunctionDeclaration.conceptId)) {
                 identifier = getAndCastConcepts<LCEFunctionDeclaration>(LCEFunctionDeclaration.conceptId, exportedConcept)[0].functionName;
+            } else if (exportedConcept.has(LCETypeAliasDeclaration.conceptId)) {
+                identifier = getAndCastConcepts<LCETypeAliasDeclaration>(LCETypeAliasDeclaration.conceptId, exportedConcept)[0].typeAliasName;
+            } else if (exportedConcept.has(LCEEnumDeclaration.conceptId)) {
+                identifier = getAndCastConcepts<LCEEnumDeclaration>(LCEEnumDeclaration.conceptId, exportedConcept)[0].enumName;
+            } else if (exportedConcept.has(LCEVariableDeclaration.conceptId)) {
+                identifier = getAndCastConcepts<LCEVariableDeclaration>(LCEVariableDeclaration.conceptId, exportedConcept)[0].variableName;
             }
         }
         return identifier;

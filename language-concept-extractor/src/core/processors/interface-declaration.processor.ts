@@ -36,11 +36,7 @@ export class InterfaceDeclarationProcessor extends Processor {
         if (node.type === AST_NODE_TYPES.TSInterfaceDeclaration) {
             const interfaceName = node.id.name;
             const fqn = DependencyResolutionProcessor.constructScopeFQN(localContexts);
-            DependencyResolutionProcessor.registerDeclaration(
-                localContexts,
-                interfaceName,
-                fqn,
-            );
+            DependencyResolutionProcessor.registerDeclaration(localContexts, interfaceName, fqn, true);
             const interfaceDecl = new LCEInterfaceDeclaration(
                 interfaceName,
                 fqn,

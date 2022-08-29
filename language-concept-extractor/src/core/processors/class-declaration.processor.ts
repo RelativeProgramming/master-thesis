@@ -35,11 +35,7 @@ export class ClassDeclarationProcessor extends Processor {
         if (node.type === AST_NODE_TYPES.ClassDeclaration) {
             const className = node.id?.name ?? "";
             const fqn = DependencyResolutionProcessor.constructScopeFQN(localContexts);
-            DependencyResolutionProcessor.registerDeclaration(
-                localContexts,
-                className,
-                fqn
-            );
+            DependencyResolutionProcessor.registerDeclaration(localContexts, className, fqn, true);
             const classDecl = new LCEClassDeclaration(
                 className,
                 fqn,
@@ -60,7 +56,7 @@ export class ClassDeclarationProcessor extends Processor {
                 globalContext.sourceFilePath
             );
             DependencyResolutionProcessor.scheduleFqnResolution(localContexts, className, classDecl);
-            
+
             return mergeConceptMaps(
                 singleEntryConceptMap(LCEClassDeclaration.conceptId, classDecl),
                 DependencyResolutionProcessor.getRegisteredDependencies(localContexts)

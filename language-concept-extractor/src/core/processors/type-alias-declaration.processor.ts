@@ -29,11 +29,7 @@ export class TypeAliasDeclarationProcessor extends Processor {
         if (node.type === AST_NODE_TYPES.TSTypeAliasDeclaration) {
             const typeAliasName = node.id.name;
             const fqn = DependencyResolutionProcessor.constructScopeFQN(localContexts);
-            DependencyResolutionProcessor.registerDeclaration(
-                localContexts,
-                typeAliasName,
-                fqn,
-            );
+            DependencyResolutionProcessor.registerDeclaration(localContexts, typeAliasName, fqn, true);
             const typeAliasDecl = new LCETypeAliasDeclaration(
                 typeAliasName,
                 fqn,

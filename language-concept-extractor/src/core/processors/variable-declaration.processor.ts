@@ -67,9 +67,10 @@ export class VariableDeclaratorProcessor extends Processor {
 
             const name = node.id.name;
             const fqn = localContexts.currentContexts.get(VariableDeclaratorProcessor.VARIABLE_DECLARATOR_FQN_CONTEXT) as string;
-            DependencyResolutionProcessor.registerDeclaration(localContexts, name, fqn);
+            DependencyResolutionProcessor.registerDeclaration(localContexts, name, fqn, true);
 
             const kind = localContexts.parentContexts?.get(VariableDeclarationProcessor.VARIABLE_DECLARATION_KIND_CONTEXT) as "var" | "let" | "const";
+
 
             const varDecl = new LCEVariableDeclaration(
                 name,

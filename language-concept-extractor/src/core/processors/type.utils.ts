@@ -348,7 +348,7 @@ function parseType(processingContext: ProcessingContext, type: Type, node: Node,
         // TODO: handle locally defined (non-)anonymous types (e.g. with class expressios)
 
         if (!ignoreDependencies && !isStandardLibrary)
-            DependencyResolutionProcessor.registerDependency(processingContext.localContexts, normalizedFQN, false);
+            DependencyResolutionProcessor.registerDependency(processingContext.localContexts, normalizedFQN, scheduleFqnResolution);
 
         const result = new LCETypeDeclared(normalizedFQN, typeArguments);
         if (scheduleFqnResolution) {
@@ -399,7 +399,7 @@ function parseAnonymousType(
         }
         const typeParameters = parseFunctionTypeParameters(processingContext, signature, node);
         return new LCETypeFunction(returnType, parameters, typeParameters);
-    } else if (symbol?.members) {
+    } else if (type.symbol?.members) {
         // anonymous object type
         // TODO: test for methods, callables, index signatures, etc.
         const members: Map<string, LCEType> = new Map();
