@@ -3,4 +3,3 @@ build/
 jqassistant/
 example-projects/2multiple/node_modules
 .VSCodeCounter/**
-language-concept-extractor/test

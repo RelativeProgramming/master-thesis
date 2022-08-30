@@ -1,0 +1,13 @@
+Front-End Example: react-wordle
+
+### React components with different name, than file name:
+MATCH (m:TS:Module)-[:EXPORTS]->(decl:React) 
+WHERE NOT m.fileName CONTAINS decl.name
+AND NOT (m:External)
+RETURN m, decl
+
+### React components declared outside of "components" directory
+MATCH (m:TS:Module)-[:DECLARES]->(decl:React) 
+WHERE NOT m.fileName CONTAINS "/src/components"
+AND NOT (m:External)
+RETURN m, decl
