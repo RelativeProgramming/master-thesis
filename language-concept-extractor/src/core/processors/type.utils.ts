@@ -18,7 +18,9 @@ import {
     TypeNode,
 } from "@typescript-eslint/types/dist/generated/ast-spec";
 import {
+    Declaration,
     isTypeParameterDeclaration,
+    MethodDeclaration,
     Node,
     ParameterDeclaration,
     PseudoBigInt,
@@ -88,11 +90,16 @@ export function parseMethodType(
         propertySym = classType.getProperty(methodName);
     }
 
-    if (propertySym === undefined) return undefined;
+    let methodNode: Node | undefined;
+    if (!propertySym) {
+        // if no property symbol is found, try to find the method declaration
+        methodNode = globalContext.services.esTreeNodeToTSNodeMap.get(esMethodDecl);
+    } else {
+        methodNode = propertySym.valueDeclaration;
+    }
 
-    const methodNode = propertySym.valueDeclaration;
     if (!methodNode) throw new Error("Method node not found");
-    let methodType = tc.getTypeOfSymbolAtLocation(propertySym, methodNode);
+    let methodType = propertySym ? tc.getTypeOfSymbolAtLocation(propertySym, methodNode) : tc.getTypeAtLocation(methodNode);
     if (esMethodDecl.optional && methodType.isUnion()) {
         methodType = methodType.types[1];
     }

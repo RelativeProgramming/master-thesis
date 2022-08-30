@@ -7,6 +7,7 @@ import { ProcessingContext } from "../context";
 import { ExecutionCondition } from "../execution-condition";
 import { Processor } from "../processor";
 import { getParentPropName } from "../processor.utils";
+import { ClassTraverser } from "../traversers/class.traverser";
 import { ArrowFunctionExpressionTraverser, MemberExpressionTraverser, TaggedTemplateExpressionTraverser } from "../traversers/expression.traverser";
 import { FunctionTraverser } from "../traversers/function.traverser";
 import { MethodTraverser } from "../traversers/method.traverser";
@@ -59,6 +60,7 @@ export class IdentifierDependencyProcessor extends Processor {
     public executionCondition: ExecutionCondition = new ExecutionCondition(
         [AST_NODE_TYPES.Identifier],
         ({ node, localContexts }) =>
+            !(node.parent?.type === AST_NODE_TYPES.ClassDeclaration && getParentPropName(localContexts) === ClassTraverser.EXTENDS_PROP) &&
             !(
                 (node.parent?.type === AST_NODE_TYPES.MethodDefinition || node.parent?.type === AST_NODE_TYPES.TSMethodSignature) &&
                 (getParentPropName(localContexts) === MethodTraverser.KEY_PROP ||

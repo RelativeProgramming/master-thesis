@@ -17,7 +17,11 @@ export class MethodTraverser extends Traverser {
         const { node } = processingContext;
         const conceptMaps: ConceptMap[] = [];
 
-        if (node.type === AST_NODE_TYPES.MethodDefinition || node.type === AST_NODE_TYPES.TSMethodSignature) {
+        if (
+            node.type === AST_NODE_TYPES.MethodDefinition ||
+            node.type === AST_NODE_TYPES.TSMethodSignature ||
+            node.type === AST_NODE_TYPES.TSAbstractMethodDefinition
+        ) {
             if (node.typeParameters)
                 runTraverserForNodes(
                     node.typeParameters.params,
@@ -29,7 +33,7 @@ export class MethodTraverser extends Traverser {
 
             runTraverserForNode(node.key, { parentPropName: MethodTraverser.KEY_PROP }, processingContext, processors, conceptMaps);
 
-            if (node.type === AST_NODE_TYPES.MethodDefinition) {
+            if (node.type === AST_NODE_TYPES.MethodDefinition || node.type === AST_NODE_TYPES.TSAbstractMethodDefinition) {
                 runTraverserForNodes(
                     node.value.params,
                     { parentPropName: MethodTraverser.PARAMETERS_PROP },
