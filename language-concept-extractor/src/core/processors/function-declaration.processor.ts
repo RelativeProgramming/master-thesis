@@ -16,6 +16,9 @@ import { DependencyResolutionProcessor } from "./dependency-resolution.processor
 import { parseFunctionType } from "./type.utils";
 
 export class FunctionDeclarationProcessor extends Processor {
+    /** is used to provide an LCETypeFunction object of the currently traversed function */
+    public static readonly FUNCTION_TYPE_CONTEXT_ID = "function-type";
+
     public executionCondition: ExecutionCondition = new ExecutionCondition(
         [AST_NODE_TYPES.FunctionDeclaration, AST_NODE_TYPES.TSDeclareFunction],
         ({ node }) => {
@@ -37,7 +40,7 @@ export class FunctionDeclarationProcessor extends Processor {
 
             const functionType = parseFunctionType({ globalContext, localContexts, node }, node);
             if (functionType) {
-                localContexts.currentContexts.set(FunctionParameterProcessor.FUNCTION_TYPE_CONTEXT_ID, functionType);
+                localContexts.currentContexts.set(FunctionDeclarationProcessor.FUNCTION_TYPE_CONTEXT_ID, functionType);
                 if (node.id) {
                     const fqn = DependencyResolutionProcessor.constructScopeFQN(localContexts);
                     DependencyResolutionProcessor.registerDeclaration(localContexts, node.id.name, fqn, true);
@@ -49,7 +52,7 @@ export class FunctionDeclarationProcessor extends Processor {
     public override postChildrenProcessing({ node, localContexts, globalContext }: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
         if (node.type === AST_NODE_TYPES.FunctionDeclaration || node.type === AST_NODE_TYPES.TSDeclareFunction) {
             // TODO: handle overloads
-            const functionType = localContexts.currentContexts.get(FunctionParameterProcessor.FUNCTION_TYPE_CONTEXT_ID) as
+            const functionType = localContexts.currentContexts.get(FunctionDeclarationProcessor.FUNCTION_TYPE_CONTEXT_ID) as
                 | LCETypeFunction
                 | undefined;
             if (functionType) {
@@ -78,16 +81,15 @@ export class FunctionDeclarationProcessor extends Processor {
 }
 
 export class FunctionParameterProcessor extends Processor {
-    public static readonly FUNCTION_TYPE_CONTEXT_ID = "function-type";
-
     public executionCondition: ExecutionCondition = new ExecutionCondition(
         [AST_NODE_TYPES.Identifier], // TODO: add other parameter patterns
-        ({ localContexts }) => !!localContexts.parentContexts && localContexts.parentContexts.has(FunctionParameterProcessor.FUNCTION_TYPE_CONTEXT_ID)
+        ({ localContexts }) =>
+            !!localContexts.parentContexts && localContexts.parentContexts.has(FunctionDeclarationProcessor.FUNCTION_TYPE_CONTEXT_ID)
     );
 
     public override postChildrenProcessing({ node, localContexts }: ProcessingContext, childConcepts: ConceptMap): ConceptMap {
         if (localContexts.parentContexts) {
-            const functionType = localContexts.parentContexts.get(FunctionParameterProcessor.FUNCTION_TYPE_CONTEXT_ID) as LCETypeFunction;
+            const functionType = localContexts.parentContexts.get(FunctionDeclarationProcessor.FUNCTION_TYPE_CONTEXT_ID) as LCETypeFunction;
             if (functionType) {
                 const paramIndex = getParentPropIndex(localContexts);
                 if (paramIndex !== undefined) {
