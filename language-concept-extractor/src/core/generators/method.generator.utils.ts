@@ -64,8 +64,6 @@ export async function createMethodNode(
         methodTypeParamNodes
     );
 
-    // TODO: add method references
-
     return methodNodeId;
 }
 

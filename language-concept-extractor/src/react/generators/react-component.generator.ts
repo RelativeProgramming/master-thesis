@@ -12,24 +12,24 @@ export class ReactComponentGenerator extends Generator {
         // Function Components
         await neo4jSession.run(`
             MATCH (c:TS:Variable)-[:OF_TYPE]->(:TS:Type:Declared {referencedFqn:'"React".FC'}) 
-            SET c:React:FunctionComponent
+            SET c:React:ReactComponent:FunctionComponent
         `);
 
         await neo4jSession.run(`
             MATCH (c:TS:Variable)-[:OF_TYPE]->(:TS:Type:Function)-[:RETURNS]->(:TS:Type:Declared {referencedFqn:'"global.JSX".Element'}) 
-            SET c:React:FunctionComponent
+            SET c:React:ReactComponent:FunctionComponent
         `);
 
         // Higher-Order Components
         await neo4jSession.run(`
             MATCH (c:TS:Variable)-[:OF_TYPE]->(:TS:Type:Function)-[:RETURNS]->(:TS:Type:Function)-[:RETURNS]->(:TS:Type:Declared {referencedFqn:'"global.JSX".Element'}) 
-            SET c:React:HigherOrderComponent
+            SET c:React:ReactComponent:HigherOrderComponent
         `);
 
         // Class Components
         await neo4jSession.run(`
             MATCH (c:TS:Class)-[:EXTENDS]->(:TS:Type:Declared {referencedFqn:'"React".Component'}) 
-            SET c:React:ClassComponent
+            SET c:React:ReactComponent:ClassComponent
         `);
     }
 }
