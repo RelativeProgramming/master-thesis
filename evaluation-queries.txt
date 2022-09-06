@@ -1,13 +1,44 @@
 Front-End Example: react-wordle
 
 ### React components with different name, than file name:
-MATCH (m:TS:Module)-[:EXPORTS]->(decl:React) 
+MATCH (m:TS:Module)-[:EXPORTS]->(decl:ReactComponent) 
 WHERE NOT m.fileName CONTAINS decl.name
-AND NOT (m:External)
 RETURN m, decl
 
 ### React components declared outside of "components" directory
-MATCH (m:TS:Module)-[:DECLARES]->(decl:React) 
+MATCH (m:TS:Module)-[:DECLARES]->(decl:ReactComponent) 
 WHERE NOT m.fileName CONTAINS "/src/components"
-AND NOT (m:External)
 RETURN m, decl
+
+### Dependency Exploration (Directory Dependencies)
+Preparation:
+
+// transitive dependency propagation
+MATCH (decl:TS:Module)-[r:DEPENDS_ON]->(trgt:TS:Module)<-[:CONTAINS*]-(trgtParent:Directory)
+WHERE NOT (trgtParent)-[:CONTAINS*]->(decl)
+CREATE (decl)-[:DEPENDS_ON {cardinality: r.cardinality}]->(trgtParent)
+
+MATCH (srcParent:Directory)-[:CONTAINS*]->(decl)-[r:DEPENDS_ON]->(trgt)
+WHERE (NOT (srcParent)-[:CONTAINS*]->(trgt)) AND (trgt:Directory OR trgt:TS:Module)
+CREATE (srcParent)-[:DEPENDS_ON {cardinality: r.cardinality}]->(trgt)
+
+// aggregate relations
+MATCH (src)-[r:DEPENDS_ON]->(trgt)
+WITH src, trgt, collect(r) AS rels, sum(r.cardinality) AS new_cardinality
+WHERE size(rels) > 1
+SET (rels[0]).cardinality = new_cardinality
+WITH src, trgt, rels, new_cardinality
+UNWIND range(1,size(rels)-1) AS idx
+DELETE rels[idx]
+
+Dependencies between top-level source directories:
+MATCH (d1:Directory)-[:DEPENDS_ON]-(d2:Directory) 
+WHERE d1.fileName =~ "/src/[a-zA-z]*" 
+AND d2.fileName =~ "/src/[a-zA-z]*" 
+RETURN *
+
+Dependencies between component sub directories: (none)
+MATCH (d1:Directory)-[:DEPENDS_ON]-(d2:Directory)
+WHERE d1.fileName STARTS WITH "/src/components"
+AND d2.fileName STARTS WITH "/src/components"
+RETURN *
