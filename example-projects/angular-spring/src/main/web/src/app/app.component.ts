@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { OrderItem } from 'src/model/order-item.model';
-import { Order } from 'src/model/order.model';
-import { Product } from 'src/model/product.model';
-import { OrderService } from 'src/service/order.service';
-import { ProductService } from 'src/service/product.service';
+import { OrderItem } from '../model/order-item.model';
+import { Order } from '../model/order.model';
+import { Product } from '../model/product.model';
+import { OrderService } from '../service/order.service';
+import { ProductService } from '../service/product.service';
 
 @Component({
   selector: 'app-root',

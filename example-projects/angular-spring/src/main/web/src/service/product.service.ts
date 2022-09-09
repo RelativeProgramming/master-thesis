@@ -1,8 +1,8 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { SERVER_API_URL } from 'src/constants';
-import { Product } from 'src/model/product.model';
+import { SERVER_API_URL } from '../constants';
+import { Product } from '../model/product.model';
 
 @Injectable({
   providedIn: 'root',
