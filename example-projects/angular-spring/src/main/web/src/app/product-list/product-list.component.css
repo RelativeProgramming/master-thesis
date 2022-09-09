@@ -1,0 +1,17 @@
+
+.product-button {
+  margin-inline: 0.5em;
+  height: 3em;
+  font-weight: bolder;
+  background-color: tan;
+  border: solid 2px black;
+  border-radius: 3px;
+}
+
+.product-button:hover {
+  background-color: #f0e68c;
+}
+
+.product-button:active {
+  background-color: #ddd;
+}

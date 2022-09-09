@@ -1,0 +1,10 @@
+<h1>Hardware Store</h1>
+<product-list
+  [products]="products"
+  (addToCart)="add1ToCart($event)"
+></product-list>
+<hr />
+<cart [products]="products" [orderItems]="orderItems"></cart>
+<hr />
+<checkout (checkout)="checkout()"></checkout>
+<h3 *ngIf="message">{{ message }}</h3>

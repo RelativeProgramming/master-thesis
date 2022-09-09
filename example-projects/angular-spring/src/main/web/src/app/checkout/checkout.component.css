@@ -1,0 +1,16 @@
+.checkout-button {
+  margin-inline: 0.5em;
+  height: 3em;
+  font-weight: bolder;
+  background-color: #0088dd;
+  border: solid 2px black;
+  border-radius: 3px;
+}
+
+.checkout-button:hover {
+  background-color: lightblue;
+}
+
+.checkout-button:active {
+  background-color: #ddd;
+}
