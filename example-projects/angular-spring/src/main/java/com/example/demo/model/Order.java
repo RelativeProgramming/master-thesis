@@ -1,10 +1,8 @@
 package com.example.demo.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.persistence.*;
-import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,12 +18,12 @@ public class Order {
     private LocalDate dateCreated;
 
     @OneToMany
-    private List<OrderItem> orderProducts = new ArrayList<>();
+    private List<OrderItem> orderItems = new ArrayList<>();
 
     @Transient
     public Double getTotalOrderPrice() {
         double sum = 0D;
-        List<OrderItem> orderProducts = getOrderProducts();
+        List<OrderItem> orderProducts = getOrderItems();
         for (OrderItem item : orderProducts) {
             sum += item.getTotalPrice();
         }
@@ -49,11 +47,11 @@ public class Order {
         this.dateCreated = dateCreated;
     }
 
-    public List<OrderItem> getOrderProducts() {
-        return orderProducts;
+    public List<OrderItem> getOrderItems() {
+        return orderItems;
     }
 
-    public void setOrderProducts(List<OrderItem> orderProducts) {
-        this.orderProducts = orderProducts;
+    public void setOrderItems(List<OrderItem> orderProducts) {
+        this.orderItems = orderProducts;
     }
 }

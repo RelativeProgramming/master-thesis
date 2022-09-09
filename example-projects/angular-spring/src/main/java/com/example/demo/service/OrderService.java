@@ -22,7 +22,7 @@ public class OrderService {
 
     public Order save(OrderDTO orderDTO) {
         Order order = new Order();
-        order.setOrderProducts(orderItemService.saveAll(orderDTO.getItems()));
+        order.setOrderItems(orderItemService.saveAll(orderDTO.getItems()));
         order.setDateCreated(LocalDate.now());
         return orderRepository.save(order);
     }

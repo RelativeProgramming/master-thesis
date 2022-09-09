@@ -31,14 +31,103 @@ WITH src, trgt, rels, new_cardinality
 UNWIND range(1,size(rels)-1) AS idx
 DELETE rels[idx]
 
-Dependencies between top-level source directories:
+### Dependencies between top-level source directories:
 MATCH (d1:Directory)-[:DEPENDS_ON]-(d2:Directory) 
 WHERE d1.fileName =~ "/src/[a-zA-z]*" 
 AND d2.fileName =~ "/src/[a-zA-z]*" 
 RETURN *
 
-Dependencies between component sub directories: (none)
+### Dependencies between component sub directories: (none)
 MATCH (d1:Directory)-[:DEPENDS_ON]-(d2:Directory)
 WHERE d1.fileName STARTS WITH "/src/components"
 AND d2.fileName STARTS WITH "/src/components"
+RETURN *
+
+
+============================================================================================================================================
+
+
+Front-end/Back-end Example: angular-spring
+
+### Identification of different component types
+// Backend Model classes
+MATCH (n:File:Java:Class) 
+WHERE n.fileName STARTS WITH "/com/example/demo/model/"
+AND (n)-[:ANNOTATED_BY]->(:Java:Value)-[:OF_TYPE]->(:Java:Type {fqn: "javax.persistence.Entity"})
+SET n:BackendModel
+
+// Backend DTO classes
+MATCH (n:File:Java:Class) 
+WHERE n.fileName STARTS WITH "/com/example/demo/dto/"
+AND n.name ENDS WITH "DTO"
+SET n:BackendDTO
+
+// Backend VM classes
+MATCH (n:File:Java:Class) 
+WHERE n.fileName STARTS WITH "/com/example/demo/vm/"
+AND n.name ENDS WITH "VM"
+SET n:BackendVM
+
+// Backend Controller classes
+MATCH (n:File:Java:Class) 
+WHERE n.fileName STARTS WITH "/com/example/demo/controller/"
+AND (n)-[:ANNOTATED_BY]->(:Java:Value)-[:OF_TYPE]->(:Java:Type {fqn: "org.springframework.web.bind.annotation.RestController"})
+SET n:BackendController
+
+// Backend Service classes
+MATCH (n:File:Java:Class) 
+WHERE n.fileName STARTS WITH "/com/example/demo/service/"
+AND (n)-[:ANNOTATED_BY]->(:Java:Value)-[:OF_TYPE]->(:Java:Type {fqn: "org.springframework.stereotype.Service"})
+SET n:BackendService
+
+// Backend Repository classes
+MATCH (n:File:Java:Interface) 
+WHERE n.fileName STARTS WITH "/com/example/demo/repository/"
+AND (n)-[:IMPLEMENTS_GENERIC]->(:Java:Bound)-[:OF_RAW_TYPE]->(:Java:Type {fqn: "org.springframework.data.jpa.repository.JpaRepository"})
+SET n:BackendRepository
+
+// Frontend Model classes
+MATCH (m:TS:Module)-[:DECLARES]->(n:TS:Class) 
+WHERE m.fileName STARTS WITH "/src/model/"
+AND m.fileName ENDS WITH ".model.ts"
+SET n:FrontendModel
+
+// Frontend Service classes
+MATCH (m:TS:Module)-[:DECLARES]->(n:TS:Class) 
+WHERE m.fileName STARTS WITH "/src/service/"
+AND m.fileName ENDS WITH ".service.ts"
+AND (n)-[:DECORATED_BY]-(:TS:Value:Call)-[:CALLS]->(:TS:Value:Declared {referencedFqn: '"@angular/core".Injectable'})
+SET n:FrontendService
+
+// Frontend UI Component classes
+MATCH (m:TS:Module)-[:DECLARES]->(n:TS:Class) 
+WHERE m.fileName STARTS WITH "/src/app/"
+AND m.fileName ENDS WITH ".component.ts"
+AND (n)-[:DECORATED_BY]-(:TS:Value:Call)-[:CALLS]->(:TS:Value:Declared {referencedFqn: '"@angular/core".Component'})
+SET n:FrontendUIComponent
+
+
+### Linking of model, dto and vm classes
+
+// Create Dependencies between model classes
+MATCH (f:FrontendModel)
+MATCH (b:Java:Class)
+WHERE (b:BackendModel AND b.name = f.name)
+OR (b:BackendDTO AND b.name STARTS WITH f.name AND size(f.name) = size(b.name)-3)
+OR (b:BackendVM AND b.name STARTS WITH f.name AND size(f.name) = size(b.name)-2)
+WITH f, b
+MATCH (f)-[:DECLARES]->(fp:TS:Property)
+MATCH (b)-[:DECLARES]->(bp:Java:Field)
+WHERE fp.name = bp.name
+WITH f, b, COUNT(fp) as w
+MERGE (f)-[:DEPENDS_ON {weight: w}]->(b)
+
+// Find parts of the application dependant on "OrderItem" Backend Model Class
+MATCH (c:Class)-[:DEPENDS_ON*]->(o:Java:Class {name: "OrderItem"})
+RETURN *
+
+// Layering Constraint
+MATCH (uic:FrontendUIComponent)
+MATCH (s:FrontendService)
+WHERE (s)-[:DEPENDS_ON]->(uic)
 RETURN *
